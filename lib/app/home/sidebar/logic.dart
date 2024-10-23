@@ -4,6 +4,7 @@ import 'package:admin_flutter/app/home/pages/demo/view.dart';
 import 'package:admin_flutter/app/home/pages/demo2/view.dart';
 import 'package:admin_flutter/app/home/pages/demo3/view.dart';
 import 'package:admin_flutter/app/home/pages/empty/view.dart';
+import 'package:admin_flutter/app/home/pages/job/view.dart';
 import 'package:admin_flutter/app/home/pages/play/view.dart';
 import 'package:admin_flutter/app/home/pages/rich_text/view.dart';
 import 'package:admin_flutter/app/home/pages/user/view.dart';
@@ -23,14 +24,41 @@ class SidebarLogic extends GetxController {
   static var breadcrumbList = <SidebarTree>[].obs;
 
   static List<SidebarTree> treeList = [
-    AnalysisPage.newThis(),
     SidebarTree(
-      name: "示例页面",
+      name: "岗位管理",
+      icon: Icons.expand,
+      children: jobList,
+    ),
+    SidebarTree(
+      name: "学员管理",
       icon: Icons.expand,
       children: demoList,
     ),
-    AboutPage.newThis(),
+    SidebarTree(
+      name: "试题计划",
+      icon: Icons.expand,
+      children: demoList,
+    ),
+    SidebarTree(
+      name: "心理测试",
+      icon: Icons.expand,
+      children: demoList,
+    ),
+    SidebarTree(
+      name: "讲义管理",
+      icon: Icons.expand,
+      children: demoList,
+    ),
     SettingsPage.newThis(),
+  ];
+
+  static List<SidebarTree> jobList = [
+    JobPage.newThis(),
+    SidebarTree(
+      name: "嵌套页面",
+      icon: Icons.extension,
+      children: demo2List,
+    ),
   ];
 
   static List<SidebarTree> demoList = [

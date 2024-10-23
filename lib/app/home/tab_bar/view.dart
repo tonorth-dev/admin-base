@@ -27,7 +27,6 @@ class TabBarPage extends StatelessWidget {
         children: [
           TabBar(
             controller: logic.tabController,
-            indicatorAnimation: TabIndicatorAnimation.linear,
             onTap: (e) {
               var tab = logic.tabList[e];
               logic.currentIndex.value = e;

@@ -1,3 +1,4 @@
+import 'package:admin_flutter/app/home/pages/job/view.dart';
 import 'package:admin_flutter/component/ui_edit.dart';
 import 'package:admin_flutter/theme/theme_util.dart';
 import 'package:flutter/material.dart';
@@ -33,15 +34,10 @@ class TableData {
       required this.rows,
       this.headerHeight = 50,
       this.isZebra = true,
-        this.isBorder = false,
+      this.isBorder = false,
       this.cellHeight = 50,
-      this.isIndex = false});
-
-
-
-
-
-
+      this.isIndex = false,
+      required TableTheme theme});
 }
 
 class ColumnData {
@@ -72,11 +68,15 @@ class ColumnData {
       this.titleRender = defaultTitleRender,
       this.alignment = Alignment.center});
 
-  static Widget defaultRender(dynamic value, Map<String, dynamic> data, int index, TableData tableData){
+  static Widget defaultRender(dynamic value, Map<String, dynamic> data,
+      int index, TableData tableData) {
     return Text("$value");
   }
 
-  static Widget defaultTitleRender(String title, TableData table){
-    return Text(title,    style: const TextStyle(fontSize: 18),);
+  static Widget defaultTitleRender(String title, TableData table) {
+    return Text(
+      title,
+      style: const TextStyle(fontSize: 18),
+    );
   }
 }
