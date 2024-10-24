@@ -1,6 +1,3 @@
-import 'package:admin_flutter/app/home/pages/job/view.dart';
-import 'package:admin_flutter/component/ui_edit.dart';
-import 'package:admin_flutter/theme/theme_util.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -84,3 +81,20 @@ class ColumnData {
     );
   }
 }
+
+class TableTheme {
+  final Color headerColor;
+  final Color headerTextColor;
+  final Color rowColor;
+  final Color textColor;
+  final Color alternateRowColor;
+
+  TableTheme({
+    required this.headerColor,
+    required this.headerTextColor,
+    required this.rowColor,
+    required this.textColor,
+    required this.alternateRowColor, required Border border,
+  });
+}
+

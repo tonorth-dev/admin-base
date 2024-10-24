@@ -108,22 +108,6 @@ class JobPage extends StatelessWidget {
 }
 
 
-class TableTheme {
-  final Color headerColor;
-  final Color headerTextColor;
-  final Color rowColor;
-  final Color textColor;
-  final Color alternateRowColor;
-
-  TableTheme({
-    required this.headerColor,
-    required this.headerTextColor,
-    required this.rowColor,
-    required this.textColor,
-    required this.alternateRowColor, required Border border,
-  });
-}
-
 class TablePage extends StatelessWidget {
   final bool loading;
   final TableData tableData;
