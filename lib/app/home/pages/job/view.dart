@@ -2,19 +2,11 @@ import 'package:admin_flutter/app/home/sidebar/logic.dart';
 import 'package:admin_flutter/component/pagination/view.dart';
 import 'package:admin_flutter/component/table/ex.dart';
 import 'package:admin_flutter/component/table/table_data.dart';
-import 'package:admin_flutter/component/table/view.dart';
 import 'package:admin_flutter/theme/theme_util.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../state.dart';
-import '../../../../state.dart';
-import '../../../../theme/ui_theme.dart';
+import 'package:admin_flutter/theme/ui_theme.dart';
 import 'logic.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
-import 'dart:convert';
-import 'package:csv/csv.dart';
 
 class JobPage extends StatelessWidget {
   JobPage({Key? key}) : super(key: key);
@@ -22,6 +14,15 @@ class JobPage extends StatelessWidget {
   final logic = Get.put(JobLogic());
 
   @override
+  /// Builds the widget tree for the JobPage.
+  ///
+  /// This method returns a `Column` containing an actions row and two main sections:
+  /// a horizontally and vertically scrollable `TablePage` and a `PaginationPage`.
+  /// The actions row includes several `FilledButton` widgets for adding entries,
+  /// exporting data to CSV (current page and all), and importing data from CSV.
+  /// The table displays data using the `TableData` with specified styling.
+  ///
+  /// - [context]: The `BuildContext` in which the widget tree is built.
   Widget build(BuildContext context) {
     return Column(
       children: [
@@ -107,61 +108,98 @@ class JobPage extends StatelessWidget {
   }
 }
 
-
-class TablePage extends StatelessWidget {
+class TablePage extends StatefulWidget {
+  final Key? key;
   final bool loading;
   final TableData tableData;
 
-  TablePage({required this.loading, required this.tableData});
+  const TablePage({this.key, required this.loading, required this.tableData}) : super(key: key);
+
+  @override
+  _TablePageState createState() => _TablePageState();
+}
+
+class _TablePageState extends State<TablePage> {
+  int? _hoveredRowIndex; // 用于记录当前悬停的行索引
 
   @override
   Widget build(BuildContext context) {
-    return loading
+    return widget.loading
         ? Center(child: CircularProgressIndicator())
         : DataTable(
       columnSpacing: 16,
-      dataRowHeight: 56,
+      dataRowMinHeight: 56,
+      dataRowMaxHeight: 56,
       headingRowHeight: 56,
       dividerThickness: 1,
       showBottomBorder: true,
-      columns: tableData.columns.map((column) {
+      columns: widget.tableData.columns.map((column) {
         return DataColumn(
           label: Text(
-            column.title, // 修改这里，使用 column.title
+            column.title,
             style: TextStyle(
-              color: tableData.theme.headerTextColor,
+              color: widget.tableData.theme.headerTextColor,
               fontWeight: FontWeight.bold,
             ),
           ),
         );
       }).toList(),
-      rows: tableData.rows.asMap().entries.map((entry) {
-        int index = entry.key;
-        Map<String, dynamic> row = entry.value;
+      rows: List.generate(widget.tableData.rows.length, (index) {
+        Map<String, dynamic> row = widget.tableData.rows[index];
+        bool isHovered = _hoveredRowIndex == index;
         return DataRow(
-          cells: tableData.columns.map((column) {
+          cells: widget.tableData.columns.map((column) {
             return DataCell(
-              Text(
-                row[column.key]?.toString() ?? '', // 修改这里，使用 column.key
-                style: TextStyle(
-                  color: tableData.theme.textColor,
+              MouseRegion(
+                onEnter: (_) {
+                  setState(() {
+                    _hoveredRowIndex = index;
+                  });
+                },
+                onExit: (_) {
+                  setState(() {
+                    _hoveredRowIndex = null;
+                  });
+                },
+                child: Container(
+                  width: double.infinity, // 确保整行的宽度
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  color: isHovered
+                      ? Colors.grey.shade300
+                      : Colors.transparent, // 确保整行悬停高亮
+                  child: SelectableText(
+                    row[column.key]?.toString() ?? '',
+                    style: TextStyle(
+                      color: widget.tableData.theme.textColor,
+                    ),
+                  ),
                 ),
               ),
             );
           }).toList(),
           color: MaterialStateProperty.resolveWith<Color?>(
                 (Set<MaterialState> states) {
-              if (index % 2 == 0) {
-                return tableData.theme.rowColor;
+              if (isHovered) {
+                return Colors.grey.shade300; // 整行悬停高亮
+              } else if (index % 2 == 0) {
+                return widget.tableData.theme.rowColor;
               } else {
-                return tableData.theme.alternateRowColor;
+                return widget.tableData.theme.alternateRowColor;
               }
             },
           ),
         );
       }).toList(),
-      headingRowColor: MaterialStateProperty.all(tableData.theme.headerColor),
+      headingRowColor:
+      MaterialStateProperty.all(widget.tableData.theme.headerColor),
     );
   }
 }
+
+
+
+
+
+
+
 

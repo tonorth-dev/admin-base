@@ -4,16 +4,15 @@ import 'package:admin_flutter/app/home/pages/demo/view.dart';
 import 'package:admin_flutter/app/home/pages/demo2/view.dart';
 import 'package:admin_flutter/app/home/pages/demo3/view.dart';
 import 'package:admin_flutter/app/home/pages/empty/view.dart';
-import 'package:admin_flutter/app/home/pages/job/view.dart';
 import 'package:admin_flutter/app/home/pages/play/view.dart';
 import 'package:admin_flutter/app/home/pages/rich_text/view.dart';
 import 'package:admin_flutter/app/home/pages/user/view.dart';
-import 'package:admin_flutter/app/home/system/about/view.dart';
-import 'package:admin_flutter/app/home/system/analysis/view.dart';
 import 'package:admin_flutter/app/home/system/settings/view.dart';
 import 'package:admin_flutter/ex/ex_int.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import 'package:admin_flutter/app/home/pages/job/view.dart';
 
 class SidebarLogic extends GetxController {
   static var selectName = "".obs;
