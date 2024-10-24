@@ -114,6 +114,25 @@ class JobLogic extends GetxController {
         });
   }
 
+  void modify(Map<String, dynamic> d, int index) {
+    form.data = d;
+    form.edit(
+        submit: (data) => {
+              JobApi.jobUpdate(params: data).then((value) {
+                "更新成功!".toHint();
+                list.removeAt(index);
+                list.insert(index, data);
+                Get.back();
+              })
+            });
+  }
+
+  void delete(Map<String, dynamic> d, int index) {
+    JobApi.jobDelete(params: {"id": d["id"]}).then((value) {
+      list.removeAt(index);
+    });
+  }
+
   // 刷新功能
   void refresh() {
     find(size, page);
