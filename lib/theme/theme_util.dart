@@ -1,3 +1,4 @@
+import 'package:admin_flutter/app/home/pages/job/view.dart';
 import 'package:admin_flutter/theme/ui_theme.dart';
 import 'package:flutter/material.dart';
 
@@ -41,6 +42,17 @@ class ThemeUtil {
     return VerticalDivider(
       width: width,
       color: UiTheme.border(),
+    );
+  }
+
+  static TableTheme getDefaultTheme() {
+    return TableTheme(
+      border: Border.all(color: UiTheme.primary(), width: 1),
+      headerColor: UiTheme.primary().withOpacity(0.8), // 添加 headerColor
+      headerTextColor: Colors.white, // 添加 headerTextColor
+      rowColor: UiTheme.primary().withOpacity(0.2), // 添加 rowColor
+      textColor: UiTheme.primary(), // 添加 textColor
+      alternateRowColor: UiTheme.primary().withOpacity(0.1), // 添加 alternateRowColor
     );
   }
 }

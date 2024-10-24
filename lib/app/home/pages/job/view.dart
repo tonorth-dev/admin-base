@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../state.dart';
 import '../../../../state.dart';
+import '../../../../theme/ui_theme.dart';
 import 'logic.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -77,6 +78,7 @@ class JobPage extends StatelessWidget {
                       rowColor: Colors.grey.shade200,
                       textColor: Colors.black,
                       alternateRowColor: Colors.grey.shade100,
+                      border: Border.all(color: UiTheme.primary(), width: 1),
                     ),
                   ),
                 ),
@@ -118,7 +120,7 @@ class TableTheme {
     required this.headerTextColor,
     required this.rowColor,
     required this.textColor,
-    required this.alternateRowColor,
+    required this.alternateRowColor, required Border border,
   });
 }
 
@@ -141,7 +143,7 @@ class TablePage extends StatelessWidget {
       columns: tableData.columns.map((column) {
         return DataColumn(
           label: Text(
-            column as String,
+            column.title, // 修改这里，使用 column.title
             style: TextStyle(
               color: tableData.theme.headerTextColor,
               fontWeight: FontWeight.bold,
@@ -156,7 +158,7 @@ class TablePage extends StatelessWidget {
           cells: tableData.columns.map((column) {
             return DataCell(
               Text(
-                row[column]?.toString() ?? '',
+                row[column.key]?.toString() ?? '', // 修改这里，使用 column.key
                 style: TextStyle(
                   color: tableData.theme.textColor,
                 ),
@@ -178,3 +180,4 @@ class TablePage extends StatelessWidget {
     );
   }
 }
+

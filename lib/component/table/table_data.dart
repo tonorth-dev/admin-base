@@ -26,18 +26,22 @@ class TableData {
   /// 开启索引栏
   final bool isIndex;
 
+  /// 主题
+  final TableTheme theme;
+
   /// 多选列表
   final list = <Map<String, dynamic>>[].obs;
 
-  TableData(
-      {required this.columns,
-      required this.rows,
-      this.headerHeight = 50,
-      this.isZebra = true,
-      this.isBorder = false,
-      this.cellHeight = 50,
-      this.isIndex = false,
-      required TableTheme theme});
+  TableData({
+    required this.columns,
+    required this.rows,
+    this.headerHeight = 50,
+    this.isZebra = true,
+    this.isBorder = false,
+    this.cellHeight = 50,
+    this.isIndex = false,
+    required this.theme,
+  });
 }
 
 class ColumnData {

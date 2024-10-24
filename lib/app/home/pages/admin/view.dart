@@ -42,7 +42,8 @@ class AdminPage extends StatelessWidget {
               tableData: TableData(
                   isIndex: true,
                   columns: logic.columns,
-                  rows: logic.list.toList()),
+                  rows: logic.list.toList(),
+                  theme: ThemeUtil.getDefaultTheme()),
             );
           }),
         ),

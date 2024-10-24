@@ -12,6 +12,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../job/view.dart';
+
 class UserLogic extends GetxController {
   var dbList = <Map<String, dynamic>>[].obs;
   var total = 200.obs;
@@ -27,6 +29,14 @@ class UserLogic extends GetxController {
 
   /// 名称选择
   var nameSel = "";
+
+  final theme = TableTheme(
+    headerColor: Colors.grey,
+    rowColor: Colors.white,
+    alternateRowColor: Colors.grey,
+    headerTextColor: Colors.white,
+    textColor: Colors.black, border: Border.all(color: Colors.grey),
+  );
 
   Map<String, dynamic> _data(int i) {
     return {

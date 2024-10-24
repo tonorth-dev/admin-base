@@ -4,10 +4,13 @@ import 'package:admin_flutter/component/table/ex.dart';
 import 'package:admin_flutter/component/table/table_data.dart';
 import 'package:admin_flutter/component/table/view.dart';
 import 'package:admin_flutter/ex/ex_btn.dart';
+import 'package:admin_flutter/state.dart';
 import 'package:admin_flutter/theme/theme_util.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../state.dart';
+import '../../../../state.dart';
 import 'logic.dart';
 
 class UserPage extends StatelessWidget {
@@ -55,6 +58,7 @@ class UserPage extends StatelessWidget {
           child: Obx(() {
             return TablePage(
               tableData: TableData(
+                  theme: ThemeUtil.getDefaultTheme(),
                   isIndex: true,
                   columns: logic.columns,
                   rows: logic.list.toList()),
