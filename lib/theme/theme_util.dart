@@ -56,4 +56,15 @@ class ThemeUtil {
       alternateRowColor: UiTheme.primary().withOpacity(0.1), // 添加 alternateRowColor
     );
   }
+
+  static TableTheme getDarkTheme() {
+    return TableTheme(
+      border: Border.all(color: Colors.grey.shade300, width: 1), // 边框颜色为浅灰色
+      headerColor: Colors.blue.shade700, // 表头背景色为深蓝色
+      headerTextColor: Colors.white, // 表头文字颜色为白色
+      rowColor: Colors.white, // 偶数行背景色为白色
+      textColor: Colors.black, // 表格文字颜色为黑色
+      alternateRowColor: Colors.grey.shade100, // 奇数行背景色为非常浅的灰色
+    );
+  }
 }

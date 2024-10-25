@@ -133,6 +133,10 @@ class JobLogic extends GetxController {
     });
   }
 
+  void batchDelete(List<int> d) {
+    print(List);
+  }
+
   void search(String key) {
     JobApi.jobSearch(params: {"key": key}).then((value) {
       refresh();
