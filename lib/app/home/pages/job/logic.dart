@@ -133,6 +133,12 @@ class JobLogic extends GetxController {
     });
   }
 
+  void search(String key) {
+    JobApi.jobSearch(params: {"key": key}).then((value) {
+      refresh();
+    });
+  }
+
   // 刷新功能
   void refresh() {
     find(size, page);

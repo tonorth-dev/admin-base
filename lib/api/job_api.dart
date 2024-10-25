@@ -17,4 +17,8 @@ class JobApi {
   static Future<dynamic> jobUpdate({Map<String, dynamic>? params}) async {
     return await HttpUtil.post("/job/update", params: params);
   }
+
+  static Future<dynamic> jobSearch({Map<String, dynamic>? params}) async {
+    return await HttpUtil.post("/job/list", params: params);
+  }
 }
