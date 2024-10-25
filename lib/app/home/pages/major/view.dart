@@ -8,12 +8,12 @@ import 'package:get/get.dart';
 import 'package:admin_flutter/theme/ui_theme.dart';
 import 'logic.dart';
 
-/// JobPage 是一个无状态小部件，用于显示岗位列表页面。
-class JobPage extends StatelessWidget {
-  JobPage({Key? key}) : super(key: key);
+/// MajorPage 是一个无状态小部件，用于显示岗位列表页面。
+class MajorPage extends StatelessWidget {
+  MajorPage({Key? key}) : super(key: key);
 
-  /// 初始化 JobLogic 实例并将其放入 GetX 状态管理中。
-  final logic = Get.put(JobLogic());
+  /// 初始化 MajorLogic 实例并将其放入 GetX 状态管理中。
+  final logic = Get.put(MajorLogic());
   final List<int> selectedRows = []; // 定义 selectedRows 变量
 
   @override
@@ -42,11 +42,11 @@ class JobPage extends StatelessWidget {
             ThemeUtil.width(), // 添加一些水平间距
             ElevatedButton(
               style: ButtonStyle(
-                minimumSize: MaterialStateProperty.all(const Size(100, 80)),
+                minimumSize: WidgetStateProperty.all(const Size(100, 80)),
                 // 设置最小尺寸
-                fixedSize: MaterialStateProperty.all(const Size(100, 80)),
+                fixedSize: WidgetStateProperty.all(const Size(100, 80)),
                 // 设置固定尺寸
-                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                   RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8), // 设置圆角
                   ),
@@ -102,6 +102,7 @@ class JobPage extends StatelessWidget {
                 scrollDirection: Axis.vertical, // 垂直滚动
                 child: Container(
                   width: 1700, // 设置表格宽度
+                  // 边框样式
                   decoration: BoxDecoration(
                     border: Border.all(
                       color: Colors.grey[300] ?? Colors.white,
@@ -153,9 +154,9 @@ class JobPage extends StatelessWidget {
   /// 创建一个新的 SidebarTree 实例，用于导航栏。
   static SidebarTree newThis() {
     return SidebarTree(
-      name: "岗位列表", // 侧边栏名称
+      name: "专业列表", // 侧边栏名称
       icon: Icons.deblur, // 侧边栏图标
-      page: JobPage(), // 对应的页面
+      page: MajorPage(), // 对应的页面
     );
   }
 }
@@ -165,7 +166,7 @@ class TablePage extends StatefulWidget {
   final Key? key;
   final bool loading; // 是否加载中
   final TableData tableData; // 表格数据
-  final JobLogic logic; // 新增逻辑层实例
+  final MajorLogic logic; // 新增逻辑层实例
 
   const TablePage({
     this.key,

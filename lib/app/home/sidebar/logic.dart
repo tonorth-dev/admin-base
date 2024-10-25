@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'package:admin_flutter/app/home/pages/job/view.dart';
+import 'package:admin_flutter/app/home/pages/major/view.dart';
 
 class SidebarLogic extends GetxController {
   static var selectName = "".obs;
@@ -53,6 +54,7 @@ class SidebarLogic extends GetxController {
 
   static List<SidebarTree> jobList = [
     JobPage.newThis(),
+    MajorPage.newThis(),
     SidebarTree(
       name: "嵌套页面",
       icon: Icons.extension,
