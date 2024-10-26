@@ -32,9 +32,11 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   intl: any
-  syncfusion_flutter_datagrid: ^20.3.48
-  syncfusion_flutter_core: ^20.3.48
-
+  syncfusion_flutter_datagrid: ^27.1.56
+  syncfusion_flutter_core: ^27.1.56
+  syncfusion_flutter_sliders: ^27.1.56
+  syncfusion_flutter_gauges: ^27.1.56
+  syncfusion_flutter_charts: ^27.1.56
 
 dev_dependencies:
   flutter_test:

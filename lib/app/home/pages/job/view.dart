@@ -20,8 +20,8 @@ class JobPage extends StatelessWidget {
             SizedBox(
               width: 260,
               child: TextField(
-                key: Key('search_box'),
-                decoration: InputDecoration(
+                key: const Key('search_box'),
+                decoration: const InputDecoration(
                   hintText: '搜索',
                   prefixIcon: Icon(Icons.search),
                   border: OutlineInputBorder(),
@@ -32,62 +32,98 @@ class JobPage extends StatelessWidget {
             ThemeUtil.width(),
             ElevatedButton(
               onPressed: () => logic.search(""),
-              child: Text("搜索"),
+              child: const Text("搜索"),
             ),
-            Spacer(),
+            const Spacer(),
             FilledButton(
                 onPressed: logic.add,
-                child: Text("新增")),
+                child: const Text("新增")),
             FilledButton(
                 onPressed: () => logic.batchDelete(logic.selectedRows),
-                child: Text("批量删除")),
+                child: const Text("批量删除")),
             FilledButton(
                 onPressed: logic.exportCurrentPageToCSV,
-                child: Text("导出当前页")),
+                child: const Text("导出当前页")),
             FilledButton(
                 onPressed: logic.exportAllToCSV,
-                child: Text("导出全部")),
+                child: const Text("导出全部")),
             FilledButton(
                 onPressed: logic.importFromCSV,
-                child: Text("从 CSV 导入")),
+                child: const Text("从 CSV 导入")),
+            ThemeUtil.width(width: 30),
           ],
         ),
         ThemeUtil.lineH(),
         ThemeUtil.height(),
         Expanded(
           child: Obx(() => logic.loading.value
-              ? Center(child: CircularProgressIndicator())
+              ? const Center(child: CircularProgressIndicator())
               : SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: SizedBox(
-              width: 1700, // 设置宽度
+              width: 1600,
               child: SfDataGrid(
                 source: JobDataSource(logic: logic),
+                headerGridLinesVisibility: GridLinesVisibility.none,
+                columnWidthMode: ColumnWidthMode.fill,
+                headerRowHeight: 50,
                 columns: [
                   GridColumn(
                     columnName: 'Select',
-                    label: Checkbox(
-                      value: logic.selectedRows.length == logic.list.length,
-                      onChanged: (value) => logic.toggleSelectAll(),
+                    label: Container(
+                      // 外层容器用于添加边框
+
+                      child: Container(
+                        // 内层容器用于表头内容，无边框
+                        decoration: BoxDecoration(
+                          color: Colors.indigo[50],
+                        ),
+                        child: Center(
+                          child: Checkbox(
+                            value: logic.selectedRows.length == logic.list.length,
+                            onChanged: (value) => logic.toggleSelectAll(),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   ...logic.columns.map((column) => GridColumn(
                     columnName: column.key,
-                    label: Text(
-                      column.title,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
+                    label: Container(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.indigo[50],
+                        ),
+                        child: Center(
+                          child: Text(
+                            column.title,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[800],
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   )),
                   GridColumn(
                     columnName: 'Actions',
-                    label: Text(
-                      '操作',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
+                    label: Container(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.indigo[50],
+                        ),
+                        child: Center(
+                          child: Text(
+                            '操作',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[800],
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -149,7 +185,7 @@ class JobDataSource extends DataGridSource {
     final rowIndex = _rows.indexOf(row);
 
     return DataGridRowAdapter(
-      color: rowIndex.isEven ? Colors.grey[50] : Colors.white, // 实现交替行背景色
+      color: rowIndex.isEven? Colors.blueGrey[50] : Colors.white,
       cells: [
         Checkbox(
           value: isSelected,
@@ -159,10 +195,10 @@ class JobDataSource extends DataGridSource {
               (cell) => Container(
             padding: EdgeInsets.symmetric(vertical: 8),
             alignment: Alignment.centerLeft,
-            child: Text(cell.value?.toString() ?? '',
+            child: Text(cell.value?.toString()?? '',
                 style: TextStyle(
                     color: Colors.black87,
-                    fontWeight: FontWeight.w500)), // 样式调整
+                    fontWeight: FontWeight.w500)),
           ),
         ),
         Row(
