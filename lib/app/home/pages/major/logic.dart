@@ -90,6 +90,8 @@ class MajorLogic extends GetxController {
     ),
   ]);
 
+  List<int> get selectedRows => [];
+
   void add() {
     form.add(
         reset: true,
@@ -209,5 +211,24 @@ class MajorLogic extends GetxController {
         });
       }
     }
+  }
+
+  void toggleSelect(int rowIndex) {
+    final id = list[rowIndex]['id'];
+    if (selectedRows.contains(id)) {
+      selectedRows.remove(id);
+    } else {
+      selectedRows.add(id);
+    }
+    update(); // 更新视图
+  }
+
+  void toggleSelectAll() {
+    if (selectedRows.length == list.length) {
+      selectedRows.clear();
+    } else {
+      selectedRows.assignAll(list.map((item) => item['id']));
+    }
+    update(); // 更新 UI
   }
 }

@@ -32,6 +32,8 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   intl: any
+  syncfusion_flutter_datagrid: ^20.3.48
+  syncfusion_flutter_core: ^20.3.48
 
 
 dev_dependencies:

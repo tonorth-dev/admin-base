@@ -17,6 +17,7 @@ class JobLogic extends GetxController {
   var size = 0;
   var page = 0;
   var loading = false.obs;
+  RxList<int> selectedRows = <int>[].obs;
 
   void find(int size, int page) {
     this.size = size;
@@ -50,22 +51,6 @@ class JobLogic extends GetxController {
       ColumnData(title: "从事工作", key: "job_desc"),
       ColumnData(title: "所学专业", key: "majors"),
       ColumnData(title: "创建时间", key: "createTime"),
-      TableEx.edit(edit: (d, index) {
-        form.data = d;
-        form.edit(
-            submit: (data) => {
-              JobApi.jobUpdate(params: data).then((value) {
-                "更新成功!".toHint();
-                list.removeAt(index);
-                list.insert(index, data);
-                Get.back();
-              })
-            });
-      }, delete: (d, index) {
-        JobApi.jobDelete(params: {"id": d["id"]}).then((value) {
-          list.removeAt(index);
-        });
-      }),
     ];
   }
 
@@ -221,5 +206,13 @@ class JobLogic extends GetxController {
         });
       }
     }
+  }
+
+  void toggleSelectAll() {
+    selectedRows.length == list.length ? selectedRows.clear() : selectedRows.addAll(list.map((item) => item['id']));
+  }
+
+  void toggleSelect(int index) {
+    selectedRows.contains(index) ? selectedRows.remove(index) : selectedRows.add(index);
   }
 }
