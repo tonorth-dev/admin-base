@@ -7,8 +7,8 @@ import 'package:admin_flutter/app/home/sidebar/logic.dart';
 import 'logic.dart';
 import 'package:admin_flutter/theme/theme_util.dart';
 
-class JobPage extends StatelessWidget {
-  final logic = Get.put(JobLogic());
+class MajorPage extends StatelessWidget {
+  final logic = Get.put(MajorLogic());
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +69,7 @@ class JobPage extends StatelessWidget {
               width: 1700,
               height: Get.height,
               child: SfDataGrid(
-                source: JobDataSource(logic: logic),
+                source: MajorDataSource(logic: logic),
                 headerGridLinesVisibility: GridLinesVisibility.values[1],
                 columnWidthMode: ColumnWidthMode.fill,
                 headerRowHeight: 50,
@@ -147,18 +147,18 @@ class JobPage extends StatelessWidget {
 
   static SidebarTree newThis() {
     return SidebarTree(
-      name: "岗位列表",
+      name: "专业列表",
       icon: Icons.deblur,
-      page: JobPage(),
+      page: MajorPage(),
     );
   }
 }
 
-class JobDataSource extends DataGridSource {
-  final JobLogic logic;
+class MajorDataSource extends DataGridSource {
+  final MajorLogic logic;
   List<DataGridRow> _rows = [];
 
-  JobDataSource({required this.logic}) {
+  MajorDataSource({required this.logic}) {
     _buildRows();
   }
 

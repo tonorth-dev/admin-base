@@ -2,7 +2,7 @@ import 'package:admin_flutter/ex/ex_hint.dart';
 import 'package:admin_flutter/ex/ex_list.dart';
 import 'package:get/get.dart';
 import 'package:admin_flutter/component/table/table_data.dart';
-import 'package:admin_flutter/api/job_api.dart';
+import 'package:admin_flutter/api/major_api.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import 'dart:convert';
@@ -10,7 +10,7 @@ import 'package:csv/csv.dart';
 import 'package:admin_flutter/component/form/enum.dart';
 import 'package:admin_flutter/component/form/form_data.dart';
 
-class JobLogic extends GetxController {
+class MajorLogic extends GetxController {
   var list = <Map<String, dynamic>>[].obs;
   var total = 0.obs;
   var size = 0;
@@ -23,7 +23,7 @@ class JobLogic extends GetxController {
     this.page = page;
     list.clear();
     loading.value = true;
-    JobApi.jobList(params: {
+    MajorApi.majorList(params: {
       "size": size,
       "page": page,
     }).then((value) async {
@@ -43,10 +43,8 @@ class JobLogic extends GetxController {
     super.onInit();
     columns = [
       ColumnData(title: "ID", key: "id", width: 80),
-      ColumnData(title: "岗位名称", key: "name"),
-      ColumnData(title: "岗位类别", key: "cate"),
-      ColumnData(title: "用人单位代码", key: "company_code"),
-      ColumnData(title: "用人单位名称", key: "company_name"),
+      ColumnData(title: "岗位名称", key: "job_name"),
+      ColumnData(title: "岗位类别", key: "job_cate"),
       ColumnData(title: "从事工作", key: "job_desc"),
       ColumnData(title: "所学专业", key: "majors"),
       ColumnData(title: "创建时间", key: "create_time"),
@@ -56,24 +54,14 @@ class JobLogic extends GetxController {
   var form = FormDto(labelWidth: 80, columns: [
     FormColumnDto(
       label: "岗位名称",
-      key: "name",
+      key: "job_cate",
       placeholder: "请输入岗位名称",
     ),
     FormColumnDto(
         label: "岗位类别",
-        key: "cate",
+        key: "job_cate",
         placeholder: "请输入岗位类别",
         type: FormColumnEnum.text),
-    FormColumnDto(
-      label: "用人单位代码",
-      key: "company_code",
-      placeholder: "请输入用人单位代码",
-    ),
-    FormColumnDto(
-      label: "用人单位名称",
-      key: "company_name",
-      placeholder: "请输入用人单位名称",
-    ),
     FormColumnDto(
       label: "从事工作",
       key: "job_desc",
@@ -90,7 +78,7 @@ class JobLogic extends GetxController {
     form.add(
         reset: true,
         submit: (data) => {
-          JobApi.jobInsert(params: data).then((value) {
+          MajorApi.majorInsert(params: data).then((value) {
             "插入成功!".toHint();
             find(size, page);
             Get.back();
@@ -102,17 +90,17 @@ class JobLogic extends GetxController {
     form.data = d;
     form.edit(
         submit: (data) => {
-              JobApi.jobUpdate(params: data).then((value) {
-                "更新成功!".toHint();
-                list.removeAt(index);
-                list.insert(index, data);
-                Get.back();
-              })
-            });
+          MajorApi.majorUpdate(params: data).then((value) {
+            "更新成功!".toHint();
+            list.removeAt(index);
+            list.insert(index, data);
+            Get.back();
+          })
+        });
   }
 
   void delete(Map<String, dynamic> d, int index) {
-    JobApi.jobDelete(params: {"id": d["id"]}).then((value) {
+    MajorApi.majorDelete(params: {"id": d["id"]}).then((value) {
       list.removeAt(index);
     });
   }
@@ -122,7 +110,7 @@ class JobLogic extends GetxController {
   }
 
   void search(String key) {
-    JobApi.jobSearch(params: {"key": key}).then((value) {
+    MajorApi.majorSearch(params: {"key": key}).then((value) {
       refresh();
     });
   }
@@ -145,7 +133,7 @@ class JobLogic extends GetxController {
     }
 
     String csv = const ListToCsvConverter().convert(rows);
-    File('$directory/jobs_current_page.csv').writeAsStringSync(csv);
+    File('$directory/majors_current_page.csv').writeAsStringSync(csv);
     "导出当前页成功!".toHint();
   }
 
@@ -159,7 +147,7 @@ class JobLogic extends GetxController {
     int pageSize = 100;
 
     while (true) {
-      var response = await JobApi.jobList(params: {
+      var response = await MajorApi.majorList(params: {
         "size": pageSize,
         "page": currentPage,
       });
@@ -178,7 +166,7 @@ class JobLogic extends GetxController {
     }
 
     String csv = const ListToCsvConverter().convert(rows);
-    File('$directory/jobs_all_pages.csv').writeAsStringSync(csv);
+    File('$directory/majors_all_pages.csv').writeAsStringSync(csv);
     "导出全部成功!".toHint();
   }
 
@@ -197,7 +185,7 @@ class JobLogic extends GetxController {
         for (int i = 0; i < columns.length; i++) {
           data[columns[i].key] = row[i];
         }
-        JobApi.jobInsert(params: data).then((value) {
+        MajorApi.majorInsert(params: data).then((value) {
           "导入成功!".toHint();
           find(size, page);
         }).catchError((error) {
