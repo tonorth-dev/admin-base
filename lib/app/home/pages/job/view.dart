@@ -60,12 +60,12 @@ class JobPage extends StatelessWidget {
               ? const Center(child: CircularProgressIndicator())
               : SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            child: SizedBox(
-              width: 1400,
+            child: Container(
+              width: 1700,
               height: Get.height,
               child: SfDataGrid(
                 source: JobDataSource(logic: logic),
-                headerGridLinesVisibility: GridLinesVisibility.none,
+                headerGridLinesVisibility: GridLinesVisibility.values[1],
                 columnWidthMode: ColumnWidthMode.fill,
                 headerRowHeight: 50,
                 columns: [
@@ -73,7 +73,6 @@ class JobPage extends StatelessWidget {
                     columnName: 'Select',
                     label: Container(
                       // 外层容器用于添加边框
-
                       child: Container(
                         // 内层容器用于表头内容，无边框
                         decoration: BoxDecoration(
@@ -196,10 +195,13 @@ class JobDataSource extends DataGridSource {
               (cell) => Container(
             padding: EdgeInsets.symmetric(vertical: 8),
             alignment: Alignment.centerLeft,
-            child: Text(cell.value?.toString()?? '',
-                style: TextStyle(
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w500)),
+            child: Text(
+              cell.value?.toString()?? '',
+              style: const TextStyle(
+                color: Colors.black87,
+                fontWeight: FontWeight.w500
+              ),
+            ),
           ),
         ),
         Row(
