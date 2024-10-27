@@ -61,7 +61,8 @@ class JobPage extends StatelessWidget {
               : SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: SizedBox(
-              width: 1600,
+              width: 1400,
+              height: Get.height,
               child: SfDataGrid(
                 source: JobDataSource(logic: logic),
                 headerGridLinesVisibility: GridLinesVisibility.none,

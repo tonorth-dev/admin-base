@@ -9,7 +9,6 @@ import 'dart:convert';
 import 'package:csv/csv.dart';
 import 'package:admin_flutter/component/form/enum.dart';
 import 'package:admin_flutter/component/form/form_data.dart';
-import 'package:admin_flutter/component/table/ex.dart';
 
 class JobLogic extends GetxController {
   var list = <Map<String, dynamic>>[].obs;
