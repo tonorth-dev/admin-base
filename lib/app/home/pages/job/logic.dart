@@ -30,6 +30,7 @@ class JobLogic extends GetxController {
       total.value = value["total"];
       list.addAll((value["list"] as List<dynamic>).toListMap());
       list.refresh();
+      print('job Data loaded: ${list}');
       // 休眠 300 毫秒
       await Future.delayed(const Duration(milliseconds: 300));
       loading.value = false;
