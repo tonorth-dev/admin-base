@@ -8,7 +8,8 @@ enum FormColumnEnum {
   date,
   time,
   datetime,
-  chinese;
+  chinese,
+  checkbox;
 
   static Map<FormColumnEnum, String> rule = {
     FormColumnEnum.number: "[0-9]",

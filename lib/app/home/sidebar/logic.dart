@@ -16,6 +16,10 @@ import 'package:admin_flutter/app/home/pages/job/view.dart';
 import 'package:admin_flutter/app/home/pages/major/view.dart';
 import 'package:admin_flutter/app/home/pages/corres/view.dart';
 
+import '../pages/class/view.dart';
+import '../pages/institution/view.dart';
+import '../pages/student/view.dart';
+
 class SidebarLogic extends GetxController {
   static var selectName = "".obs;
   var animName = "".obs;
@@ -33,7 +37,7 @@ class SidebarLogic extends GetxController {
     SidebarTree(
       name: "学员管理",
       icon: Icons.expand,
-      children: demoList,
+      children: studentList,
     ),
     SidebarTree(
       name: "试题计划",
@@ -57,6 +61,12 @@ class SidebarLogic extends GetxController {
     JobPage.newThis(),
     MajorPage.newThis(),
     CorresPage.newThis(),
+  ];
+
+  static List<SidebarTree> studentList = [
+    InstitutionPage.newThis(),
+    ClassPage.newThis(),
+    StudentPage.newThis(),
   ];
 
   static List<SidebarTree> demoList = [
