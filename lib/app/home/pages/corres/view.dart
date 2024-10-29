@@ -58,10 +58,15 @@ class JobTableView extends StatelessWidget {
               width: 260,
               child: TextField(
                 key: const Key('search_box'),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: '搜索',
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.search, color: Colors.teal),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.teal),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.teal, width: 2),
+                  ),
                 ),
                 onSubmitted: (value) => logic.search(value),
               ),
@@ -69,6 +74,10 @@ class JobTableView extends StatelessWidget {
             ThemeUtil.width(),
             ElevatedButton(
               onPressed: () => logic.search(""),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                foregroundColor: Colors.white,
+              ),
               child: const Text("搜索"),
             ),
             ThemeUtil.width(width: 30),
@@ -78,56 +87,60 @@ class JobTableView extends StatelessWidget {
         ThemeUtil.height(),
         Expanded(
           child: Obx(() => logic.loading.value
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
+                ))
               : SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Container(
-              width: 1000,
-              height: Get.height,
-              child: SfDataGrid(
-                source: JobDataSource(logic: logic),
-                headerGridLinesVisibility: GridLinesVisibility.values[1],
-                columnWidthMode: ColumnWidthMode.fill,
-                headerRowHeight: 50,
-                columns: [
-                  GridColumn(
-                    width: 80,
-                    columnName: 'Select',
-                    label: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.indigo[50],
-                      ),
-                      child: Center(
-                        child: Checkbox(
-                          value: logic.selectedRows.length == logic.list.length,
-                          onChanged: (value) => logic.toggleSelectAll(),
-                        ),
-                      ),
-                    ),
-                  ),
-                  ...logic.columns.map((column) => GridColumn(
-                    width: _getColumnWidth(column.key),  // 根据列的key设置宽度
-                    columnName: column.key,
-                    label: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.indigo[50],
-                      ),
-                      child: Center(
-                        child: Text(
-                          column.title,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[800],
+                  scrollDirection: Axis.horizontal,
+                  child: Container(
+                    width: 1000,
+                    height: Get.height,
+                    child: SfDataGrid(
+                      source: JobDataSource(logic: logic),
+                      headerGridLinesVisibility: GridLinesVisibility.values[1],
+                      columnWidthMode: ColumnWidthMode.fill,
+                      headerRowHeight: 50,
+                      gridLinesVisibility: GridLinesVisibility.both,
+                      columns: [
+                        GridColumn(
+                          width: 80,
+                          columnName: 'Select',
+                          label: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.indigo[50],
+                            ),
+                            child: Center(
+                              child: Checkbox(
+                                value: logic.selectedRows.length == logic.list.length,
+                                onChanged: (value) => logic.toggleSelectAll(),
+                                activeColor: Colors.teal,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                        ...logic.columns.map((column) => GridColumn(
+                          width: _getColumnWidth(column.key),
+                          columnName: column.key,
+                          label: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.indigo[50],
+                            ),
+                            child: Center(
+                              child: Text(
+                                column.title,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.indigo[800],
+                                ),
+                              ),
+                            ),
+                          ),
+                        )),
+                      ],
                     ),
-                  )),
-                ],
-              ),
-            ),
-          )),
+                  ),
+                )),
         ),
         Obx(() {
           return PaginationPage(
@@ -187,11 +200,12 @@ class JobDataSource extends DataGridSource {
     final rowIndex = _rows.indexOf(row);
 
     return DataGridRowAdapter(
-      color: rowIndex.isEven ? Colors.blueGrey[50] : Colors.white,
+      color: rowIndex.isEven ? Colors.teal[50] : Colors.white,
       cells: [
         Checkbox(
           value: isSelected,
           onChanged: (value) => logic.toggleSelect(rowIndex),
+          activeColor: Colors.teal,
         ),
         ...row.getCells().skip(1).map(
               (cell) => Container(
@@ -199,8 +213,8 @@ class JobDataSource extends DataGridSource {
             alignment: cell.columnName == 'id' ? Alignment.center : Alignment.centerLeft,
             child: Text(
               cell.value?.toString() ?? '',
-              style: const TextStyle(
-                color: Colors.black87,
+              style: TextStyle(
+                color: Colors.teal[800],
                 fontWeight: FontWeight.w500,
               ),
             ),
