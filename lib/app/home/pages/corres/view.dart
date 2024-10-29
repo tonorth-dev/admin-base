@@ -71,31 +71,6 @@ class JobTableView extends StatelessWidget {
               onPressed: () => logic.search(""),
               child: const Text("搜索"),
             ),
-            const Spacer(),
-            FilledButton(
-              onPressed: logic.add,
-              child: const Text("新增"),
-            ),
-            FilledButton(
-              onPressed: () => logic.batchDelete(logic.selectedRows),
-              child: const Text("批量删除"),
-            ),
-            FilledButton(
-              onPressed: logic.exportCurrentPageToCSV,
-              child: const Text("导出当前页"),
-            ),
-            FilledButton(
-              onPressed: logic.exportAllToCSV,
-              child: const Text("导出全部"),
-            ),
-            FilledButton(
-              onPressed: logic.importFromCSV,
-              child: const Text("从 CSV 导入"),
-            ),
-            FilledButton(
-              onPressed: logic.saveSelectionLocally, // 新增按钮用于保存关系
-              child: const Text("保存关系"),
-            ),
             ThemeUtil.width(width: 30),
           ],
         ),
@@ -221,7 +196,7 @@ class JobDataSource extends DataGridSource {
         ...row.getCells().skip(1).map(
               (cell) => Container(
             padding: EdgeInsets.symmetric(vertical: 8),
-            alignment: Alignment.centerLeft,
+            alignment: cell.columnName == 'id' ? Alignment.center : Alignment.centerLeft,
             child: Text(
               cell.value?.toString() ?? '',
               style: const TextStyle(
@@ -268,24 +243,8 @@ class MajorTableView extends StatelessWidget {
             ),
             const Spacer(),
             FilledButton(
-              onPressed: logic.add,
-              child: const Text("新增"),
-            ),
-            FilledButton(
-              onPressed: () => logic.batchDelete(logic.selectedRows),
-              child: const Text("批量删除"),
-            ),
-            FilledButton(
-              onPressed: logic.exportCurrentPageToCSV,
-              child: const Text("导出当前页"),
-            ),
-            FilledButton(
-              onPressed: logic.exportAllToCSV,
-              child: const Text("导出全部"),
-            ),
-            FilledButton(
-              onPressed: logic.importFromCSV,
-              child: const Text("从 CSV 导入"),
+              onPressed: logic.saveSelectionLocally, // 新增按钮用于保存关系
+              child: const Text("保存关系"),
             ),
             ThemeUtil.width(width: 30),
           ],
@@ -307,7 +266,7 @@ class MajorTableView extends StatelessWidget {
                 headerRowHeight: 50,
                 columns: [
                   GridColumn(
-                    width: 80,
+                    width: 0,
                     columnName: 'Select',
                     label: Container(
                       decoration: BoxDecoration(
@@ -328,7 +287,8 @@ class MajorTableView extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.indigo[50],
                       ),
-                      child: Center(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
                         child: Text(
                           column.title,
                           style: TextStyle(
@@ -418,20 +378,20 @@ class MajorDataSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
-    final isSelected = row.getCells().first.value as bool;
     final rowIndex = _rows.indexOf(row);
+    final isSelected = logic.selectedRowIndex.value == rowIndex;
 
     return DataGridRowAdapter(
-      color: rowIndex.isEven ? Colors.blueGrey[50] : Colors.white,
+      color: isSelected ? Colors.blue[100] : (rowIndex.isEven ? Colors.blueGrey[50] : Colors.white),
       cells: [
         Checkbox(
-          value: isSelected,
+          value: logic.selectedRows.contains(row.getCells()[1].value),
           onChanged: (value) => logic.toggleSelect(rowIndex),
         ),
         ...row.getCells().skip(1).take(row.getCells().length - 2).map(
               (cell) => Container(
             padding: EdgeInsets.symmetric(vertical: 8),
-            alignment: Alignment.centerLeft,
+            alignment: cell.columnName == 'id' ? Alignment.center : Alignment.centerLeft,
             child: Text(
               cell.value?.toString() ?? '',
               style: const TextStyle(
@@ -441,23 +401,35 @@ class MajorDataSource extends DataGridSource {
             ),
           ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            const Text(
-              '关联岗位',
-              style: TextStyle(
-                color: Colors.blue,
-                fontWeight: FontWeight.bold,
+        Obx(() {
+          final isRowSelected = logic.selectedRowIndex.value == rowIndex;
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text(
+                isRowSelected ? '确认关联' : '关联岗位',
+                style: TextStyle(
+                  color: isRowSelected ? Colors.deepOrange : Colors.blue,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.double_arrow, color: Colors.blueGrey),
-              onPressed: () => logic.modify(row.getCells().last.value, rowIndex),
-            ),
-            const SizedBox(width: 8),
-          ],
-        ),
+              IconButton(
+                icon: Icon(
+                  isRowSelected ? Icons.check : Icons.double_arrow,
+                  color: isRowSelected ? Colors.deepOrange : Colors.blueGrey,
+                ),
+                onPressed: () {
+                  if (isRowSelected) {
+                    logic.confirmAssociation(row.getCells().last.value);
+                  } else {
+                    logic.selectRow(rowIndex);
+                  }
+                },
+              ),
+              const SizedBox(width: 8),
+            ],
+          );
+        }),
       ],
     );
   }

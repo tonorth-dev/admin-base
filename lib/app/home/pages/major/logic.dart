@@ -222,4 +222,10 @@ class MajorLogic extends GetxController {
     // 操作完成后，重置选中状态
     selectRow(-1);
   }
+
+  void saveSelectionLocally() {
+    for (var majorId in selectedRows) {
+      // majorToJobMap[majorId] = selectedRows.toList();
+    }
+  }
 }

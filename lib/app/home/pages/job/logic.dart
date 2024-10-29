@@ -225,10 +225,4 @@ class JobLogic extends GetxController {
     update();
   }
 
-  void saveSelectionLocally() {
-    for (var majorId in selectedRows) {
-      majorToJobMap[majorId] = selectedRows.toList();
-    }
-  }
-
 }
