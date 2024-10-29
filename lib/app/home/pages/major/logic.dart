@@ -17,6 +17,7 @@ class MajorLogic extends GetxController {
   var page = 0;
   var loading = false.obs;
   RxList<int> selectedRows = <int>[].obs;
+  Function(List<int>)? onMajorRowSelected;
 
   void find(int size, int page) {
     this.size = size;
@@ -202,5 +203,23 @@ class MajorLogic extends GetxController {
 
   void toggleSelect(int index) {
     selectedRows.contains(index) ? selectedRows.remove(index) : selectedRows.add(index);
+  }
+
+  RxInt selectedRowIndex = RxInt(-1);
+
+  void selectRow(int index) {
+    selectedRowIndex.value = index;
+    selectedRows.clear();
+    if (index >= 0 && index < list.length) {
+      selectedRows.add(list[index]['id']);
+    }
+  }
+
+  void confirmAssociation(Map<String, dynamic> rowData) {
+    // 在这里实现确认关联的逻辑
+    // 例如：发送请求到后端保存关联关系
+    print('Confirming association for: ${rowData}');
+    // 操作完成后，重置选中状态
+    selectRow(-1);
   }
 }

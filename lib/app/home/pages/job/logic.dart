@@ -17,6 +17,7 @@ class JobLogic extends GetxController {
   var page = 0;
   var loading = false.obs;
   RxList<int> selectedRows = <int>[].obs;
+  Map<int, List<int>> majorToJobMap = {}; // 本地存储专业与岗位关系
 
   void find(int size, int page) {
     this.size = size;
@@ -215,4 +216,19 @@ class JobLogic extends GetxController {
   void toggleSelect(int index) {
     selectedRows.contains(index) ? selectedRows.remove(index) : selectedRows.add(index);
   }
+
+  void updateJobSelection(List<int> majorIds) {
+    selectedRows.clear();
+    for (var majorId in majorIds) {
+      selectedRows.addAll(majorToJobMap[majorId] ?? []);
+    }
+    update();
+  }
+
+  void saveSelectionLocally() {
+    for (var majorId in selectedRows) {
+      majorToJobMap[majorId] = selectedRows.toList();
+    }
+  }
+
 }

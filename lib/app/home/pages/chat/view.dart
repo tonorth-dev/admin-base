@@ -1,131 +1,225 @@
-import 'package:admin_flutter/app/home/pages/chat/chat_info.dart';
-import 'package:admin_flutter/app/home/sidebar/logic.dart';
-import 'package:admin_flutter/ex/ex_btn.dart';
-import 'package:admin_flutter/theme/theme_util.dart';
-import 'package:admin_flutter/theme/ui_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
-import 'logic.dart';
+void main() => runApp(MyApp());
 
-class ChatPage extends StatelessWidget {
-  ChatPage({Key? key}) : super(key: key);
-  final logic = Get.put(ChatLogic());
-
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: Obx(() {
-            return ListView.builder(
-              controller: logic.scrollController,
-              padding: const EdgeInsets.all(12),
-              itemCount: logic.chatList.length,
-              cacheExtent: 100, // Cache items up to 1000 pixels off-screen
-              itemBuilder: (BuildContext context, int index) {
-                return info(index);
-              },
-            );
-          }),
+    return MaterialApp(
+      theme: ThemeData(primaryColor: Colors.orangeAccent),
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            "面试模拟系统服务端",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: Colors.orangeAccent,
+          centerTitle: true,
         ),
-        ThemeUtil.lineH(),
-        input()
-      ],
+        body: Row(
+          children: [
+            // 左侧菜单栏
+            Container(
+              width: 200,
+              color: Colors.grey[200],
+              child: ListView(
+                children: [
+                  _buildMenuItem(Icons.settings, '系统设置'),
+                  _buildMenuItem(Icons.format_list_numbered, '抽取试题'),
+                  _buildMenuItem(Icons.play_arrow, '计时开始'),
+                  _buildMenuItem(Icons.assignment_turned_in, '答题完毕'),
+                  _buildMenuItem(Icons.save, '保存成绩'),
+                  Divider(),
+                  _buildMenuItem(Icons.logout, '退出系统'),
+                ],
+              ),
+            ),
+            // 主体内容
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 顶部答题计时和日志区域
+                    Row(
+                      children: [
+                        _buildTimerSection(),
+                        SizedBox(width: 20),
+                        Expanded(child: _buildLogSection()),
+                      ],
+                    ),
+                    SizedBox(height: 20),
+                    // 考生信息与试题内容
+                    Expanded(
+                      child: Row(
+                        children: [
+                          _buildCandidateInfo(),
+                          SizedBox(width: 20),
+                          _buildQuestionContent(),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  static SidebarTree newThis() {
-    return SidebarTree(name: "聊天页面", icon: Icons.chat, page: ChatPage());
+  // 左侧菜单项构建
+  Widget _buildMenuItem(IconData icon, String title) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.orangeAccent),
+      title: Text(title, style: TextStyle(fontSize: 16)),
+      onTap: () {},
+    );
   }
 
-  Widget info(int index) {
-    var msg = logic.chatList[index];
-    var isMe = msg.userId == logic.meUserId;
-    var show = true;
-    if (index != 0) {
-      var last = logic.chatList[index - 1];
-      show = last.userId != msg.userId;
-    }
-    if (isMe) {
-      return Row(
-        children: [
-          const Spacer(),
-          infoText(isMe, msg),
-          w,
-          head(show),
-        ],
-      );
-    }
-    return Row(
+  // 顶部计时区域
+  Widget _buildTimerSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        head(show),
-        w,
-        infoText(isMe, msg),
-        const Spacer(),
+        Text(
+          "答题时间",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 8),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.black,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            "15:00",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.greenAccent,
+            ),
+          ),
+        ),
+        SizedBox(height: 10),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blueAccent,
+          ),
+          onPressed: () {},
+          child: Text("分段计时"),
+        ),
       ],
     );
   }
 
-  static var w = const SizedBox(
-    width: 4,
-  );
-
-  Widget infoText(bool isMe, ChatInfo info) {
+  // 日志区域
+  Widget _buildLogSection() {
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: isMe ? UiTheme.primary2() : UiTheme.onBackground2(),
+        color: Colors.yellow[100],
         borderRadius: BorderRadius.circular(8),
       ),
-      child: SelectionArea(
-        child: Text(
-          info.msg,
-        ),
-      ),
-    );
-  }
-
-  Widget head(bool show) {
-    var size = 42.0;
-    if (show) {
-      return ClipOval(
-          child: Image.asset(
-        "assets/images/cat.jpeg",
-        height: size,
-        width: size,
-      ));
-    }
-    return SizedBox(
-      width: size,
-      height: size,
-    );
-  }
-
-  Widget input() {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: UiTheme.onBackground2(),
-      ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            "系统日志",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black54,
+            ),
+          ),
+          Divider(),
           Expanded(
-            child: TextField(
-              focusNode: logic.focusNode,
-              onSubmitted: (value) {
-                logic.sendMsg();
-              },
-              controller: logic.msgController,
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                hintText: '请输入...',
+            child: SingleChildScrollView(
+              child: Text(
+                "[172.16.64.132:60143]：试题信息。\n[面试终端] 发送信息。\n[面试终端] 发送信息。\n[面试终端] 发送信息。",
+                style: TextStyle(fontSize: 14, color: Colors.black87),
               ),
             ),
           ),
-          ThemeUtil.width(),
-          "发送".toBtn(onTap: logic.sendMsg),
         ],
+      ),
+    );
+  }
+
+  // 考生信息区域
+  Widget _buildCandidateInfo() {
+    return Expanded(
+      child: Container(
+        padding: EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "考生信息",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black54,
+              ),
+            ),
+            Divider(),
+            SizedBox(height: 8),
+            Text("考生姓名: 房产1"),
+            Text("岗位代码: 2024007013"),
+            Text("岗位类别: 工程"),
+            Text("岗位名称: 助理工程师"),
+            Text("从事工作: 装饰质量监督"),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 试题内容区域
+  Widget _buildQuestionContent() {
+    return Expanded(
+      flex: 2,
+      child: Container(
+        padding: EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "试题内容",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black54,
+              ),
+            ),
+            Divider(),
+            SizedBox(height: 8),
+            Text(
+              "1、怎么看待党对军队的绝对领导？",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Text(
+                  "这里是试题内容的详细解释。可以放置长段落文本。" * 4,
+                  style: TextStyle(fontSize: 14, color: Colors.black87),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

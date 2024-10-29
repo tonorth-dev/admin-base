@@ -76,7 +76,6 @@ class SidebarLogic extends GetxController {
     Demo2Page.newThis(),
     Demo3Page.newThis(),
     UserPage.newThis(),
-    ChatPage.newThis(),
     PlayPage.newThis(),
     SidebarTree(
       name: "嵌套页面",

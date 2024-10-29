@@ -11,20 +11,21 @@ import 'package:admin_flutter/theme/theme_util.dart';
 class CorresPage extends StatelessWidget {
   final jobLogic = Get.put(JobLogic());
   final majorLogic = Get.put(MajorLogic());
+
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.all(16.0), // 添加外边距
-            child: MajorTableView(title: "专业", logic: majorLogic),
+            padding: const EdgeInsets.all(16.0),
+            child: MajorTableView(key: const Key("major_table"), title: "专业", logic: majorLogic),
           ),
         ),
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.all(16.0), // 添加外边距
-            child: JobTableView(title: "岗位", logic: jobLogic),
+            padding: const EdgeInsets.all(16.0),
+            child: JobTableView(key: const Key("job_table"), title: "岗位", logic: jobLogic),
           ),
         ),
       ],
@@ -45,7 +46,6 @@ class JobTableView extends StatelessWidget {
   final JobLogic logic;
 
   const JobTableView({super.key, required this.title, required this.logic});
-
 
   @override
   Widget build(BuildContext context) {
@@ -92,6 +92,10 @@ class JobTableView extends StatelessWidget {
               onPressed: logic.importFromCSV,
               child: const Text("从 CSV 导入"),
             ),
+            FilledButton(
+              onPressed: logic.saveSelectionLocally, // 新增按钮用于保存关系
+              child: const Text("保存关系"),
+            ),
             ThemeUtil.width(width: 30),
           ],
         ),
@@ -112,6 +116,7 @@ class JobTableView extends StatelessWidget {
                 headerRowHeight: 50,
                 columns: [
                   GridColumn(
+                    width: 80,
                     columnName: 'Select',
                     label: Container(
                       decoration: BoxDecoration(
@@ -126,6 +131,7 @@ class JobTableView extends StatelessWidget {
                     ),
                   ),
                   ...logic.columns.map((column) => GridColumn(
+                    width: _getColumnWidth(column.key),  // 根据列的key设置宽度
                     columnName: column.key,
                     label: Container(
                       decoration: BoxDecoration(
@@ -157,6 +163,20 @@ class JobTableView extends StatelessWidget {
       ],
     );
   }
+
+  double _getColumnWidth(String key) {
+    switch (key) {
+      case 'id':
+        return 60;
+      case 'name':
+        return 100;
+      case 'job_desc':
+        return 200;
+    // 添加其他列的case
+      default:
+        return 100;  // 默认宽度
+    }
+  }
 }
 
 class JobDataSource extends DataGridSource {
@@ -178,7 +198,6 @@ class JobDataSource extends DataGridSource {
           columnName: column.key,
           value: item[column.key],
         )),
-        DataGridCell(columnName: 'Actions', value: item),
       ],
     ))
         .toList();
@@ -199,7 +218,7 @@ class JobDataSource extends DataGridSource {
           value: isSelected,
           onChanged: (value) => logic.toggleSelect(rowIndex),
         ),
-        ...row.getCells().skip(1).take(row.getCells().length - 2).map(
+        ...row.getCells().skip(1).map(
               (cell) => Container(
             padding: EdgeInsets.symmetric(vertical: 8),
             alignment: Alignment.centerLeft,
@@ -222,7 +241,6 @@ class MajorTableView extends StatelessWidget {
   final MajorLogic logic;
 
   const MajorTableView({super.key, required this.title, required this.logic});
-
 
   @override
   Widget build(BuildContext context) {
@@ -279,7 +297,7 @@ class MajorTableView extends StatelessWidget {
               ? const Center(child: CircularProgressIndicator())
               : SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            child: Container(
+            child: SizedBox(
               width: 800,
               height: Get.height,
               child: SfDataGrid(
@@ -289,6 +307,7 @@ class MajorTableView extends StatelessWidget {
                 headerRowHeight: 50,
                 columns: [
                   GridColumn(
+                    width: 80,
                     columnName: 'Select',
                     label: Container(
                       decoration: BoxDecoration(
@@ -303,6 +322,7 @@ class MajorTableView extends StatelessWidget {
                     ),
                   ),
                   ...logic.columns.map((column) => GridColumn(
+                    width: _getColumnWidth(column.key),
                     columnName: column.key,
                     label: Container(
                       decoration: BoxDecoration(
@@ -351,6 +371,20 @@ class MajorTableView extends StatelessWidget {
         })
       ],
     );
+  }
+
+  double _getColumnWidth(String key) {
+    switch (key) {
+      case 'id':
+        return 60;
+      case 'job_name':
+        return 150;
+      case 'job_desc':
+        return 100;
+    // 添加其他列的case
+      default:
+        return 100;  // 默认宽度
+    }
   }
 }
 
@@ -410,15 +444,18 @@ class MajorDataSource extends DataGridSource {
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
+            const Text(
+              '关联岗位',
+              style: TextStyle(
+                color: Colors.blue,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             IconButton(
-              icon: Icon(Icons.edit, color: Colors.black54),
+              icon: const Icon(Icons.double_arrow, color: Colors.blueGrey),
               onPressed: () => logic.modify(row.getCells().last.value, rowIndex),
             ),
-            SizedBox(width: 8),
-            IconButton(
-              icon: Icon(Icons.delete, color: Colors.orange),
-              onPressed: () => logic.delete(row.getCells().last.value, rowIndex),
-            ),
+            const SizedBox(width: 8),
           ],
         ),
       ],
