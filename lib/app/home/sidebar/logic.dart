@@ -22,6 +22,8 @@ import 'package:admin_flutter/app/home/pages/class/view.dart';
 import 'package:admin_flutter/app/home/pages/institution/view.dart';
 import 'package:admin_flutter/app/home/pages/student/view.dart';
 
+import '../pages/execute/view.dart';
+import '../pages/plan/view.dart';
 import '../pages/student_question/view.dart';
 
 class SidebarLogic extends GetxController {
@@ -78,6 +80,8 @@ class SidebarLogic extends GetxController {
   static List<SidebarTree> questionList = [
     QuestionPage.newThis(),
     StudentQuestionPage.newThis(),
+    PlanPage.newThis(),
+    ExecutePage.newThis(),
   ];
 
   static List<SidebarTree> demoList = [
