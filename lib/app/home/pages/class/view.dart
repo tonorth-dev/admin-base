@@ -91,6 +91,7 @@ class ClassPage extends StatelessWidget {
                     ),
                   ),
                   ...logic.columns.map((column) => GridColumn(
+                    width: 150,
                     columnName: column.key,
                     label: Container(
                       child: Container(
@@ -196,8 +197,8 @@ class ClassDataSource extends DataGridSource {
         ),
         ...row.getCells().skip(1).take(row.getCells().length - 2).map(
               (cell) => Container(
+            alignment: cell.columnName == 'id' ? Alignment.center : Alignment.centerLeft,
             padding: EdgeInsets.symmetric(vertical: 8),
-            alignment: Alignment.centerLeft,
             child: Text(
               cell.value?.toString() ?? '',
               style: const TextStyle(

@@ -5,6 +5,7 @@ import 'package:admin_flutter/app/home/pages/demo2/view.dart';
 import 'package:admin_flutter/app/home/pages/demo3/view.dart';
 import 'package:admin_flutter/app/home/pages/empty/view.dart';
 import 'package:admin_flutter/app/home/pages/play/view.dart';
+import 'package:admin_flutter/app/home/pages/question/view.dart';
 import 'package:admin_flutter/app/home/pages/rich_text/view.dart';
 import 'package:admin_flutter/app/home/pages/user/view.dart';
 import 'package:admin_flutter/app/home/system/settings/view.dart';
@@ -16,9 +17,12 @@ import 'package:admin_flutter/app/home/pages/job/view.dart';
 import 'package:admin_flutter/app/home/pages/major/view.dart';
 import 'package:admin_flutter/app/home/pages/corres/view.dart';
 
-import '../pages/class/view.dart';
-import '../pages/institution/view.dart';
-import '../pages/student/view.dart';
+import 'package:admin_flutter/app/home/pages/bind/view.dart';
+import 'package:admin_flutter/app/home/pages/class/view.dart';
+import 'package:admin_flutter/app/home/pages/institution/view.dart';
+import 'package:admin_flutter/app/home/pages/student/view.dart';
+
+import '../pages/student_question/view.dart';
 
 class SidebarLogic extends GetxController {
   static var selectName = "".obs;
@@ -35,14 +39,14 @@ class SidebarLogic extends GetxController {
       children: jobList,
     ),
     SidebarTree(
-      name: "学员管理",
+      name: "考生管理",
       icon: Icons.expand,
       children: studentList,
     ),
     SidebarTree(
       name: "试题计划",
       icon: Icons.expand,
-      children: demoList,
+      children: questionList,
     ),
     SidebarTree(
       name: "心理测试",
@@ -67,6 +71,13 @@ class SidebarLogic extends GetxController {
     InstitutionPage.newThis(),
     ClassPage.newThis(),
     StudentPage.newThis(),
+    BindPage.newThis(),
+  ];
+
+
+  static List<SidebarTree> questionList = [
+    QuestionPage.newThis(),
+    StudentQuestionPage.newThis(),
   ];
 
   static List<SidebarTree> demoList = [

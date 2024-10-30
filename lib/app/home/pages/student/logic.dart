@@ -17,6 +17,7 @@ class StudentLogic extends GetxController {
   var page = 0;
   var loading = false.obs;
   RxList<int> selectedRows = <int>[].obs;
+  RxInt selectedRowIndex = RxInt(-1);
 
   void find(int size, int page) {
     this.size = size;
@@ -47,6 +48,11 @@ class StudentLogic extends GetxController {
       ColumnData(title: "名称", key: "name"),
       ColumnData(title: "密码", key: "password"),
       ColumnData(title: "启用状态", key: "enabled"),
+      ColumnData(title: "机构ID", key: "institution_id"),
+      ColumnData(title: "机构名称", key: "institution_name"),
+      ColumnData(title: "班级ID", key: "class_id"),
+      ColumnData(title: "班级名称", key: "class_name"),
+      ColumnData(title: "推荐人", key: "referrer"),
       ColumnData(title: "创建时间", key: "create_time"),
     ];
   }
@@ -61,12 +67,40 @@ class StudentLogic extends GetxController {
       label: "密码",
       key: "password",
       placeholder: "请输入密码",
+      type: FormColumnEnum.password,
     ),
     FormColumnDto(
       label: "启用状态",
       key: "enabled",
       placeholder: "请选择启用状态",
       type: FormColumnEnum.checkbox,
+    ),
+    FormColumnDto(
+      label: "机构ID",
+      key: "institution_id",
+      placeholder: "请输入机构ID",
+      type: FormColumnEnum.number,
+    ),
+    FormColumnDto(
+      label: "机构名称",
+      key: "institution_name",
+      placeholder: "请输入机构名称",
+    ),
+    FormColumnDto(
+      label: "班级ID",
+      key: "class_id",
+      placeholder: "请输入班级ID",
+      type: FormColumnEnum.number,
+    ),
+    FormColumnDto(
+      label: "班级名称",
+      key: "class_name",
+      placeholder: "请输入班级名称",
+    ),
+    FormColumnDto(
+      label: "推荐人",
+      key: "referrer",
+      placeholder: "请输入推荐人",
     ),
   ]);
 
@@ -197,5 +231,33 @@ class StudentLogic extends GetxController {
 
   void toggleSelect(int index) {
     selectedRows.contains(index) ? selectedRows.remove(index) : selectedRows.add(index);
+  }
+
+  void selectRow(int index) {
+    selectedRowIndex.value = index;
+    selectedRows.clear();
+    if (index >= 0 && index < list.length) {
+      selectedRows.add(list[index]['id']);
+    }
+  }
+
+  void confirmAssociation(Map<String, dynamic> rowData) {
+    // 在这里实现确认关联的逻辑
+    // 例如：发送请求到后端保存关联关系
+    print('Confirming association for: ${rowData}');
+    // 操作完成后，重置选中状态
+    selectRow(-1);
+  }
+
+  void saveSelectionLocally() {
+    for (var majorId in selectedRows) {
+      // majorToJobMap[majorId] = selectedRows.toList();
+    }
+  }
+
+  final selectedStudentId = RxnString();
+
+  void selectStudent(String? id) {
+    selectedStudentId.value = id;
   }
 }

@@ -67,7 +67,8 @@ class FormColumnDto {
     this.labelRender,
     this.type = FormColumnEnum.text,
     this.placeholder,
-    this.maxLength});
+    this.maxLength,
+    List<Map<String, String>>? options});
 }
 
 

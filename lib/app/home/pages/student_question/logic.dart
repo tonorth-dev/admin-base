@@ -2,7 +2,7 @@ import 'package:admin_flutter/ex/ex_hint.dart';
 import 'package:admin_flutter/ex/ex_list.dart';
 import 'package:get/get.dart';
 import 'package:admin_flutter/component/table/table_data.dart';
-import 'package:admin_flutter/api/institution_api.dart';
+import 'package:admin_flutter/api/question_api.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import 'dart:convert';
@@ -10,7 +10,9 @@ import 'package:csv/csv.dart';
 import 'package:admin_flutter/component/form/enum.dart';
 import 'package:admin_flutter/component/form/form_data.dart';
 
-class InstitutionLogic extends GetxController {
+import '../../../../api/student_question_api.dart';
+
+class StudentQuestionLogic extends GetxController {
   var list = <Map<String, dynamic>>[].obs;
   var total = 0.obs;
   var size = 0;
@@ -23,15 +25,14 @@ class InstitutionLogic extends GetxController {
     this.page = page;
     list.clear();
     loading.value = true;
-    InstitutionApi.institutionList(params: {
+    StudentQuestionApi.questionList(params: {
       "size": size,
       "page": page,
     }).then((value) async {
       total.value = value["total"];
       list.addAll((value["list"] as List<dynamic>).toListMap());
       list.refresh();
-      print('institution Data loaded: ${list}');
-      // 休眠 300 毫秒
+      print('question Data loaded: ${list}');
       await Future.delayed(const Duration(milliseconds: 300));
       loading.value = false;
     });
@@ -43,30 +44,50 @@ class InstitutionLogic extends GetxController {
   void onInit() {
     super.onInit();
     columns = [
-      ColumnData(title: "ID", key: "id", width: 80),
-      ColumnData(title: "名称", key: "name"),
-      ColumnData(title: "密码", key: "password"),
-      ColumnData(title: "启用状态", key: "enabled"),
-      ColumnData(title: "创建时间", key: "create_time"),
+      ColumnData(title: "问题ID", key: "id", width: 80),
+      ColumnData(title: "问题内容", key: "question_text"),
+      ColumnData(title: "答案", key: "answer"),
+      ColumnData(title: "专业ID", key: "specialty_id"),
+      ColumnData(title: "问题类型", key: "question_type"),
+      ColumnData(title: "录入人", key: "entry_person"),
+      ColumnData(title: "回答次数", key: "answer_count"),
+      ColumnData(title: "正确次数", key: "correctly_count"),
+      ColumnData(title: "错误次数", key: "incorrectly_count"),
+      ColumnData(title: "创建时间", key: "created_time"),
     ];
   }
 
   var form = FormDto(labelWidth: 80, columns: [
     FormColumnDto(
-      label: "名称",
-      key: "name",
-      placeholder: "请输入名称",
+      label: "问题内容",
+      key: "question_text",
+      placeholder: "请输入问题内容",
     ),
     FormColumnDto(
-      label: "密码",
-      key: "password",
-      placeholder: "请输入密码",
+      label: "答案",
+      key: "answer",
+      placeholder: "请输入答案",
     ),
     FormColumnDto(
-      label: "启用状态",
-      key: "enabled",
-      placeholder: "请选择启用状态",
-      type: FormColumnEnum.checkbox,
+      label: "专业ID",
+      key: "specialty_id",
+      placeholder: "请输入专业ID",
+    ),
+    FormColumnDto(
+      label: "问题类型",
+      key: "question_type",
+      placeholder: "请选择问题类型",
+      type: FormColumnEnum.select,
+      options: [
+        {"label": "简答题", "value": "简答题"},
+        {"label": "选择题", "value": "选择题"},
+        {"label": "判断题", "value": "判断题"},
+      ],
+    ),
+    FormColumnDto(
+      label: "录入人",
+      key: "entry_person",
+      placeholder: "请输入录入人",
     ),
   ]);
 
@@ -74,7 +95,7 @@ class InstitutionLogic extends GetxController {
     form.add(
         reset: true,
         submit: (data) => {
-          InstitutionApi.institutionInsert(params: data).then((value) {
+          StudentQuestionApi.questionInsert(params: data).then((value) {
             "插入成功!".toHint();
             find(size, page);
             Get.back();
@@ -86,7 +107,7 @@ class InstitutionLogic extends GetxController {
     form.data = d;
     form.edit(
         submit: (data) => {
-          InstitutionApi.institutionUpdate(params: data).then((value) {
+          StudentQuestionApi.questionUpdate(params: data).then((value) {
             "更新成功!".toHint();
             list.removeAt(index);
             list.insert(index, data);
@@ -96,27 +117,21 @@ class InstitutionLogic extends GetxController {
   }
 
   void delete(Map<String, dynamic> d, int index) {
-    InstitutionApi.institutionDelete(params: {"id": d["id"]}).then((value) {
+    StudentQuestionApi.questionDelete(params: {"id": d["id"]}).then((value) {
       list.removeAt(index);
     });
   }
 
-  void batchDelete(List<int> d) {
-    print(List);
-  }
-
   void search(String key) {
-    InstitutionApi.institutionSearch(params: {"key": key}).then((value) {
+    StudentQuestionApi.questionSearch(params: {"key": key}).then((value) {
       refresh();
     });
   }
 
-  // 刷新功能
   void refresh() {
     find(size, page);
   }
 
-  // 导出当前页功能
   Future<void> exportCurrentPageToCSV() async {
     final directory = await FilePicker.platform.getDirectoryPath();
     if (directory == null) return;
@@ -129,11 +144,10 @@ class InstitutionLogic extends GetxController {
     }
 
     String csv = const ListToCsvConverter().convert(rows);
-    File('$directory/institutions_current_page.csv').writeAsStringSync(csv);
+    File('$directory/questions_current_page.csv').writeAsStringSync(csv);
     "导出当前页成功!".toHint();
   }
 
-  // 导出全部功能
   Future<void> exportAllToCSV() async {
     final directory = await FilePicker.platform.getDirectoryPath();
     if (directory == null) return;
@@ -143,7 +157,7 @@ class InstitutionLogic extends GetxController {
     int pageSize = 100;
 
     while (true) {
-      var response = await InstitutionApi.institutionList(params: {
+      var response = await StudentQuestionApi.questionList(params: {
         "size": pageSize,
         "page": currentPage,
       });
@@ -162,11 +176,10 @@ class InstitutionLogic extends GetxController {
     }
 
     String csv = const ListToCsvConverter().convert(rows);
-    File('$directory/institutions_all_pages.csv').writeAsStringSync(csv);
+    File('$directory/questions_all_pages.csv').writeAsStringSync(csv);
     "导出全部成功!".toHint();
   }
 
-  // 加入导入功能
   void importFromCSV() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['csv']);
     if (result != null) {
@@ -181,7 +194,7 @@ class InstitutionLogic extends GetxController {
         for (int i = 0; i < columns.length; i++) {
           data[columns[i].key] = row[i];
         }
-        InstitutionApi.institutionInsert(params: data).then((value) {
+        StudentQuestionApi.questionInsert(params: data).then((value) {
           "导入成功!".toHint();
           find(size, page);
         }).catchError((error) {
@@ -191,20 +204,15 @@ class InstitutionLogic extends GetxController {
     }
   }
 
+  void batchDelete(List<int> d) {
+    print(List);
+  }
+
   void toggleSelectAll() {
     selectedRows.length == list.length ? selectedRows.clear() : selectedRows.addAll(list.map((item) => item['id']));
   }
 
   void toggleSelect(int index) {
     selectedRows.contains(index) ? selectedRows.remove(index) : selectedRows.add(index);
-  }
-
-  void updateInstitution(int rowIndex, String newInstitutionName) {
-    if (rowIndex >= 0 && rowIndex < list.length) {
-      list[rowIndex]['institution_name'] = newInstitutionName;
-      // 这里你可能还需要更新 institution_id
-      // 你可能还需要调用 API 来更新服务器端的数据
-      update();
-    }
   }
 }

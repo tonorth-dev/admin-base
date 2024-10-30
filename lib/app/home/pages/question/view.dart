@@ -5,20 +5,75 @@ import 'package:admin_flutter/component/pagination/view.dart';
 import 'package:admin_flutter/component/table/ex.dart';
 import 'package:admin_flutter/app/home/sidebar/logic.dart';
 import 'logic.dart';
-import 'package:admin_flutter/app/home/pages/institution/logic.dart';
 import 'package:admin_flutter/theme/theme_util.dart';
 
-class StudentPage extends StatelessWidget {
-  final logic = Get.put(StudentLogic());
-  final institutionLogic = Get.find<InstitutionLogic>();
+class QuestionPage extends StatelessWidget {
+  final logic = Get.put(QuestionLogic());
 
   @override
   Widget build(BuildContext context) {
+    print('Major List: ${logic.majorList}');
+    print('Selected Major Value: ${logic.selectedMajor.value}');
+    print('Question Type List: ${logic.questionTypeList}');
+    print('Selected Question Type Value: ${logic.selectedQuestionType.value}');
     return Column(
       children: [
         TableEx.actions(
           children: [
             ThemeUtil.width(width: 50),
+            SizedBox(
+              width: 150,
+              child: Obx(() => DropdownButton<String?>(
+                value: logic.selectedMajor.value,
+                hint: Text('选择专业'),
+                isExpanded: true,
+                onChanged: (String? newValue) {
+                  logic.selectedMajor.value = logic.majorList.isNotEmpty? logic.majorList[0] : null;
+                  logic.applyFilters();
+                },
+                items: [
+                  DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text('全部专业'),
+                  ),
+                  ...logic.majorList.map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ],
+              )),
+            ),
+            ThemeUtil.width(),
+
+// 添加题型筛选下拉列表
+            SizedBox(
+              width: 150,
+              child: Obx(() => DropdownButton<String?>(
+                value: logic.selectedQuestionType.value,
+                hint: Text('选择题型'),
+                isExpanded: true,
+                onChanged: (String? newValue) {
+                  logic.selectedQuestionType.value = logic.questionTypeList.isNotEmpty? logic.questionTypeList[0] : null;
+                  logic.applyFilters();
+                },
+                items: [
+                  DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text('全部题型'),
+                  ),
+                  ...logic.questionTypeList.map<DropdownMenuItem<String?>>((String value) {
+                    return DropdownMenuItem<String?>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ],
+              )),
+            ),
+            ThemeUtil.width(),
+
             SizedBox(
               width: 260,
               child: TextField(
@@ -71,7 +126,7 @@ class StudentPage extends StatelessWidget {
               width: 1700,
               height: Get.height,
               child: SfDataGrid(
-                source: StudentDataSource(logic: logic),
+                source: QuestionDataSource(logic: logic),
                 headerGridLinesVisibility: GridLinesVisibility.values[1],
                 columnWidthMode: ColumnWidthMode.fill,
                 headerRowHeight: 50,
@@ -93,7 +148,6 @@ class StudentPage extends StatelessWidget {
                     ),
                   ),
                   ...logic.columns.map((column) => GridColumn(
-                    width: 150,
                     columnName: column.key,
                     label: Container(
                       child: Container(
@@ -150,124 +204,81 @@ class StudentPage extends StatelessWidget {
 
   static SidebarTree newThis() {
     return SidebarTree(
-      name: "考生列表",
+      name: "试题列表",
       icon: Icons.deblur,
-      page: StudentPage(),
+      page: QuestionPage(),
     );
   }
 }
 
-class StudentDataSource extends DataGridSource {
-  final StudentLogic logic;
-  final InstitutionLogic institutionLogic = Get.find<InstitutionLogic>();
+class QuestionDataSource extends DataGridSource {
+  final QuestionLogic logic;
   List<DataGridRow> _rows = [];
 
-  StudentDataSource({required this.logic}) {
+  QuestionDataSource({required this.logic}) {
     _buildRows();
   }
 
   void _buildRows() {
-    _rows = logic.list.map<DataGridRow>((data) {
-      return DataGridRow(
-        cells: [
-          DataGridCell<bool>(columnName: 'Select', value: logic.selectedRows.contains(data['id'])),
-          ...logic.columns.map<DataGridCell>((column) {
-            // 确保所有值都被转换为字符串
-            return DataGridCell<String>(columnName: column.key, value: data[column.key]?.toString() ?? '');
-          }),
-          DataGridCell<String>(columnName: 'Actions', value: data['id'].toString()),
-        ],
-      );
-    }).toList();
+    _rows = logic.list
+        .map((item) => DataGridRow(
+      cells: [
+        DataGridCell(
+            columnName: 'Select',
+            value: logic.selectedRows.contains(item['id'])),
+        ...logic.columns.map((column) => DataGridCell(
+          columnName: column.key,
+          value: item[column.key],
+        )),
+        DataGridCell(columnName: 'Actions', value: item),
+      ],
+    ))
+        .toList();
   }
 
   @override
   List<DataGridRow> get rows => _rows;
 
   @override
-  DataGridRowAdapter? buildRow(DataGridRow row) {
-    return DataGridRowAdapter(
-      cells: row.getCells().map<Widget>((dataGridCell) {
-        if (dataGridCell.columnName == 'Select') {
-          return Container(
-            alignment: Alignment.center,
-            padding: EdgeInsets.all(8.0),
-            child: Checkbox(
-              value: dataGridCell.value,
-              onChanged: (bool? value) {
-                final rowIndex = _rows.indexOf(row);
-                logic.toggleSelect(rowIndex);
-                notifyListeners();
-              },
-            ),
-          );
-        } else if (dataGridCell.columnName == 'institution_name') {
-          final currentValue = dataGridCell.value?.toString() ?? '';
-          return Container(
-            alignment: Alignment.centerLeft,
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: DropdownButton<String>(
-              value: currentValue,
-              items: [
-                DropdownMenuItem<String>(
-                  value: currentValue,
-                  child: Text(currentValue),
-                ),
-                ...institutionLogic.list
-                    .where((institution) => institution['name'].toString() != currentValue)
-                    .take(5)
-                    .map((institution) {
-                  return DropdownMenuItem<String>(
-                    value: institution['name'].toString(),
-                    child: Text(institution['name'].toString()),
-                  );
-                }).toList(),
-              ],
-              onChanged: (String? newValue) {
-                if (newValue != null) {
-                  final rowIndex = _rows.indexOf(row);
-                  final institutionId = institutionLogic.list
-                      .firstWhere((institution) => institution['name'] == newValue)['id'];
-                  logic.list[rowIndex]['institution_name'] = newValue;
-                  logic.list[rowIndex]['institution_id'] = institutionId;
-                  _buildRows();
-                  notifyListeners();
-                  // 如果需要，这里可以添加一个API调用来更新后端数据
-                  // logic.updateStudentInstitution(logic.list[rowIndex]['id'], institutionId);
-                }
-              },
-            ),
-          );
-        } else if (dataGridCell.columnName == 'Actions') {
-          return Container(
-            alignment: Alignment.center,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.edit),
-                  onPressed: () => logic.modify(dataGridCell.value, 1),
-                ),
-                IconButton(
-                  icon: Icon(Icons.delete),
-                  onPressed: () => logic.delete(dataGridCell.value, 1),
-                ),
-              ],
-            ),
-          );
-        } else {
-          return Container(
-            alignment: Alignment.centerLeft,
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Text(dataGridCell.value.toString()),
-          );
-        }
-      }).toList(),
-    );
-  }
+  DataGridRowAdapter buildRow(DataGridRow row) {
+    final isSelected = row.getCells().first.value as bool;
+    final rowIndex = _rows.indexOf(row);
 
-  void updateDataSource() {
-    _buildRows();
-    notifyListeners();
+    return DataGridRowAdapter(
+      color: rowIndex.isEven ? Colors.blueGrey[50] : Colors.white,
+      cells: [
+        Checkbox(
+          value: isSelected,
+          onChanged: (value) => logic.toggleSelect(rowIndex),
+        ),
+        ...row.getCells().skip(1).take(row.getCells().length - 2).map(
+              (cell) => Container(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            alignment: Alignment.centerLeft,
+            child: Text(
+              cell.value?.toString() ?? '',
+              style: const TextStyle(
+                color: Colors.black87,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            IconButton(
+              icon: Icon(Icons.edit, color: Colors.black54),
+              onPressed: () => logic.modify(row.getCells().last.value, rowIndex),
+            ),
+            SizedBox(width: 8),
+            IconButton(
+              icon: Icon(Icons.delete, color: Colors.orange),
+              onPressed: () => logic.delete(row.getCells().last.value, rowIndex),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }

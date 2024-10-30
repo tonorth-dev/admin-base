@@ -4,13 +4,13 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:admin_flutter/component/pagination/view.dart';
 import 'package:admin_flutter/component/table/ex.dart';
 import 'package:admin_flutter/app/home/sidebar/logic.dart';
-import 'package:admin_flutter/app/home/pages/job/logic.dart';
 import 'package:admin_flutter/app/home/pages/major/logic.dart';
+import 'package:admin_flutter/app/home/pages/student/logic.dart';
 import 'package:admin_flutter/theme/theme_util.dart';
 
-class CorresPage extends StatelessWidget {
-  final jobLogic = Get.put(JobLogic());
+class BindPage extends StatelessWidget {
   final majorLogic = Get.put(MajorLogic());
+  final studentLogic = Get.put(StudentLogic());
 
   @override
   Widget build(BuildContext context) {
@@ -19,13 +19,13 @@ class CorresPage extends StatelessWidget {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: MajorTableView(key: const Key("major_table"), title: "专业", logic: majorLogic),
+            child: StudentTableView(key: const Key("student_table"), title: "专业", logic: studentLogic),
           ),
         ),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: JobTableView(key: const Key("job_table"), title: "岗位", logic: jobLogic),
+            child: MajorTableView(key: const Key("major_table"), title: "岗位", logic: majorLogic),
           ),
         ),
       ],
@@ -34,18 +34,18 @@ class CorresPage extends StatelessWidget {
 
   static SidebarTree newThis() {
     return SidebarTree(
-      name: "专业对应岗位",
+      name: "考生专业",
       icon: Icons.deblur,
-      page: CorresPage(),
+      page: BindPage(),
     );
   }
 }
 
-class JobTableView extends StatelessWidget {
+class MajorTableView extends StatelessWidget {
   final String title;
-  final JobLogic logic;
+  final MajorLogic logic;
 
-  const JobTableView({super.key, required this.title, required this.logic});
+  const MajorTableView({super.key, required this.title, required this.logic});
 
   @override
   Widget build(BuildContext context) {
@@ -88,59 +88,59 @@ class JobTableView extends StatelessWidget {
         Expanded(
           child: Obx(() => logic.loading.value
               ? const Center(child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
-                ))
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
+          ))
               : SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Container(
-                    width: 1000,
-                    height: Get.height,
-                    child: SfDataGrid(
-                      source: JobDataSource(logic: logic),
-                      headerGridLinesVisibility: GridLinesVisibility.values[1],
-                      columnWidthMode: ColumnWidthMode.fill,
-                      headerRowHeight: 50,
-                      gridLinesVisibility: GridLinesVisibility.both,
-                      columns: [
-                        GridColumn(
-                          width: 80,
-                          columnName: 'Select',
-                          label: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.indigo[50],
-                            ),
-                            child: Center(
-                              child: Checkbox(
-                                value: logic.selectedRows.length == logic.list.length,
-                                onChanged: (value) => logic.toggleSelectAll(),
-                                activeColor: Colors.teal,
-                              ),
-                            ),
-                          ),
+            scrollDirection: Axis.horizontal,
+            child: Container(
+              width: 1000,
+              height: Get.height,
+              child: SfDataGrid(
+                source: MajorDataSource(logic: logic),
+                headerGridLinesVisibility: GridLinesVisibility.values[1],
+                columnWidthMode: ColumnWidthMode.fill,
+                headerRowHeight: 50,
+                gridLinesVisibility: GridLinesVisibility.both,
+                columns: [
+                  GridColumn(
+                    width: 80,
+                    columnName: 'Select',
+                    label: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.indigo[50],
+                      ),
+                      child: Center(
+                        child: Checkbox(
+                          value: logic.selectedRows.length == logic.list.length,
+                          onChanged: (value) => logic.toggleSelectAll(),
+                          activeColor: Colors.teal,
                         ),
-                        ...logic.columns.map((column) => GridColumn(
-                          width: _getColumnWidth(column.key),
-                          columnName: column.key,
-                          label: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.indigo[50],
-                            ),
-                            child: Center(
-                              child: Text(
-                                column.title,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.indigo[800],
-                                ),
-                              ),
-                            ),
-                          ),
-                        )),
-                      ],
+                      ),
                     ),
                   ),
-                )),
+                  ...logic.columns.map((column) => GridColumn(
+                    width: _getColumnWidth(column.key),
+                    columnName: column.key,
+                    label: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.indigo[50],
+                      ),
+                      child: Center(
+                        child: Text(
+                          column.title,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.indigo[800],
+                          ),
+                        ),
+                      ),
+                    ),
+                  )),
+                ],
+              ),
+            ),
+          )),
         ),
         Obx(() {
           return PaginationPage(
@@ -155,39 +155,41 @@ class JobTableView extends StatelessWidget {
   double _getColumnWidth(String key) {
     switch (key) {
       case 'id':
-        return 60;
+        return 80;
       case 'name':
         return 100;
-      case 'job_desc':
+      case 'create_time':
+        return 0;
+      case 'major_desc':
         return 200;
     // 添加其他列的case
       default:
-        return 100;  // 默认宽度
+        return 150;  // 默认宽度
     }
   }
 }
 
-class JobDataSource extends DataGridSource {
-  final JobLogic logic;
+class MajorDataSource extends DataGridSource {
+  final MajorLogic logic;
   List<DataGridRow> _rows = [];
 
-  JobDataSource({required this.logic}) {
+  MajorDataSource({required this.logic}) {
     _buildRows();
   }
 
   void _buildRows() {
     _rows = logic.list
         .map((item) => DataGridRow(
-              cells: [
-                DataGridCell(
-                    columnName: 'Select',
-                    value: logic.selectedRows.contains(item['id'])),
-                ...logic.columns.map((column) => DataGridCell(
-                      columnName: column.key,
-                      value: item[column.key],
-                    )),
-              ],
-            ))
+      cells: [
+        DataGridCell(
+            columnName: 'Select',
+            value: logic.selectedRows.contains(item['id'])),
+        ...logic.columns.map((column) => DataGridCell(
+          columnName: column.key,
+          value: item[column.key],
+        )),
+      ],
+    ))
         .toList();
   }
 
@@ -238,11 +240,11 @@ class JobDataSource extends DataGridSource {
   }
 }
 
-class MajorTableView extends StatelessWidget {
+class StudentTableView extends StatelessWidget {
   final String title;
-  final MajorLogic logic;
+  final StudentLogic logic;
 
-  const MajorTableView({super.key, required this.title, required this.logic});
+  const StudentTableView({super.key, required this.title, required this.logic});
 
   @override
   Widget build(BuildContext context) {
@@ -250,30 +252,75 @@ class MajorTableView extends StatelessWidget {
       children: [
         TableEx.actions(
           children: [
-            ThemeUtil.width(width: 50),
+            // 机构下拉列表
             SizedBox(
-              width: 260,
-              child: TextField(
-                key: const Key('search_box'),
-                decoration: const InputDecoration(
-                  hintText: '搜索',
-                  prefixIcon: Icon(Icons.search),
+              width: 200,
+              child: DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  labelText: '机构',
                   border: OutlineInputBorder(),
                 ),
-                onSubmitted: (value) => logic.search(value),
+                items: ['机构1', '机构2', '机构3'].map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  // 处理机构选择
+                },
               ),
             ),
             ThemeUtil.width(),
+
+            // 班级下拉列表
+            SizedBox(
+              width: 200,
+              child: DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  labelText: '班级',
+                  border: OutlineInputBorder(),
+                ),
+                items: ['班级1', '班级2', '班级3'].map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  // 处理班级选择
+                },
+              ),
+            ),
+            ThemeUtil.width(),
+
+            // 学生搜索框
+            SizedBox(
+              width: 200,
+              child: TextField(
+                decoration: InputDecoration(
+                  labelText: '搜索学生',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.search),
+                ),
+                onChanged: (value) {
+                  // 处理学生搜索
+                },
+              ),
+            ),
+            ThemeUtil.width(),
+
+            // 保存考生专业按钮
             ElevatedButton(
-              onPressed: () => logic.search(""),
-              child: const Text("搜索"),
+              child: Text('保存考生专业', style: TextStyle(color: Colors.white)),
+              onPressed: () {
+                // 处理保存考生专业
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+              ),
             ),
-            const Spacer(),
-            FilledButton(
-              onPressed: logic.saveSelectionLocally, // 新增按钮用于保存关系
-              child: const Text("保存关系"),
-            ),
-            ThemeUtil.width(width: 30),
           ],
         ),
         ThemeUtil.lineH(),
@@ -287,7 +334,7 @@ class MajorTableView extends StatelessWidget {
               width: 800,
               height: Get.height,
               child: SfDataGrid(
-                source: MajorDataSource(logic: logic),
+                source: StudentDataSource(logic: logic),
                 headerGridLinesVisibility: GridLinesVisibility.values[1],
                 columnWidthMode: ColumnWidthMode.fill,
                 headerRowHeight: 50,
@@ -314,8 +361,7 @@ class MajorTableView extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.indigo[50],
                       ),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
+                      child: Center(
                         child: Text(
                           column.title,
                           style: TextStyle(
@@ -363,23 +409,26 @@ class MajorTableView extends StatelessWidget {
   double _getColumnWidth(String key) {
     switch (key) {
       case 'id':
-        return 60;
-      case 'job_name':
-        return 150;
-      case 'job_desc':
-        return 100;
+        return 80;
+      case 'password':
+      case 'enabled':
+      case 'institution_id':
+      case 'class_id':
+      case 'create_time':
+      case 'referrer':
+        return 0;
     // 添加其他列的case
       default:
-        return 100;  // 默认宽度
+        return 150;  // 默认宽度
     }
   }
 }
 
-class MajorDataSource extends DataGridSource {
-  final MajorLogic logic;
+class StudentDataSource extends DataGridSource {
+  final StudentLogic logic;
   List<DataGridRow> _rows = [];
 
-  MajorDataSource({required this.logic}) {
+  StudentDataSource({required this.logic}) {
     _buildRows();
   }
 
@@ -434,7 +483,7 @@ class MajorDataSource extends DataGridSource {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Text(
-                isRowSelected ? '确认关联' : '关联岗位',
+                isRowSelected ? '确认关联' : '关联专业',
                 style: TextStyle(
                   color: isRowSelected ? Colors.deepOrange : Colors.blue,
                   fontWeight: FontWeight.bold,

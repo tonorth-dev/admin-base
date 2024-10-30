@@ -47,7 +47,10 @@ class ClassLogic extends GetxController {
       ColumnData(title: "名称", key: "name"),
       ColumnData(title: "密码", key: "password"),
       ColumnData(title: "启用状态", key: "enabled"),
-      ColumnData(title: "创建时间", key: "create_time"),
+      ColumnData(title: "机构名称", key: "institution_name"),
+      ColumnData(title: "机构名称", key: "class_name"),
+      ColumnData(title: "推荐人", key: "referrer"),
+      ColumnData(title: "入学时间", key: "create_time"),
     ];
   }
 
