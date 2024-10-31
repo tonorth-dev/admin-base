@@ -59,7 +59,7 @@ class ExecuteLogic extends GetxController {
       ColumnData(title: "班级名称", key: "class_name"),
       ColumnData(title: "执行状态", key: "status_name"),
       ColumnData(title: "创建时间", key: "created_time"),
-      ColumnData(title: "执行明细", key: "ext_questions"),  // 添加额外题目字段
+      ColumnData(title: "执行明细", key: "ext_questions_json"),  // 添加额外题目字段
     ];
   }
 

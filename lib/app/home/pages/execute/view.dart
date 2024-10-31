@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -226,38 +228,106 @@ class ExecuteDataSource extends DataGridSource {
           DataGridCell<bool>(columnName: 'Select', value: logic.selectedRows.contains(data['id'])),
           // 修改这部分代码，将指定列改为按钮
           ...logic.columns.map<DataGridCell>((column) {
-            if (column.key != 'ext_questions') {
+            if (column.key != 'ext_questions_json') {
               return DataGridCell<String>(columnName: column.key, value: data[column.key]?.toString()?? '');
             } else {
-              return DataGridCell<Widget>(columnName: column.key, value: ElevatedButton(
-                onPressed: () {
-                  // 这里可以展示对话框或新页面来展示 JSON 数据
-                  showDialog(
-                    context: Get.context!,
-                    builder: (context) {
-                      return AlertDialog(
-                        title: const Text('执行明细'),
-                        content: SingleChildScrollView(
-                          child: Text(data['执行明细'].toString()),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('关闭'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-                child: const Text('执行明细'),
-              ));
+              return DataGridCell<Widget>(columnName: column.key, value: _buildButton(data[column.key].toString()));
             }
           }),
           DataGridCell<String>(columnName: 'Actions', value: data['id'].toString()),
         ],
       );
     }).toList();
+  }
+
+  Widget _buildButton(String? jsonData) {
+    if (jsonData!= null && jsonData.isNotEmpty) {
+      try {
+        var decodedData = jsonDecode(jsonData);
+        if (decodedData is List<dynamic>) {
+          // 定义表头
+          final headers = ['id', 'question_text', 'answer', 'specialty_id', 'question_type', 'entry_person', 'created_time', 'answer_time', 'answer_student', 'create_time'];
+          final headersCN = ['ID', '问题', '答案', '专业ID', '题型', '班级名称', '创建时间', '练习次数', '练习考生', '创建时间'];
+          return ElevatedButton(
+            onPressed: () {
+              showDialog(
+                context: Get.context!,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text('执行明细'),
+                    content: SingleChildScrollView(
+                      child: SizedBox(
+                        width: 1000,
+                        child: Table(
+                          border: TableBorder.all(),
+                          // 添加表头行
+                          children: [
+                            TableRow(
+                              children: headersCN.map((header) => TableCell(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(header),
+                                ),
+                              )).toList(),
+                            ),
+                            // 数据行
+                            ...decodedData.map((item) {
+                              if (item is Map<String, dynamic>) {
+                                return TableRow(
+                                  children: headers.map((header) => TableCell(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(item[header]?.toString()?? ''),
+                                    ),
+                                  )).toList(),
+                                );
+                              } else {
+                                return TableRow(
+                                  children: [
+                                    TableCell(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text('无法解析的项'),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }
+                            }).toList(),
+                          ],
+                        ),
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('关闭'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+            child: const Text('执行明细'),
+          );
+        } else {
+          return ElevatedButton(
+            onPressed: null,
+            child: const Text('不是列表数据，无法解析'),
+          );
+        }
+      } catch (e) {
+        return ElevatedButton(
+          onPressed: null,
+          child: const Text('无法解析数据'),
+        );
+      }
+    } else {
+      return ElevatedButton(
+        onPressed: null,
+        child: const Text('不是有效的数据格式'),
+      );
+    }
   }
 
   @override
@@ -310,6 +380,8 @@ class ExecuteDataSource extends DataGridSource {
               ],
             ),
           );
+        } else if (dataGridCell.columnName == 'ext_questions_json') {
+          return dataGridCell.value as Widget;
         } else {
           return Container(
             alignment: Alignment.centerLeft,

@@ -22,6 +22,7 @@ import 'package:admin_flutter/app/home/pages/class/view.dart';
 import 'package:admin_flutter/app/home/pages/institution/view.dart';
 import 'package:admin_flutter/app/home/pages/student/view.dart';
 
+import '../pages/book/view.dart';
 import '../pages/execute/view.dart';
 import '../pages/plan/view.dart';
 import '../pages/student_question/view.dart';
@@ -58,7 +59,7 @@ class SidebarLogic extends GetxController {
     SidebarTree(
       name: "讲义管理",
       icon: Icons.expand,
-      children: demoList,
+      children: bookList,
     ),
     SettingsPage.newThis(),
   ];
@@ -82,6 +83,10 @@ class SidebarLogic extends GetxController {
     StudentQuestionPage.newThis(),
     PlanPage.newThis(),
     ExecutePage.newThis(),
+  ];
+
+  static List<SidebarTree> bookList = [
+    BookManagerPage.newThis(),
   ];
 
   static List<SidebarTree> demoList = [

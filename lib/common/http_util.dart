@@ -4,7 +4,7 @@ import 'package:admin_flutter/ex/ex_hint.dart';
 import 'package:dio/dio.dart';
 
 class HttpUtil {
-  static const String baseUrl = "http://192.168.50.158:8080";
+  static const String baseUrl = "http://127.0.0.1:8080";
   static const authorization = "Authorization";
 
   static final dio = Dio(BaseOptions(
