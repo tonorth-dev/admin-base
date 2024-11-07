@@ -4,7 +4,7 @@ import 'package:admin_flutter/ex/ex_hint.dart';
 import 'package:dio/dio.dart';
 
 class HttpUtil {
-  static const String baseUrl = "http://127.0.0.1:8080";
+  static const String baseUrl = "http://127.0.0.1:8888";
   static const authorization = "Authorization";
 
   static final dio = Dio(BaseOptions(
@@ -41,6 +41,23 @@ class HttpUtil {
     Response response = await dio.post(url,
         data: params,
         options: Options(contentType: Headers.jsonContentType, headers: map));
+    return verify(response.data, showMsg);
+  }
+
+  static Future<dynamic> put(String url,
+      {Map<String, dynamic>? params, bool showMsg = true}) async {
+    var map = await header();
+    Response response = await dio.put(url,
+        data: params,
+        options: Options(contentType: Headers.jsonContentType, headers: map));
+    return verify(response.data, showMsg);
+  }
+
+  static Future<dynamic> delete(String url,
+      {Map<String, dynamic>? params, bool showMsg = true}) async {
+    var map = await header();
+    Response response = await dio.delete(url,
+        queryParameters: params, options: Options(headers: map));
     return verify(response.data, showMsg);
   }
 

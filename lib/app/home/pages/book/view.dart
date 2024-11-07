@@ -1,15 +1,7 @@
-
 import 'dart:io';
-import 'dart:nativewrappers/_internal/vm/lib/typed_data_patch.dart';
-
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
-import 'package:open_filex/open_filex.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:syncfusion_flutter_pdf/pdf.dart';
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:dio/dio.dart';
 
 import '../../sidebar/logic.dart';
 
@@ -17,11 +9,12 @@ class BookManagerPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Book File Manager',
+      title: '讲义管理',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: FileManagerPage(),
+      home: EbookManagementPage(),
     );
   }
 
@@ -34,125 +27,391 @@ class BookManagerPage extends StatelessWidget {
   }
 }
 
-class FileManagerPage extends StatefulWidget {
+class EbookManagementPage extends StatefulWidget {
   @override
-  _FileManagerPageState createState() => _FileManagerPageState();
+  _EbookManagementPageState createState() => _EbookManagementPageState();
 }
 
-class _FileManagerPageState extends State<FileManagerPage> {
-  File? _pdfFile;
+class _EbookManagementPageState extends State<EbookManagementPage> {
+  List<File>? previewImages = [];
+  String? selectedEbook;
+  String? selectedChapter;
+  String? selectedPage;
+  List<String> ebooks = ['E-book 1', 'E-book 2', 'E-book 3'];
+  Map<String, List<String>> ebookStructure = {
+    'E-book 1': ['Chapter 1', 'Chapter 2'],
+    'E-book 2': ['Chapter 1', 'Chapter 2'],
+    'E-book 3': ['Chapter 1', 'Chapter 2'],
+  };
+  Map<String, List<String>> chaptersAndPages = {
+    'Chapter 1': ['Page 1', 'Page 2'],
+    'Chapter 2': ['Page 3', 'Page 4'],
+  };
+  Map<String, List<String>> pagesAndChild = {
+    'Page 1': ['Child 1', 'Child 2'],
+    'Page 2': ['Child 3', 'Child 4'],
+    'Page 3': ['Child 5', 'Child 6'],
+    'Page 4': ['Child 7', 'Child 8'],
+  };
+  String? previewImagePath;
 
-  Future<void> _pickFileAndConvertToPDF() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['jpg', 'png', 'docx'],
-    );
+  void onSelectEbook(String ebook) {
+    setState(() {
+      selectedEbook = ebook;
+      selectedChapter = null;
+      selectedPage = null;
+      previewImagePath = null;
+    });
+  }
 
-    if (result != null) {
-      File file = File(result.files.single.path!);
-      if (file.path.endsWith('.jpg') || file.path.endsWith('.png')) {
-        await _convertImageToPDF(file);
-      } else if (file.path.endsWith('.docx')) {
-        // 使用cloud API来将Word转为PDF
-        // 假设我们已经实现了_convertWordToPDF的具体逻辑
-        await _convertWordToPDF(file);
-      }
+  void onSelectChapter(String chapter) {
+    setState(() {
+      selectedChapter = chapter;
+      selectedPage = null;
+      previewImagePath = null;
+    });
+  }
+
+  void onSelectPage(String page) {
+    setState(() {
+      selectedPage = page;
+      previewImagePath = null;
+    });
+  }
+
+  Future<void> pickImage() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.image);
+    if (result != null && result.files.isNotEmpty) {
+      setState(() {
+        previewImagePath = result.files.first.path;
+      });
     }
   }
 
-  Future<void> _convertImageToPDF(File imageFile) async {
-    final PdfDocument document = PdfDocument();
-    final PdfPage page = document.pages.add();
-
-    // 加载图像数据并将其转换为PDF
-    final Uint8List imageData = (await imageFile.readAsBytes()) as Uint8List;
-    final PdfBitmap image = PdfBitmap(imageData as List<int>);
-    page.graphics.drawImage(image, Rect.fromLTWH(0, 0, page.size.width, page.size.height));
-
-    // 保存PDF文件
-    await _saveAndOpenPDF(document);
+  Future<void> pickFileAndUpload() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'doc', 'docx'],
+    );
+    if (result != null && result.files.isNotEmpty) {
+      final file = File(result.files.single.path!);
+      await uploadAndConvertFile(file);
+    }
   }
 
-  Future<void> _convertWordToPDF(File wordFile) async {
-    // 实际应用中建议使用cloud API来转换Word为PDF
-    // 假设使用Google Drive API或其他第三方服务实现word文件转换
-    // 这里只是展示结构
-  }
-
-  Future<void> _saveAndOpenPDF(PdfDocument document) async {
-    // 获取临时目录并保存文件
-    final Directory directory = await getTemporaryDirectory();
-    final String filePath = '${directory.path}/converted_document.pdf';
-    File pdfFile = File(filePath);
-    await pdfFile.writeAsBytes(await document.save());
-
-    // 更新UI和打开PDF文件
-    setState(() {
-      _pdfFile = pdfFile;
+  Future<void> uploadAndConvertFile(File file) async {
+    final dio = Dio();
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(file.path),
     });
-    document.dispose();
-    await OpenFilex.open(_pdfFile!.path);
+
+    try {
+      final response = await dio.post('https://your-backend.com/convert', data: formData);
+      if (response.statusCode == 200) {
+        List<String> imageUrls = List<String>.from(response.data['imageUrls']);
+        setState(() {
+          previewImages = imageUrls.map((url) => File(url)).toList();
+        });
+      }
+    } catch (e) {
+      print("Error uploading file: $e");
+    }
   }
 
-  Widget _buildFilePreview() {
-    return _pdfFile != null
-        ? SfPdfViewer.file(_pdfFile!)
-        : Center(child: Text('请选择文件上传并预览'));
+  void addChapter(String chapter) {
+    setState(() {
+      ebookStructure[selectedEbook]!.add(chapter);
+    });
+  }
+
+  void addPage(String page) {
+    setState(() {
+      chaptersAndPages[selectedChapter]!.add(page);
+    });
+  }
+
+  void addChild(String child) {
+    setState(() {
+      pagesAndChild[selectedPage]!.add(child);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Book File Manager'),
-      ),
-      body: Row(
-        children: [
-          // 左侧文件管理和上传部分
-          Expanded(
-            flex: 1,
-            child: Column(
-              children: [
-                ElevatedButton(
-                  onPressed: _pickFileAndConvertToPDF,
-                  child: Text('上传文件并转换为PDF'),
-                ),
-                // 展示文件的树状结构
-                Expanded(
-                  child: ListView(
-                    children: [
-                      ExpansionTile(
-                        title: Text('Book 1'),
-                        children: [
-                          ListTile(
-                            title: Text('Chapter 1'),
-                            subtitle: Text('Page 1'),
-                          ),
-                          ListTile(
-                            title: Text('Chapter 2'),
-                            subtitle: Text('Page 3'),
-                          ),
+      appBar: AppBar(title: Text('E-book Management')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            // Left Panel: E-book Table
+            Expanded(
+              flex: 1,
+              child: Card(
+                elevation: 4.0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: DataTable(
+                    columns: [
+                      DataColumn(label: Text('E-book Name')),
+                      DataColumn(label: Text('Major')),
+                      DataColumn(label: Text('Author')),
+                      DataColumn(label: Text('View')),
+                    ],
+                    rows: ebooks.map((ebook) {
+                      return DataRow(
+                        cells: [
+                          DataCell(Text(ebook)),
+                          DataCell(Text('Major 1')), // Placeholder for Major
+                          DataCell(Text('Author A')), // Placeholder for Author
+                          DataCell(IconButton(
+                            icon: Icon(Icons.visibility),
+                            onPressed: () => onSelectEbook(ebook),
+                          )),
                         ],
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(width: 16.0),
+
+            // Middle Panel: E-book Structure (Chapters and Pages)
+            Expanded(
+              flex: 1,
+              child: Card(
+                elevation: 4.0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: selectedEbook == null
+                      ? Center(child: Text('Select an e-book to view structure'))
+                      : Column(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: ebookStructure[selectedEbook]?.length ?? 0,
+                          itemBuilder: (context, chapterIndex) {
+                            String chapter = ebookStructure[selectedEbook]![chapterIndex];
+                            return ExpansionTile(
+                              title: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(chapter),
+                                  IconButton(
+                                    icon: Icon(Icons.add),
+                                    onPressed: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          String newChapter = '';
+                                          return AlertDialog(
+                                            title: Text('Add Chapter'),
+                                            content: TextField(
+                                              onChanged: (value) {
+                                                newChapter = value;
+                                              },
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                                child: Text('Cancel'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () {
+                                                  addChapter(newChapter);
+                                                  Navigator.of(context).pop();
+                                                },
+                                                child: Text('Add'),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                              children: [
+                                ...chaptersAndPages[chapter]!.map((page) {
+                                  return ExpansionTile(
+                                    title: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(page),
+                                        IconButton(
+                                          icon: Icon(Icons.add),
+                                          onPressed: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                String newPage = '';
+                                                return AlertDialog(
+                                                  title: Text('Add Page'),
+                                                  content: TextField(
+                                                    onChanged: (value) {
+                                                      newPage = value;
+                                                    },
+                                                  ),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.of(context).pop();
+                                                      },
+                                                      child: Text('Cancel'),
+                                                    ),
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        addPage(newPage);
+                                                        Navigator.of(context).pop();
+                                                      },
+                                                      child: Text('Add'),
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                    children: [
+                                      ...pagesAndChild[page]!.map((child) {
+                                        return ListTile(
+                                          title: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(child),
+                                              IconButton(
+                                                icon: Icon(Icons.add),
+                                                onPressed: () {
+                                                  showDialog(
+                                                    context: context,
+                                                    builder: (BuildContext context) {
+                                                      String newChild = '';
+                                                      return AlertDialog(
+                                                        title: Text('Add Child'),
+                                                        content: TextField(
+                                                          onChanged: (value) {
+                                                            newChild = value;
+                                                          },
+                                                        ),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () {
+                                                              Navigator.of(context).pop();
+                                                            },
+                                                            child: Text('Cancel'),
+                                                          ),
+                                                          TextButton(
+                                                            onPressed: () {
+                                                              addChild(newChild);
+                                                              Navigator.of(context).pop();
+                                                            },
+                                                            child: Text('Add'),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  );
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                          onTap: () => onSelectPage(child),
+                                        );
+                                      }).toList(),
+                                    ],
+                                  );
+                                }).toList(),
+                              ],
+                            );
+                          },
+                        ),
                       ),
-                      ListTile(
-                        title: Text('Book 2'),
+                      ElevatedButton(
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              String newChapter = '';
+                              return AlertDialog(
+                                title: Text('Add Chapter'),
+                                content: TextField(
+                                  onChanged: (value) {
+                                    newChapter = value;
+                                  },
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      addChapter(newChapter);
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Text('Add'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                        child: Text('Add Chapter'),
                       ),
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-          // 右侧预览部分
-          Expanded(
-            flex: 2,
-            child: Container(
-              padding: EdgeInsets.all(10),
-              color: Colors.grey[200],
-              child: _buildFilePreview(),
+            SizedBox(width: 16.0),
+
+            // Right Panel: Page Preview and Image Upload
+            Expanded(
+              flex: 1,
+              child: Card(
+                elevation: 4.0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      previewImages == null || previewImages!.isEmpty
+                          ? Text('No preview available. Please upload a Word or PDF file.')
+                          : Expanded(
+                        child: ListView.builder(
+                          itemCount: previewImages!.length,
+                          itemBuilder: (context, index) {
+                            return Image.file(previewImages![index]);
+                          },
+                        ),
+                      ),
+                      SizedBox(height: 16.0),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white, backgroundColor: Theme.of(context).primaryColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          elevation: 4.0,
+                          padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
+                        ),
+                        onPressed: pickFileAndUpload,
+                        child: Text('Upload Word or PDF'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

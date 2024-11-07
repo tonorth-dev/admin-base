@@ -42,6 +42,8 @@ dependencies:
   syncfusion_flutter_pdfviewer: ^27.1.57
   syncfusion_flutter_pdf: ^27.1.57
   open_filex: ^4.5.0
+  provider: ^5.0.0
+  pdf_render: ^1.4.12
 
 dev_dependencies:
   flutter_test:

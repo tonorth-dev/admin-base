@@ -204,7 +204,7 @@ class QuestionPage extends StatelessWidget {
 
   static SidebarTree newThis() {
     return SidebarTree(
-      name: "试题列表",
+      name: "题库管理",
       icon: Icons.deblur,
       page: QuestionPage(),
     );

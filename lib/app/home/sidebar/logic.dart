@@ -26,6 +26,7 @@ import '../pages/book/view.dart';
 import '../pages/execute/view.dart';
 import '../pages/plan/view.dart';
 import '../pages/student_question/view.dart';
+import '../pages/topic/view.dart';
 
 class SidebarLogic extends GetxController {
   static var selectName = "".obs;
@@ -61,6 +62,11 @@ class SidebarLogic extends GetxController {
       icon: Icons.expand,
       children: bookList,
     ),
+    SidebarTree(
+      name: "原始题库",
+      icon: Icons.expand,
+      children: topicList,
+    ),
     SettingsPage.newThis(),
   ];
 
@@ -89,9 +95,12 @@ class SidebarLogic extends GetxController {
     BookManagerPage.newThis(),
   ];
 
+  static List<SidebarTree> topicList = [
+    TopicPage.newThis(),
+  ];
+
   static List<SidebarTree> demoList = [
     AdminPage.newThis(),
-    RichTextPage.newThis(),
     DemoPage.newThis(),
     Demo2Page.newThis(),
     Demo3Page.newThis(),
