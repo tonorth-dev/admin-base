@@ -1,5 +1,6 @@
 import 'package:admin_flutter/ex/ex_hint.dart';
 import 'package:admin_flutter/ex/ex_list.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:admin_flutter/component/table/table_data.dart';
 import 'package:admin_flutter/api/topic_api.dart';
@@ -21,12 +22,37 @@ class TopicLogic extends GetxController {
   // 当前编辑的题目数据
   var currentEditTopic = RxMap<String, dynamic>({}).obs;
   RxList<int> selectedRows = <int>[].obs;
-  Rx<String?> selectedMajor = '全部专业'.obs;
   Rx<String?> selectedTopicType = '全部题型'.obs;
-  List<String> majorList = ['全部专业', '计算机科学与技术', '国际关系', '教育学'];  // 根据实际情况填充
   List<String> topicTypeList = ['全部题型', '综合', '专业方向', '基础方向'];  // 根据实际情况填充
 
-  void applyFilters() { /* 实现筛选逻辑 */ }
+  final List<String> majorList = ['全部专业', '计算机科学与技术', '国际关系', '教育学'];  // 根据实际情况填充
+  final Map<String, List<String>> subMajorMap = {
+    '全部专业': ['二级分类1-1', '二级分类1-2'],
+    '计算机科学与技术': ['二级分类2-1', '二级分类2-2'],
+    '国际关系': ['二级分类3-1', '二级分类3-2'],
+    '教育学': ['二级分类3-3', '二级分类3-4'],
+  };
+  final Map<String, List<String>> subSubMajorMap = {
+    '二级分类1-1': ['三级分类1-1-1', '三级分类1-1-2'],
+    '二级分类1-2': ['三级分类1-2-1', '三级分类1-2-2'],
+    '二级分类2-1': ['三级分类2-1-1', '三级分类2-1-2'],
+    '二级分类2-2': ['三级分类2-2-1', '三级分类2-2-2'],
+    '二级分类3-1': ['三级分类3-1-1', '三级分类3-1-2'],
+    '二级分类3-2': ['三级分类3-2-1', '三级分类3-2-2'],
+    '二级分类3-3': ['三级分类3-3-1', '三级分类3-3-2'],
+    '二级分类3-4': ['三级分类3-4-1', '三级分类3-4-2'],
+  };
+
+  final ValueNotifier<String?> selectedMajor = ValueNotifier('全部专业');
+  final ValueNotifier<String?> selectedSubMajor = ValueNotifier(null);
+  final ValueNotifier<String?> selectedSubSubMajor = ValueNotifier(null);
+
+  void applyFilters() {
+    // 这里可以添加应用过滤逻辑
+    print('Selected Major: ${selectedMajor.value}');
+    print('Selected Sub Major: ${selectedSubMajor.value}');
+    print('Selected Sub Sub Major: ${selectedSubSubMajor.value}');
+  }
 
   void find(int size, int page) {
     this.size = size;
