@@ -371,7 +371,7 @@ class SearchAndButtonWidget extends StatelessWidget {
           const SizedBox(width: 6),
           SizedBox(
             height: 34,
-            width: 180,
+            width: 120,
             child: TextField(
               key: const Key('search_box'),
               decoration: InputDecoration(

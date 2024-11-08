@@ -7,7 +7,7 @@ import 'package:admin_flutter/app/home/sidebar/logic.dart';
 import 'package:admin_flutter/component/widget.dart';
 import 'logic.dart';
 import 'package:admin_flutter/theme/theme_util.dart';
-import 'package:provider/provider.dart'; // 添加这一行
+import 'package:provider/provider.dart';
 
 class TopicPage extends StatelessWidget {
   final logic = Get.put(TopicLogic());
@@ -21,17 +21,6 @@ class TopicPage extends StatelessWidget {
           TableEx.actions(
             children: [
               SizedBox(width: 30), // 添加一些间距
-              SizedBox(
-                width: 100, // 设置一个固定的宽度
-                child: TextField(
-                  readOnly: true,
-                  decoration: InputDecoration(
-                    labelText: '已选中 ${logic.selectedRows.length}',
-                    border: InputBorder.none,
-                  ),
-                ),
-              ),
-              SizedBox(width: 8), // 添加一些间距
               CustomButton(
                 onPressed: logic.add,
                 text: '新增',
@@ -66,7 +55,7 @@ class TopicPage extends StatelessWidget {
                 width: 110, // 自定义宽度
                 height: 32, // 自定义高度
               ),
-              SizedBox(width: 200), // 添加一些间距
+              SizedBox(width: 120), // 添加一些间距
               DropdownField(
                 items: logic.topicTypeList.toList(),
                 // 传递选项数据
@@ -111,74 +100,115 @@ class TopicPage extends StatelessWidget {
             child: Obx(() => logic.loading.value
                 ? const Center(child: CircularProgressIndicator())
                 : SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Container(
-                      width: 1700,
-                      child: SfDataGrid(
-                        source: TopicDataSource(logic: logic),
-                        headerGridLinesVisibility: GridLinesVisibility.vertical,
-                        columnWidthMode: ColumnWidthMode.fill,
-                        headerRowHeight: 50,
-                        columns: [
-                          GridColumn(
-                            columnName: 'Select',
-                            label: Container(
-                              padding: const EdgeInsets.all(8.0),
-                              alignment: Alignment.center,
-                              child: Checkbox(
-                                value: logic.selectedRows.length ==
-                                    logic.list.length,
-                                onChanged: (value) => logic.toggleSelectAll(),
-                              ),
-                            ),
+              scrollDirection: Axis.horizontal,
+              child: Container(
+                width: 1700,
+                child: SfDataGrid(
+                  source: TopicDataSource(logic: logic),
+                  headerGridLinesVisibility: GridLinesVisibility.values[1],
+                  gridLinesVisibility: GridLinesVisibility.values[1],
+                  columnWidthMode: ColumnWidthMode.fill,
+                  headerRowHeight: 50,
+                  rowHeight: 60, // 设置行高
+                  columns: [
+                    GridColumn(
+                      columnName: 'Select',
+                      width: 100,
+                      label: Container(
+                        color: Color(0xFFF3F4F8),
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.all(8.0),
+                        child: Checkbox(
+                          value: logic.selectedRows.length ==
+                              logic.list.length,
+                          onChanged: (value) => logic.toggleSelectAll(),
+                          fillColor: MaterialStateProperty.resolveWith<Color>((states) {
+                            if (states.contains(MaterialState.selected)) {
+                              return Color(0xFFD43030); // Red background when checked
+                            }
+                            return Colors.white; // Optional color for unchecked state
+                          }),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4), // Rounded edges
                           ),
-                          GridColumn(
-                            columnName: 'ID',
-                            label: Center(child: Text('ID')),
-                          ),
-                          ...logic.columns.map((column) => GridColumn(
-                                columnName: column.key,
-                                label: Center(
-                                  child: Text(
-                                    column.title,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey[800],
-                                    ),
-                                  ),
-                                ),
-                              )),
-                          GridColumn(
-                            columnName: 'Actions',
-                            label: Container(
-                              color: Colors.grey[200],
-                              alignment: Alignment.center,
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                '操作',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16),
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                  )),
+                    ...logic.columns.map((column) => GridColumn(
+                      columnName: column.key,
+                      width: _getColumnWidth(column.key),
+                      label: Container(
+                        color: Color(0xFFF3F4F8),
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          column.title,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                      ),
+                    )),
+                    GridColumn(
+                      columnName: 'Actions',
+                      width: 160,
+                      label: Container(
+                        color: Color(0xFFF3F4F8),
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          '操作',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )),
           ),
-          Obx(() => PaginationPage(
-                total: logic.total.value,
-                changed: (size, page) => logic.find(size, page),
-                // style: PaginationStyle(
-                //   color: Colors.grey[200],
-                //   selectedColor: Colors.red,
-                //   textStyle: TextStyle(color: Colors.black87),
-                // ),
-              )),
+          Obx(() => Padding(
+            padding: EdgeInsets.only(right: 50), // 添加右侧内边距
+            child: PaginationPage(
+              total: logic.total.value,
+              changed: (size, page) => logic.find(size, page),
+              // style: PaginationStyle(
+              //   color: Colors.grey[200],
+              //   selectedColor: Colors.red,
+              //   textStyle: TextStyle(color: Colors.black87),
+              // ),
+            ),
+          )),
+          ThemeUtil.height(height: 30),
         ],
       ),
     );
+  }
+
+  double _getColumnWidth(String key) {
+    switch (key) {
+      case 'id':
+        return 80;
+      case 'cate':
+        return 100;
+      case 'title':
+        return 300;
+      case 'answer':
+        return 400;
+      case 'major_id':
+        return 100;
+      case 'major_name':
+        return 100;
+      case 'create_time':
+        return 0;
+      case 'major_desc':
+        return 200;
+      default:
+        return 150;  // 默认宽度
+    }
   }
 
   static SidebarTree newThis() {
@@ -201,19 +231,18 @@ class TopicDataSource extends DataGridSource {
   void _buildRows() {
     _rows = logic.list
         .map((item) => DataGridRow(
-              cells: [
-                DataGridCell(
-                  columnName: 'Select',
-                  value: logic.selectedRows.contains(item['id']),
-                ),
-                DataGridCell(columnName: 'ID', value: item['id']),
-                ...logic.columns.map((column) => DataGridCell(
-                      columnName: column.key,
-                      value: item[column.key],
-                    )),
-                DataGridCell(columnName: 'Actions', value: item),
-              ],
-            ))
+      cells: [
+        DataGridCell(
+          columnName: 'Select',
+          value: logic.selectedRows.contains(item['id']),
+        ),
+        ...logic.columns.map((column) => DataGridCell(
+          columnName: column.key,
+          value: item[column.key],
+        )),
+        DataGridCell(columnName: 'Actions', value: item),
+      ],
+    ))
         .toList();
   }
 
@@ -227,41 +256,53 @@ class TopicDataSource extends DataGridSource {
     final item = row.getCells().last.value;
 
     return DataGridRowAdapter(
-      color: rowIndex.isEven ? Colors.blueGrey[50] : Colors.white,
+      color: rowIndex.isEven ? Color(0x50F1FDFC) : Colors.white,
       cells: [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: Checkbox(
             value: isSelected,
             onChanged: (value) => logic.toggleSelect(rowIndex),
+            fillColor: MaterialStateProperty.resolveWith<Color>((states) {
+              if (states.contains(MaterialState.selected)) {
+                return Color(0xFFD43030); // Red background when checked
+              }
+              return Colors.white; // Optional color for unchecked state
+            }),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4), // Rounded edges
+            ),
           ),
         ),
-        ...row.getCells().skip(1).take(row.getCells().length - 2).map(
-              (cell) => Container(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+        ...row.getCells().skip(1).map((cell) {
+          final columnName = cell.columnName;
+          final value = cell.value.toString();
+
+          if (columnName == 'title' || columnName == 'answer') {
+            return Tooltip(
+              message: value,
+              child: Container(
                 alignment: Alignment.centerLeft,
+                padding: const EdgeInsets.all(8.0),
                 child: Text(
-                  cell.value?.toString() ?? '',
-                  style: const TextStyle(
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 14),
                 ),
               ),
-            ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextButton(
-              onPressed: () => logic.edit(item),
-              child: Text("编辑", style: TextStyle(color: Colors.red)),
-            ),
-            TextButton(
-              onPressed: () => logic.delete(item, rowIndex),
-              child: Text("删除", style: TextStyle(color: Colors.red)),
-            ),
-          ],
-        ),
+            );
+          } else {
+            return Container(
+              alignment: Alignment.center,
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                value,
+                style: TextStyle(fontSize: 14),
+              ),
+            );
+          }
+        }),
       ],
     );
   }

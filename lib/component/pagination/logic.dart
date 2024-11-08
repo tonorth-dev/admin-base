@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 
 
 class PaginationLogic extends GetxController {
-  var size = 10.obs;
+  var size = 15.obs;
   var current = 1.obs;
   var totalPage = 0.obs;
   int total = 0;
@@ -26,6 +26,14 @@ class PaginationLogic extends GetxController {
     reload();
   }
 
+  void goToPage(int page) {
+    if (page < 1 || page > totalPage.value) {
+      "页码超出范围".toHint();
+      return;
+    }
+    current.value = page;
+    reload();
+  }
 
   void reload() {
     totalPage.value =

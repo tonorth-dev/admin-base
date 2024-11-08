@@ -79,12 +79,14 @@ class TopicLogic extends GetxController {
     super.onInit();
     columns = [
       ColumnData(title: "问题ID", key: "id", width: 80),
-      ColumnData(title: "问题内容", key: "topic_text"),
+      ColumnData(title: "题型", key: "cate"),
+      ColumnData(title: "题干", key: "title"),
       ColumnData(title: "答案", key: "answer"),
-      ColumnData(title: "专业ID", key: "specialty_id"),
-      ColumnData(title: "问题类型", key: "topic_type"),
-      ColumnData(title: "录入人", key: "entry_person"),
-      ColumnData(title: "创建时间", key: "created_time"),
+      ColumnData(title: "专业ID", key: "major_id"),
+      ColumnData(title: "专业名称", key: "major_name"),
+      ColumnData(title: "录入人", key: "author"),
+      ColumnData(title: "创建时间", key: "create_time"),
+      ColumnData(title: "更新时间", key: "update_time"),
     ];
   }
 

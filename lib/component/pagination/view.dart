@@ -10,14 +10,15 @@ import 'logic.dart';
 class PaginationPage extends StatelessWidget {
   final MainAxisAlignment alignment;
 
-  PaginationPage(
-      {super.key,
-      this.alignment = MainAxisAlignment.end,
-      int total = 0,
-      required Function(int size, int page) changed}) {
+  PaginationPage({
+    super.key,
+    this.alignment = MainAxisAlignment.end,
+    int total = 0,
+    required Function(int size, int page) changed,
+  }) {
     logic.total = total;
     logic.changed = changed;
-    // 首次需要延迟加载
+    // 初次延迟加载
     128.toDelay(() {
       logic.reload();
     });
@@ -25,69 +26,157 @@ class PaginationPage extends StatelessWidget {
 
   final logic = Get.put(PaginationLogic());
 
-  final sizeList = [10, 15, 20, 50];
+  final sizeList = [15, 20, 50, 100, 500];
+
+  List<int?> _generatePageNumbers(int currentPage, int totalPage) {
+    if (totalPage <= 6) {
+      return List<int?>.generate(totalPage, (index) => index + 1);
+    }
+
+    List<int?> pages = [1];
+    if (currentPage > 4) pages.add(null);
+
+    int start = currentPage > 4 ? currentPage - 1 : 2;
+    int end = currentPage < totalPage - 3 ? currentPage + 1 : totalPage - 1;
+
+    for (int i = start; i <= end; i++) {
+      pages.add(i);
+    }
+
+    if (currentPage < totalPage - 3) pages.add(null);
+    pages.add(totalPage);
+
+    return pages;
+  }
 
   @override
   Widget build(BuildContext context) {
-    var style = const TextStyle(fontSize: 18);
+    var style = const TextStyle(fontSize: 14);
     return SizedBox(
       height: 48,
       child: Row(
         mainAxisAlignment: alignment,
         children: [
-          //下拉选择器
           ThemeUtil.width(),
-          Text("共 ${logic.total} 条", style: style),
+          Text("共 ", style: style),
+          Text("${logic.total}", style: TextStyle(
+            color: Color(0xFFD43030),
+            fontSize: 15
+          )),
+          Text(" 条记录", style: style),
           ThemeUtil.width(),
+          Text("每页显示:", style: style),
           Obx(() {
-            return Text("当前页 ${logic.current}", style: style);
-          }),
-          ThemeUtil.width(),
-          Text("选择数量 ", style: style),
-          ThemeUtil.width(),
-          Obx(() {
-            return DropdownButton(
-              focusColor: UiTheme.background(),
-              items: [
-                for (int i = 0; i < sizeList.length; i++)
-                  DropdownMenuItem(
-                      value: sizeList[i],
-                      child: Center(child: Text("${sizeList[i]}"))),
-              ],
-              onChanged: (value) {
-                logic.size.value = value as int;
-                logic.current.value = 1;
-                logic.reload();
-              },
-              value: logic.size.value,
-              // 设置颜色
-              style: style.copyWith(color: UiTheme.onBackground()),
-              underline: Container(),
-              // 设置宽度
-            );
-          }),
-
-          ThemeUtil.width(),
-          Obx(() {
-            return SizedBox(
-              width: 75,
-              child: Center(
-                child: Text("总 ${logic.totalPage.value} 页", style: style),
+            return Container(
+              height: 34,
+              decoration: BoxDecoration(
+                color: Colors.grey[100], // 设置下拉框背景颜色
+                borderRadius: BorderRadius.circular(5),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 5),
+              child: DropdownButton<int>(
+                itemHeight: 48,
+                items: sizeList.map((size) {
+                  return DropdownMenuItem(
+                    value: size,
+                    child: Text("$size"),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  logic.size.value = value!;
+                  logic.current.value = 1;
+                  logic.reload();
+                },
+                value: logic.size.value,
+                style: style.copyWith(color: UiTheme.onBackground()),
+                underline: Container(),
               ),
             );
           }),
           ThemeUtil.width(),
-          "上一页".toBtn(
-            // 禁用
-            onTap: logic.prev,
-          ),
+          Obx(() {
+            return Container(
+              width: 50,
+              margin: EdgeInsets.symmetric(horizontal: 5), // 调整间距
+              decoration: BoxDecoration(
+                border: Border.all(width: 1, color: Colors.grey),
+                borderRadius: BorderRadius.circular(5),
+              ),
+              child: TextButton(
+                onPressed: logic.current.value > 1 ? logic.prev : null, // 禁用条件：第一页
+                style: ButtonStyle(
+                  foregroundColor: WidgetStateProperty.resolveWith<Color>(
+                        (Set<WidgetState> states) {
+                      return states.contains(WidgetState.disabled) ? Colors.grey : Color(0xFFD43030);
+                    },
+                  ),
+                  // backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                  //       (Set<WidgetState> states) {
+                  //     return states.contains(WidgetState.disabled) ? Colors.white : Color(0xFFD43030);
+                  //   },
+                  // ),
+                ),
+                child: Icon(Icons.arrow_left, color: logic.current.value > 1 ? Color(0xFFD43030) : Colors.grey),
+              ),
+            );
+          }),
           ThemeUtil.width(),
-          "下一页".toBtn(onTap: logic.next),
+          Obx(() {
+            return Row(
+              children: _generatePageNumbers(logic.current.value, logic.totalPage.value)
+                  .map((page) {
+                return page == null
+                    ? Text("...", style: style)
+                    : Container(
+                  margin: EdgeInsets.symmetric(horizontal: 2), // 调整间距
+                  width: 50,
+                  decoration: BoxDecoration(
+                    border: Border.all(width: 1, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                    color: page == logic.current.value ? Color(0xFFD43030) : Colors.white, // 动态设置背景颜色
+                  ),
+                  child: TextButton(
+                    onPressed: () {
+                      if (page != logic.current.value) {
+                        logic.current.value = page;
+                        logic.reload();
+                      }
+                    },
+                    child: Text(
+                      "$page",
+                      style: TextStyle(
+                        color: page == logic.current.value ? Colors.white : Colors.black,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            );
+          }),
           ThemeUtil.width(),
+          Obx(() {
+            return Container(
+              width: 50,
+              margin: EdgeInsets.symmetric(horizontal: 5), // 调整间距
+              decoration: BoxDecoration(
+                border: Border.all(width: 1, color: Colors.grey),
+                borderRadius: BorderRadius.circular(5),
+              ),
+              child: TextButton(
+                onPressed: logic.current.value < logic.totalPage.value ? logic.next : null, // 禁用条件：最后一页
+                style: ButtonStyle(
+                  foregroundColor: WidgetStateProperty.resolveWith<Color>(
+                        (Set<MaterialState> states) {
+                      return states.contains(WidgetState.disabled) ? Colors.grey : Colors.blue;
+                    },
+                  ),
+                ),
+                child: Icon(Icons.arrow_right, color: logic.current.value < logic.totalPage.value ? Color(0xFFD43030) : Colors.grey),
+              ),
+            );
+          }),
         ],
       ),
     );
   }
-
-
 }
