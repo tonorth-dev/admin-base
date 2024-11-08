@@ -35,45 +35,45 @@ class TopicPage extends StatelessWidget {
               CustomButton(
                 onPressed: logic.add,
                 text: '新增',
-                width: 90, // 自定义宽度
-                height: 36, // 自定义高度
+                width: 70, // 自定义宽度
+                height: 32, // 自定义高度
               ),
               SizedBox(width: 8), // 添加一些间距
               CustomButton(
                 onPressed: () => logic.batchDelete(logic.selectedRows),
                 text: '批量删除',
-                width: 100, // 自定义宽度
-                height: 38, // 自定义高度
+                width: 90, // 自定义宽度
+                height: 32, // 自定义高度
               ),
               SizedBox(width: 8), // 添加一些间距
               CustomButton(
                 onPressed: logic.exportCurrentPageToCSV,
                 text: '导出选中',
-                width: 100, // 自定义宽度
-                height: 36, // 自定义高度
+                width: 90, // 自定义宽度
+                height: 32, // 自定义高度
               ),
               SizedBox(width: 8), // 添加一些间距
               CustomButton(
                 onPressed: logic.exportAllToCSV,
                 text: '导出全部',
-                width: 100, // 自定义宽度
-                height: 36, // 自定义高度
+                width: 90, // 自定义宽度
+                height: 32, // 自定义高度
               ),
               SizedBox(width: 8), // 添加一些间距
               CustomButton(
                 onPressed: logic.exportAllToCSV,
                 text: '从CSV导入',
-                width: 120, // 自定义宽度
-                height: 36, // 自定义高度
+                width: 110, // 自定义宽度
+                height: 32, // 自定义高度
               ),
               SizedBox(width: 200), // 添加一些间距
               DropdownField(
                 items: logic.topicTypeList.toList(),
                 // 传递选项数据
                 hint: '选择题型',
-                width: 150,
+                width: 120,
                 // 设置宽度
-                height: 38,
+                height: 34,
                 // 设置高度
                 onChanged: (String? newValue) {
                   logic.selectedTopicType.value = newValue;
@@ -82,8 +82,8 @@ class TopicPage extends StatelessWidget {
               ),
               SizedBox(width: 12), // 添加一些间距
               CascadingDropdownField(
-                width: 178,
-                height: 38,
+                width: 160,
+                height: 34,
                 hint1: '选择专业',
                 hint2: '选择XX',
                 hint3: '从事工作',
@@ -151,7 +151,16 @@ class TopicPage extends StatelessWidget {
                               )),
                           GridColumn(
                             columnName: 'Actions',
-                            label: Center(child: Text('操作')),
+                            label: Container(
+                              color: Colors.grey[200],
+                              alignment: Alignment.center,
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                '操作',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 16),
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -161,6 +170,11 @@ class TopicPage extends StatelessWidget {
           Obx(() => PaginationPage(
                 total: logic.total.value,
                 changed: (size, page) => logic.find(size, page),
+                // style: PaginationStyle(
+                //   color: Colors.grey[200],
+                //   selectedColor: Colors.red,
+                //   textStyle: TextStyle(color: Colors.black87),
+                // ),
               )),
         ],
       ),
@@ -215,13 +229,16 @@ class TopicDataSource extends DataGridSource {
     return DataGridRowAdapter(
       color: rowIndex.isEven ? Colors.blueGrey[50] : Colors.white,
       cells: [
-        Checkbox(
-          value: isSelected,
-          onChanged: (value) => logic.toggleSelect(rowIndex),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: Checkbox(
+            value: isSelected,
+            onChanged: (value) => logic.toggleSelect(rowIndex),
+          ),
         ),
         ...row.getCells().skip(1).take(row.getCells().length - 2).map(
               (cell) => Container(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                 alignment: Alignment.centerLeft,
                 child: Text(
                   cell.value?.toString() ?? '',
@@ -233,16 +250,15 @@ class TopicDataSource extends DataGridSource {
               ),
             ),
         Row(
-          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            IconButton(
-              icon: const Icon(Icons.edit, color: Colors.black54),
+            TextButton(
               onPressed: () => logic.edit(item),
+              child: Text("编辑", style: TextStyle(color: Colors.red)),
             ),
-            const SizedBox(width: 8),
-            IconButton(
-              icon: const Icon(Icons.delete, color: Colors.orange),
+            TextButton(
               onPressed: () => logic.delete(item, rowIndex),
+              child: Text("删除", style: TextStyle(color: Colors.red)),
             ),
           ],
         ),

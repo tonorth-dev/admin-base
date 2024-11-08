@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class CustomButton extends StatefulWidget {
   final VoidCallback onPressed;
@@ -15,7 +14,7 @@ class CustomButton extends StatefulWidget {
     required this.onPressed,
     required this.text,
     this.width = 90, // 默认宽度
-    this.height = 38, // 默认高度
+    this.height = 32, // 默认高度
   }) : super(key: key);
 
   @override
@@ -63,7 +62,7 @@ class _CustomButtonState extends State<CustomButton> {
                   widget.text,
                   style: TextStyle(
                     color: isHovered ? Colors.white : Color(0xFF423F3F),
-                    fontSize: 16,
+                    fontSize: 14,
                     fontFamily: 'PingFang SC',
                     fontWeight: FontWeight.w400,
                     height: 1.2,
@@ -185,7 +184,11 @@ class _DropdownFieldState extends State<DropdownField> with WidgetsBindingObserv
                   hint: Text(
                     widget.hint,
                     style: const TextStyle(
-                      color: Colors.black,
+                      color: Color(0xFF423F3F),
+                      fontSize: 14,
+                      fontFamily: 'PingFang SC',
+                      fontWeight: FontWeight.w400,
+                      height: 1.2,
                     ),
                   ),
                   onChanged: (String? newValue) {
@@ -204,7 +207,7 @@ class _DropdownFieldState extends State<DropdownField> with WidgetsBindingObserv
                         value,
                         style: const TextStyle(
                           color: Color(0xFF423F3F),
-                          fontSize: 16,
+                          fontSize: 14,
                           fontFamily: 'PingFang SC',
                           fontWeight: FontWeight.w400,
                           height: 1.2,
@@ -214,7 +217,7 @@ class _DropdownFieldState extends State<DropdownField> with WidgetsBindingObserv
                   }).toList(),
                   style: const TextStyle(
                     color: Color(0xFF423F3F),
-                    fontSize: 16,
+                    fontSize: 14,
                     fontFamily: 'PingFang SC',
                     fontWeight: FontWeight.w400,
                     height: 1.2,
@@ -367,12 +370,17 @@ class SearchAndButtonWidget extends StatelessWidget {
         children: [
           const SizedBox(width: 6),
           SizedBox(
-            height: 38,
-            width: 200,
+            height: 34,
+            width: 180,
             child: TextField(
               key: const Key('search_box'),
               decoration: InputDecoration(
-                hintText: hint,
+                hintText: hint, hintStyle: const TextStyle(
+                  color: Color(0xFF999999),
+                  fontSize: 12,
+                  fontFamily: 'PingFang SC',
+                  fontWeight: FontWeight.w400,
+                ),
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(6),
@@ -387,7 +395,7 @@ class SearchAndButtonWidget extends StatelessWidget {
           const SizedBox(width: 6),
           Container(
             width: 80,
-            height: 38,
+            height: 34,
             decoration: ShapeDecoration(
               color: Color(0xFFD43030),
               shape: RoundedRectangleBorder(
@@ -400,7 +408,7 @@ class SearchAndButtonWidget extends StatelessWidget {
                 '搜索',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 16,
+                  fontSize: 14,
                   fontFamily: 'PingFang SC',
                   fontWeight: FontWeight.w400,
                   height: 0.09,
