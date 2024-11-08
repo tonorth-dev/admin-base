@@ -134,10 +134,22 @@ class TableEx {
   /// 统一表格头
   static Widget actions({List<Widget> children = const []}) {
     return SizedBox(
-      height: 52,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: children,
+      height: 80,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color(0x80FFF2EF), // 50% 透明度的 #FFF2EF
+              Color(0x80FFFFFF)  // 50% 透明度的 #FFFFFF
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: children,
+        ),
       ),
     );
   }

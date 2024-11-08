@@ -23,7 +23,7 @@ class TopicLogic extends GetxController {
   var currentEditTopic = RxMap<String, dynamic>({}).obs;
   RxList<int> selectedRows = <int>[].obs;
   Rx<String?> selectedTopicType = '全部题型'.obs;
-  List<String> topicTypeList = ['全部题型', '综合', '专业方向', '基础方向'];  // 根据实际情况填充
+  List<String> topicTypeList = ['全部题型', '专业知识', '求职动机', '适岗能力'];  // 根据实际情况填充
 
   final List<String> majorList = ['全部专业', '计算机科学与技术', '国际关系', '教育学'];  // 根据实际情况填充
   final Map<String, List<String>> subMajorMap = {

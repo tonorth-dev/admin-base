@@ -20,13 +20,13 @@ class TopicPage extends StatelessWidget {
         children: [
           TableEx.actions(
             children: [
-              SizedBox(width: 8), // 添加一些间距
+              SizedBox(width: 30), // 添加一些间距
               SizedBox(
                 width: 100, // 设置一个固定的宽度
                 child: TextField(
                   readOnly: true,
                   decoration: InputDecoration(
-                    labelText: '已选中 ${logic.selectedRows.length} 项',
+                    labelText: '已选中 ${logic.selectedRows.length}',
                     border: InputBorder.none,
                   ),
                 ),
@@ -36,7 +36,7 @@ class TopicPage extends StatelessWidget {
                 onPressed: logic.add,
                 text: '新增',
                 width: 90, // 自定义宽度
-                height: 38, // 自定义高度
+                height: 36, // 自定义高度
               ),
               SizedBox(width: 8), // 添加一些间距
               CustomButton(
@@ -48,30 +48,30 @@ class TopicPage extends StatelessWidget {
               SizedBox(width: 8), // 添加一些间距
               CustomButton(
                 onPressed: logic.exportCurrentPageToCSV,
-                text: '导出选中项',
-                width: 120, // 自定义宽度
-                height: 38, // 自定义高度
+                text: '导出选中',
+                width: 100, // 自定义宽度
+                height: 36, // 自定义高度
               ),
               SizedBox(width: 8), // 添加一些间距
               CustomButton(
                 onPressed: logic.exportAllToCSV,
                 text: '导出全部',
-                width: 120, // 自定义宽度
-                height: 38, // 自定义高度
+                width: 100, // 自定义宽度
+                height: 36, // 自定义高度
               ),
               SizedBox(width: 8), // 添加一些间距
               CustomButton(
                 onPressed: logic.exportAllToCSV,
                 text: '从CSV导入',
                 width: 120, // 自定义宽度
-                height: 38, // 自定义高度
+                height: 36, // 自定义高度
               ),
-              SizedBox(width: 400), // 添加一些间距
+              SizedBox(width: 200), // 添加一些间距
               DropdownField(
-                items: logic.majorList.toList(),
+                items: logic.topicTypeList.toList(),
                 // 传递选项数据
-                hint: '岗位类别筛选',
-                width: 200,
+                hint: '选择题型',
+                width: 150,
                 // 设置宽度
                 height: 38,
                 // 设置高度
@@ -80,12 +80,12 @@ class TopicPage extends StatelessWidget {
                   logic.applyFilters();
                 },
               ),
-              ThemeUtil.width(),
+              SizedBox(width: 12), // 添加一些间距
               CascadingDropdownField(
-                width: 200,
+                width: 178,
                 height: 38,
-                hint1: '专业类别',
-                hint2: '专业',
+                hint1: '选择专业',
+                hint2: '选择XX',
                 hint3: '从事工作',
                 level1Items: [...logic.majorList],
                 level2Items: {
@@ -98,8 +98,9 @@ class TopicPage extends StatelessWidget {
                   print('选择的: $level1, 市: $level2, 区: $level3');
                 },
               ),
-              ThemeUtil.width(),
+              SizedBox(width: 8), // 添加一些间距
               SearchAndButtonWidget(
+                hint: '题干、答案、标签',
                 onSearch: () => logic.search(""),
               ),
             ],

@@ -322,7 +322,7 @@ class _CascadingDropdownFieldState extends State<CascadingDropdownField> {
           value: selectedLevel1,
           onChanged: _onLevel1Changed,
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 3),
         DropdownField(
           width: widget.width,
           height: widget.height,
@@ -333,7 +333,7 @@ class _CascadingDropdownFieldState extends State<CascadingDropdownField> {
           value: selectedLevel2,
           onChanged: _onLevel2Changed,
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 3),
         DropdownField(
           width: widget.width,
           height: widget.height,
@@ -350,9 +350,10 @@ class _CascadingDropdownFieldState extends State<CascadingDropdownField> {
 }
 
 class SearchAndButtonWidget extends StatelessWidget {
+  final String hint;
   final VoidCallback onSearch;
 
-  const SearchAndButtonWidget({Key? key, required this.onSearch}) : super(key: key);
+  const SearchAndButtonWidget({Key? key, required this.onSearch, required this.hint}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -366,18 +367,18 @@ class SearchAndButtonWidget extends StatelessWidget {
         children: [
           const SizedBox(width: 6),
           SizedBox(
-            height: 44,
-            width: 150,
+            height: 38,
+            width: 200,
             child: TextField(
               key: const Key('search_box'),
               decoration: InputDecoration(
-                hintText: '搜索',
+                hintText: hint,
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(6),
                 ),
                 filled: true,
-                fillColor: Colors.grey[200],
+                fillColor: Colors.white,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               ),
               onSubmitted: (value) => onSearch(),
@@ -385,13 +386,12 @@ class SearchAndButtonWidget extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Container(
-            width: 95,
-            height: 44,
-            padding: const EdgeInsets.symmetric(horizontal: 29, vertical: 10),
+            width: 80,
+            height: 38,
             decoration: ShapeDecoration(
               color: Color(0xFFD43030),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(10),
               ),
             ),
             child: TextButton(
