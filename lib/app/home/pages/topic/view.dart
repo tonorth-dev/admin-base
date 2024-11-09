@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:admin_flutter/component/pagination/view.dart';
@@ -271,13 +272,12 @@ class TopicDataSource extends DataGridSource {
             value: isSelected,
             onChanged: (value) => logic.toggleSelect(rowIndex),
             fillColor: MaterialStateProperty.resolveWith<Color>((states) {
-              if (states.contains(MaterialState.selected)) {
-                return Color(0xFFD43030); // Red background when checked
-              }
-              return Colors.white; // Optional color for unchecked state
+              return states.contains(MaterialState.selected)
+                  ? Color(0xFFD43030)
+                  : Colors.white;
             }),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4), // Rounded edges
+              borderRadius: BorderRadius.circular(4),
             ),
           ),
         ),
@@ -286,17 +286,60 @@ class TopicDataSource extends DataGridSource {
           final value = cell.value.toString();
 
           if (columnName == 'title' || columnName == 'answer') {
+            // Use LayoutBuilder to get the actual width and determine if text exceeds
             return Tooltip(
               message: value,
-              child: Container(
-                alignment: Alignment.centerLeft,
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 14),
-                ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isOverflowing =
+                      value.length > 100; // Adjust length condition
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          alignment: Alignment.centerLeft,
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            value,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ),
+                      ),
+                      isOverflowing
+                          ? TextButton(
+                              child: Text("全文"),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => AlertDialog(
+                                    title: Text('全部内容'),
+                                    content: SelectableText(value),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Clipboard.setData(
+                                            ClipboardData(text: value),
+                                          );
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text("复制"),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            )
+                          : TextButton(
+                              child: Text("复制"),
+                              onPressed: () {
+                                Clipboard.setData(ClipboardData(text: value));
+                              },
+                            ),
+                    ],
+                  );
+                },
               ),
             );
           } else {
@@ -310,16 +353,19 @@ class TopicDataSource extends DataGridSource {
             );
           }
         }),
-        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          TextButton(
-            onPressed: () => logic.edit(item),
-            child: Text("编辑", style: TextStyle(color: Colors.red)),
-          ),
-          TextButton(
-            onPressed: () => logic.delete(item, rowIndex),
-            child: Text("删除", style: TextStyle(color: Colors.red)),
-          ),
-        ]),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextButton(
+              onPressed: () => logic.edit(item),
+              child: Text("编辑", style: TextStyle(color: Color(0xFFFD941D))),
+            ),
+            TextButton(
+              onPressed: () => logic.delete(item, rowIndex),
+              child: Text("删除", style: TextStyle(color: Color(0xFFFD941D))),
+            ),
+          ],
+        ),
       ],
     );
   }
