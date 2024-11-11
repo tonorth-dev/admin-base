@@ -46,6 +46,8 @@ dependencies:
   flutter_dialogs: ^3.0.0
   flutter_form_builder: ^9.5.0
   form_builder_validators: ^11.0.0
+  flutter_quill: ^10.0.0
+  html: ^0.15.0
 
 dev_dependencies:
   flutter_test:
@@ -57,8 +59,8 @@ flutter:
   uses-material-design: true
   # 资源目录
   assets:
-     - assets/images/
-     - assets/messages/
+    - assets/images/
+    - assets/messages/
 #  fonts:
 #    - family: MyFont
 #      fonts:

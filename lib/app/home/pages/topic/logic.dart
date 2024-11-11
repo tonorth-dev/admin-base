@@ -11,6 +11,8 @@ import 'package:csv/csv.dart';
 import 'package:admin_flutter/component/form/enum.dart';
 import 'package:admin_flutter/component/form/form_data.dart';
 
+import 'package:admin_flutter/component/dialog.dart';
+import 'package:admin_flutter/sources/form/topic_add_form.dart';
 import 'edit_topic_dialog.dart';
 
 class TopicLogic extends GetxController {
@@ -19,6 +21,8 @@ class TopicLogic extends GetxController {
   var size = 0;
   var page = 0;
   var loading = false.obs;
+  final searchText = ''.obs;
+
   // 当前编辑的题目数据
   var currentEditTopic = RxMap<String, dynamic>({}).obs;
   RxList<int> selectedRows = <int>[].obs;
@@ -60,13 +64,17 @@ class TopicLogic extends GetxController {
     list.clear();
     loading.value = true;
     TopicApi.topicList(params: {
-      "size": size,
-      "page": page,
+      "size": size.toString(),
+      "page": page.toString(),
+      "search": searchText.value,
+      "cate": selectedTopicType.value.toString(),
+      "major_id": selectedMajor.value.toString(),
+    }).catchError((error) {
+      "获取题库列表失败: $error".toHint();
     }).then((value) async {
       total.value = value["total"];
       list.addAll((value["list"] as List<dynamic>).toListMap());
       list.refresh();
-      print('topic Data loaded: ${list}');
       await Future.delayed(const Duration(milliseconds: 300));
       loading.value = false;
     });
@@ -124,18 +132,15 @@ class TopicLogic extends GetxController {
     ),
   ]);
 
-  void add() {
-    form.add(
-        reset: true,
-        submit: (data) => {
-          TopicApi.topicCreate(params: data).then((value) {
-            "创建成功!".toHint();
-            find(size, page);
-            Get.back();
-          }).catchError((error) {
-            "创建失败: $error".toHint();
-          })
-        });
+  void add(BuildContext context) {
+    DynamicInputDialog.show(
+      context: context,
+      title: '录入试题',
+      child: TopicAddForm(),
+      onSubmit: (formData) {
+        print('提交的数据: $formData');
+      },
+    );
   }
 
   void edit(Map<String, dynamic> topic) {
@@ -146,7 +151,15 @@ class TopicLogic extends GetxController {
   void submitEdit() async {
     try {
       loading.value = true;
-      await TopicApi.topicUpdate(params: currentEditTopic.value);
+      await TopicApi.topicUpdate(
+        id: currentEditTopic.value['id'].toString(),
+        title: currentEditTopic.value['title'] ?? '',
+        content: currentEditTopic.value['content'] ?? '',
+        category: currentEditTopic.value['category'] ?? '',
+        difficulty: currentEditTopic.value['difficulty']?.toInt() ?? 0,
+        options: currentEditTopic.value['options']?.cast<String>() ?? [],
+        answer: currentEditTopic.value['answer'] ?? '',
+      );
       find(size, page);
       Get.back(); // 关闭对话框
       "更新成功!".toHint();
@@ -157,23 +170,8 @@ class TopicLogic extends GetxController {
     }
   }
 
-  void modify(Map<String, dynamic> d, int index) {
-    form.data = d;
-    form.edit(
-        submit: (data) => {
-          TopicApi.topicUpdate(params: data).then((value) {
-            "更新成功!".toHint();
-            list.removeAt(index);
-            list.insert(index, data);
-            Get.back();
-          }).catchError((error) {
-            "更新失败: $error".toHint();
-          })
-        });
-  }
-
   void delete(Map<String, dynamic> d, int index) {
-    TopicApi.topicDelete(id: d["id"].toString()).then((value) {
+    TopicApi.topicDelete(d["id"].toString()).then((value) {
       list.removeAt(index);
     }).catchError((error) {
       "删除失败: $error".toHint();
@@ -218,8 +216,8 @@ class TopicLogic extends GetxController {
 
     while (true) {
       var response = await TopicApi.topicList(params: {
-        "size": pageSize,
-        "page": currentPage,
+        "size": pageSize.toString(),
+        "page": currentPage.toString(),
       });
 
       allItems.addAll((response["list"] as List<dynamic>).toListMap());
@@ -254,7 +252,7 @@ class TopicLogic extends GetxController {
         for (int i = 0; i < columns.length; i++) {
           data[columns[i].key] = row[i];
         }
-        TopicApi.topicBatchImport(params: {"file": file.bytes}).then((value) {
+        TopicApi.topicBatchImport(file.bytes as File).then((value) {
           "导入成功!".toHint();
           find(size, page);
         }).catchError((error) {
@@ -266,7 +264,7 @@ class TopicLogic extends GetxController {
 
   void batchDelete(List<int> ids) {
     List<String> idsStr = ids.map((id) => id.toString()).toList();
-    TopicApi.topicDelete(id: idsStr.join(",")).then((value) {
+    TopicApi.topicDelete(idsStr.join(",")).then((value) {
       "批量删除成功!".toHint();
       refresh();
     }).catchError((error) {
@@ -288,5 +286,18 @@ class TopicLogic extends GetxController {
     } else {
       selectedRows.add(index);
     }
+  }
+
+  void resetFilters() {
+    selectedTopicType.value = '';
+    searchText.value = '';
+    // 重置其他筛选条件
+    // 例如：重置专业选择
+    // majorSelected.value = null;
+    // subMajorSelected.value = null;
+    // subSubMajorSelected.value = null;
+
+    // 重新查询
+    find(page, size);
   }
 }

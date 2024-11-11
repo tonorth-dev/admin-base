@@ -352,6 +352,96 @@ class _CascadingDropdownFieldState extends State<CascadingDropdownField> {
   }
 }
 
+class SearchBoxWidget extends StatefulWidget {
+  final String hint;
+  final ValueChanged<String> onTextChanged;
+
+  const SearchBoxWidget({Key? key, required this.hint, required this.onTextChanged}) : super(key: key);
+
+  @override
+  _SearchBoxWidgetState createState() => _SearchBoxWidgetState();
+}
+
+class _SearchBoxWidgetState extends State<SearchBoxWidget> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 34,
+      width: 120,
+      child: TextField(
+        key: const Key('search_box'),
+        controller: _controller,
+        decoration: InputDecoration(
+          hintText: widget.hint,
+          hintStyle: const TextStyle(
+            color: Color(0xFF999999),
+            fontSize: 12,
+            fontFamily: 'PingFang SC',
+            fontWeight: FontWeight.w400,
+          ),
+          prefixIcon: Icon(Icons.search),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        ),
+        onChanged: widget.onTextChanged,
+        onSubmitted: (value) => widget.onTextChanged(value),
+      ),
+    );
+  }
+}
+
+class SearchButtonWidget extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const SearchButtonWidget({Key? key, required this.onPressed}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 80,
+      height: 34,
+      decoration: ShapeDecoration(
+        color: Color(0xFFD43030),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      child: TextButton(
+        onPressed: onPressed,
+        child: Text(
+          '查询',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontFamily: 'PingFang SC',
+            fontWeight: FontWeight.w400,
+            height: 0.09,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
 class SearchAndButtonWidget extends StatelessWidget {
   final String hint;
   final VoidCallback onSearch;

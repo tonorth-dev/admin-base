@@ -1,4 +1,3 @@
-
 import 'package:admin_flutter/app/launch/view.dart';
 import 'package:admin_flutter/common/app_data.dart';
 import 'package:admin_flutter/state.dart';
@@ -9,9 +8,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
 
 import 'theme/light_theme.dart';
-
-
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

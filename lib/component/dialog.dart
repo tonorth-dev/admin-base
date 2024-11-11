@@ -119,12 +119,19 @@ class DynamicInputDialog {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(title),
-          content: SingleChildScrollView(
-            child: Form(
-              key: _formKey,
-              child: child
+          title: Text(
+            title,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF25B7E8),
             ),
+            textAlign: TextAlign.center,
+          ),
+          surfaceTintColor: Colors.white,
+          shadowColor: Colors.grey,
+          content: SingleChildScrollView(
+            child: Form(key: _formKey, child: child),
           ),
         );
       },
@@ -168,4 +175,3 @@ class DynamicInputDialog {
     );
   }
 }
-

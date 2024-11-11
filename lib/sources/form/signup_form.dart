@@ -1,110 +1,216 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
+import 'dart:convert';
 
-class SignupForm extends StatefulWidget {
-  const SignupForm({super.key});
+class TopicAddForm extends StatefulWidget {
+  const TopicAddForm({super.key});
 
   @override
-  State<SignupForm> createState() => _SignupFormState();
+  State<TopicAddForm> createState() => _TopicAddFormState();
 }
 
-class _SignupFormState extends State<SignupForm> {
+class _TopicAddFormState extends State<TopicAddForm> {
   final _formKey = GlobalKey<FormBuilderState>();
-  final _emailFieldKey = GlobalKey<FormBuilderFieldState>();
+  final quill.QuillController _quillController = quill.QuillController.basic();
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: FormBuilder(
-        key: _formKey,
-        child: Column(
-          children: [
-            FormBuilderTextField(
-              name: 'full_name',
-              decoration: const InputDecoration(labelText: 'Full Name'),
-              validator: FormBuilderValidators.compose([
-                FormBuilderValidators.required(),
-              ]),
-            ),
-            const SizedBox(height: 10),
-            FormBuilderTextField(
-              key: _emailFieldKey,
-              name: 'email',
-              decoration: const InputDecoration(labelText: 'Email'),
-              validator: FormBuilderValidators.compose([
-                FormBuilderValidators.required(),
-                FormBuilderValidators.email(),
-              ]),
-            ),
-            const SizedBox(height: 10),
-            FormBuilderTextField(
-              name: 'password',
-              decoration: const InputDecoration(labelText: 'Password'),
-              obscureText: true,
-              validator: FormBuilderValidators.compose([
-                FormBuilderValidators.required(),
-                FormBuilderValidators.minLength(6),
-              ]),
-            ),
-            const SizedBox(height: 10),
-            FormBuilderTextField(
-              name: 'confirm_password',
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              decoration: InputDecoration(
-                labelText: 'Confirm Password',
-                suffixIcon: (_formKey.currentState?.fields['confirm_password']
-                            ?.hasError ??
-                        false)
-                    ? const Icon(Icons.error, color: Colors.red)
-                    : const Icon(Icons.check, color: Colors.green),
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: SingleChildScrollView(
+        child: FormBuilder(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(width: 600),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Expanded(
+                    flex: 1,
+                    child: Text('Title:'),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: FormBuilderTextField(
+                      name: 'title',
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: FormBuilderValidators.required(),
+                    ),
+                  ),
+                ],
               ),
-              obscureText: true,
-              validator: (value) =>
-                  _formKey.currentState?.fields['password']?.value != value
-                      ? 'No coinciden'
-                      : null,
-            ),
-            const SizedBox(height: 10),
-            FormBuilderFieldDecoration<bool>(
-              name: 'test',
-              validator: FormBuilderValidators.compose([
-                FormBuilderValidators.required(),
-                FormBuilderValidators.equal(true),
-              ]),
-              // initialValue: true,
-              decoration: const InputDecoration(labelText: 'Accept Terms?'),
-              builder: (FormFieldState<bool?> field) {
-                return InputDecorator(
-                  decoration: InputDecoration(
-                    errorText: field.errorText,
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Expanded(
+                    flex: 1,
+                    child: Text('Category:'),
                   ),
-                  child: SwitchListTile(
-                    title: const Text(
-                        'I have read and accept the terms of service.'),
-                    onChanged: field.didChange,
-                    value: field.value ?? false,
+                  Expanded(
+                    flex: 2,
+                    child: FormBuilderDropdown<int>(
+                      name: 'cate',
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: FormBuilderValidators.required(),
+                      items: const [
+                        DropdownMenuItem(value: 1, child: Text('Category 1')),
+                        DropdownMenuItem(value: 2, child: Text('Category 2')),
+                      ],
+                    ),
                   ),
-                );
-              },
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState?.saveAndValidate() ?? false) {
-                  if (true) {
-                    // Either invalidate using Form Key
-                    _formKey.currentState?.fields['email']
-                        ?.invalidate('Email already taken.');
-                    // OR invalidate using Field Key
-                    // _emailFieldKey.currentState?.invalidate('Email already taken.');
-                  }
-                }
-                debugPrint(_formKey.currentState?.value.toString());
-              },
-              child: const Text('Signup'),
-            )
-          ],
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Expanded(
+                    flex: 1,
+                    child: Text('Answer:'),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      children: [
+                        quill.QuillToolbar.simple(controller: _quillController),
+                        const SizedBox(height: 8),
+                        Container(
+                          height: 200,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(4.0),
+                          ),
+                          child: quill.QuillEditor(
+                            controller: _quillController,
+                            scrollController: ScrollController(),
+                            // scrollable: true,
+                            focusNode: FocusNode(),
+                            // autoFocus: false,
+                            // readOnly: false,
+                            // expands: true,
+                            // padding: const EdgeInsets.all(10.0),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Expanded(
+                    flex: 1,
+                    child: Text('Author:'),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: FormBuilderTextField(
+                      name: 'author',
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: FormBuilderValidators.required(),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Expanded(
+                    flex: 1,
+                    child: Text('Major ID:'),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: FormBuilderTextField(
+                      name: 'major_id',
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
+                      validator: FormBuilderValidators.compose([
+                        FormBuilderValidators.required(),
+                        FormBuilderValidators.integer(),
+                      ]),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Expanded(
+                    flex: 1,
+                    child: Text('Major Name:'),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: FormBuilderTextField(
+                      name: 'major_name',
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: FormBuilderValidators.required(),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Expanded(
+                    flex: 1,
+                    child: Text('Tag:'),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: FormBuilderTextField(
+                      name: 'tag',
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState?.saveAndValidate() ?? false) {
+                        final formData = _formKey.currentState!.value;
+
+                        // Convert Quill document to JSON and HTML
+                        final answerJson = jsonEncode(_quillController.document.toDelta().toJson());
+                        final answerHtml = "";
+                        // encode(delta: _quillController.document.toDelta()).toHtml();
+
+                        formData['answer'] = {
+                          'json': answerJson,
+                          'html': answerHtml,
+                        };
+
+                        debugPrint(formData.toString());
+                        Navigator.of(context).pop(formData); // Close dialog with formData
+                      }
+                    },
+                    child: const Text('Submit'),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

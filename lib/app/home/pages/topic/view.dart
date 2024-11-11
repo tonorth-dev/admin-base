@@ -11,6 +11,18 @@ import 'logic.dart';
 import 'package:admin_flutter/theme/theme_util.dart';
 import 'package:provider/provider.dart';
 
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:admin_flutter/component/pagination/view.dart';
+import 'package:admin_flutter/component/table/ex.dart';
+import 'package:admin_flutter/app/home/sidebar/logic.dart';
+import 'package:admin_flutter/component/widget.dart';
+import 'logic.dart';
+import 'package:admin_flutter/theme/theme_util.dart';
+import 'package:provider/provider.dart';
+
 class TopicPage extends StatelessWidget {
   final logic = Get.put(TopicLogic());
 
@@ -24,7 +36,7 @@ class TopicPage extends StatelessWidget {
             children: [
               SizedBox(width: 30), // 添加一些间距
               CustomButton(
-                onPressed: logic.add,
+                onPressed: () => logic.add(context),
                 text: '新增',
                 width: 70, // 自定义宽度
                 height: 32, // 自定义高度
@@ -52,7 +64,7 @@ class TopicPage extends StatelessWidget {
               ),
               SizedBox(width: 8), // 添加一些间距
               CustomButton(
-                onPressed: logic.exportAllToCSV,
+                onPressed: logic.importFromCSV,
                 text: '从CSV导入',
                 width: 110, // 自定义宽度
                 height: 32, // 自定义高度
@@ -90,10 +102,21 @@ class TopicPage extends StatelessWidget {
                 },
               ),
               SizedBox(width: 8), // 添加一些间距
-              SearchAndButtonWidget(
+              SearchBoxWidget(
                 hint: '题干、答案、标签',
-                onSearch: () => logic.search(""),
+                onTextChanged: (String value) { logic.searchText.value = value; },
               ),
+              SizedBox(width: 20),
+              CustomButton(
+                onPressed: () => logic.resetFilters(),
+                text: '重置',
+                width: 70, // 自定义宽度
+                height: 32, // 自定义高度
+              ),
+              SizedBox(width: 20),
+              SearchButtonWidget(
+                onPressed: () => logic.find(logic.page, logic.size),
+              )
             ],
           ),
           ThemeUtil.lineH(),
@@ -102,95 +125,99 @@ class TopicPage extends StatelessWidget {
             child: Obx(() => logic.loading.value
                 ? const Center(child: CircularProgressIndicator())
                 : SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Container(
-                      width: 1500,
-                      child: SfDataGrid(
-                        source: TopicDataSource(logic: logic),
-                        headerGridLinesVisibility:
-                            GridLinesVisibility.values[1],
-                        gridLinesVisibility: GridLinesVisibility.values[1],
-                        columnWidthMode: ColumnWidthMode.fill,
-                        headerRowHeight: 50,
-                        rowHeight: 60,
-                        // 设置行高
-                        columns: [
-                          GridColumn(
-                            columnName: 'Select',
-                            width: 100,
-                            label: Container(
-                              color: Color(0xFFF3F4F8),
-                              alignment: Alignment.center,
-                              padding: const EdgeInsets.all(8.0),
-                              child: Checkbox(
-                                value: logic.selectedRows.length ==
-                                    logic.list.length,
-                                onChanged: (value) => logic.toggleSelectAll(),
-                                fillColor:
-                                    MaterialStateProperty.resolveWith<Color>(
-                                        (states) {
-                                  if (states.contains(MaterialState.selected)) {
-                                    return Color(
-                                        0xFFD43030); // Red background when checked
-                                  }
-                                  return Colors
-                                      .white; // Optional color for unchecked state
-                                }),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(4), // Rounded edges
-                                ),
-                              ),
-                            ),
+              scrollDirection: Axis.horizontal,
+              child: Container(
+                width: 1500,
+                child: SfDataGrid(
+                  source: TopicDataSource(logic: logic),
+                  headerGridLinesVisibility:
+                  GridLinesVisibility.values[1],
+                  gridLinesVisibility: GridLinesVisibility.values[1],
+                  columnWidthMode: ColumnWidthMode.fill,
+                  headerRowHeight: 50,
+                  rowHeight: 60,
+                  // 设置行高
+                  columns: [
+                    GridColumn(
+                      columnName: 'Select',
+                      width: 100,
+                      label: Container(
+                        color: Color(0xFFF3F4F8),
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.all(8.0),
+                        child: Checkbox(
+                          value: logic.selectedRows.length ==
+                              logic.list.length,
+                          onChanged: (value) => logic.toggleSelectAll(),
+                          fillColor:
+                          MaterialStateProperty.resolveWith<Color>(
+                                  (states) {
+                                if (states.contains(MaterialState.selected)) {
+                                  return Color(
+                                      0xFFD43030); // Red background when checked
+                                }
+                                return Colors
+                                    .white; // Optional color for unchecked state
+                              }),
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                            BorderRadius.circular(4), // Rounded edges
                           ),
-                          ...logic.columns.map((column) => GridColumn(
-                                columnName: column.key,
-                                width: _getColumnWidth(column.key),
-                                label: Container(
-                                  color: Color(0xFFF3F4F8),
-                                  alignment: Alignment.center,
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    column.title,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey[800],
-                                    ),
-                                  ),
-                                ),
-                              )),
-                          GridColumn(
-                            columnName: 'Actions',
-                            width: 140,
-                            label: Container(
-                              color: Color(0xFFF3F4F8),
-                              alignment: Alignment.center,
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                '操作',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 15),
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                  )),
+                    ...logic.columns.map((column) => GridColumn(
+                      columnName: column.key,
+                      width: _getColumnWidth(column.key),
+                      label: Container(
+                        color: Color(0xFFF3F4F8),
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          column.title,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                      ),
+                    )),
+                    GridColumn(
+                      columnName: 'Actions',
+                      width: 140,
+                      label: Container(
+                        color: Color(0xFFF3F4F8),
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          '操作',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 15),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )),
           ),
           Obx(() => Padding(
-                padding: EdgeInsets.only(right: 50), // 添加右侧内边距
-                child: PaginationPage(
-                  total: logic.total.value,
-                  changed: (size, page) => logic.find(size, page),
-                  // style: PaginationStyle(
-                  //   color: Colors.grey[200],
-                  //   selectedColor: Colors.red,
-                  //   textStyle: TextStyle(color: Colors.black87),
-                  // ),
-                ),
-              )),
+            padding: EdgeInsets.only(right: 50), // 添加右侧内边距
+            child: PaginationPage(
+              total: logic.total.value,
+              changed: (int newSize, int newPage) {
+                logic.size = newSize;
+                logic.page = newPage;
+                logic.find(newSize, newPage);
+              },
+              // style: PaginationStyle(
+              //   color: Colors.grey[200],
+              //   selectedColor: Colors.red,
+              //   textStyle: TextStyle(color: Colors.black87),
+              // ),
+            ),
+          )),
           ThemeUtil.height(height: 30),
         ],
       ),
