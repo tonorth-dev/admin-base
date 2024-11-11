@@ -1,25 +1,25 @@
-import 'package:admin_flutter/ex/ex_hint.dart';
 import 'package:admin_flutter/ex/ex_list.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:admin_flutter/component/table/table_data.dart';
 import 'package:admin_flutter/api/topic_api.dart';
+import 'package:admin_flutter/ex/ex_hint.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:csv/csv.dart';
 import 'package:admin_flutter/component/form/enum.dart';
 import 'package:admin_flutter/component/form/form_data.dart';
-
 import 'package:admin_flutter/component/dialog.dart';
 import 'package:admin_flutter/sources/form/topic_add_form.dart';
+import '../../../../component/pagination/logic.dart';
+import '../../../../component/table/table_data.dart';
 import 'edit_topic_dialog.dart';
 
 class TopicLogic extends GetxController {
   var list = <Map<String, dynamic>>[].obs;
   var total = 0.obs;
-  var size = 0;
-  var page = 0;
+  var size = 15.obs;
+  var page = 1.obs;
   var loading = false.obs;
   final searchText = ''.obs;
 
@@ -53,31 +53,50 @@ class TopicLogic extends GetxController {
 
   void applyFilters() {
     // 这里可以添加应用过滤逻辑
-    print('Selected Major: ${selectedMajor.value}');
-    print('Selected Sub Major: ${selectedSubMajor.value}');
-    print('Selected Sub Sub Major: ${selectedSubSubMajor.value}');
+    // print('Selected Major: ${selectedMajor.value}');
+    // print('Selected Sub Major: ${selectedSubMajor.value}');
+    // print('Selected Sub Sub Major: ${selectedSubSubMajor.value}');
   }
 
-  void find(int size, int page) {
-    this.size = size;
-    this.page = page;
+  void find(int newSize, int newPage) {
+    size.value = newSize;
+    page.value = newPage;
     list.clear();
     loading.value = true;
-    TopicApi.topicList(params: {
-      "size": size.toString(),
-      "page": page.toString(),
-      "search": searchText.value,
-      "cate": selectedTopicType.value.toString(),
-      "major_id": selectedMajor.value.toString(),
-    }).catchError((error) {
-      "获取题库列表失败: $error".toHint();
-    }).then((value) async {
-      total.value = value["total"];
-      list.addAll((value["list"] as List<dynamic>).toListMap());
-      list.refresh();
-      await Future.delayed(const Duration(milliseconds: 300));
+
+    // 打印调用堆栈
+    print("find 调用堆栈:");
+    print(StackTrace.current);
+
+    try {
+      TopicApi.topicList(params: {
+        "size": size.value.toString(),
+        "page": page.value.toString(),
+        "search": searchText.value,
+        "cate": selectedTopicType.value.toString(),
+        "major_id": selectedMajor.value.toString(),
+      }).then((value) async {
+        if (value != null) {
+          total.value = value["total"] ?? 0;
+          list.addAll((value["list"] as List<dynamic>).toListMap());
+          await Future.delayed(const Duration(milliseconds: 300));
+          loading.value = false;
+
+          // 更新 PaginationLogic 的总条数
+          final paginationLogic = Get.find<PaginationLogic>();
+          paginationLogic.updateTotal(total.value);
+        } else {
+          loading.value = false;
+          "获取题库列表失败: 服务器返回为空".toHint();
+        }
+      }).catchError((error) {
+        loading.value = false;
+        "获取题库列表失败: $error".toHint();
+      });
+    } catch (e) {
       loading.value = false;
-    });
+      "获取题库列表失败: $e".toHint();
+    }
   }
 
   var columns = <ColumnData>[];
@@ -96,6 +115,9 @@ class TopicLogic extends GetxController {
       ColumnData(title: "创建时间", key: "create_time"),
       ColumnData(title: "更新时间", key: "update_time"),
     ];
+
+    // 初始化数据
+    // find(size.value, page.value);
   }
 
   var form = FormDto(labelWidth: 80, columns: [
@@ -160,7 +182,7 @@ class TopicLogic extends GetxController {
         options: currentEditTopic.value['options']?.cast<String>() ?? [],
         answer: currentEditTopic.value['answer'] ?? '',
       );
-      find(size, page);
+      find(size.value, page.value);
       Get.back(); // 关闭对话框
       "更新成功!".toHint();
     } catch (e) {
@@ -171,105 +193,130 @@ class TopicLogic extends GetxController {
   }
 
   void delete(Map<String, dynamic> d, int index) {
-    TopicApi.topicDelete(d["id"].toString()).then((value) {
-      list.removeAt(index);
-    }).catchError((error) {
-      "删除失败: $error".toHint();
-    });
+    try {
+      TopicApi.topicDelete(d["id"].toString()).then((value) {
+        list.removeAt(index);
+      }).catchError((error) {
+        "删除失败: $error".toHint();
+      });
+    } catch (e) {
+      "删除失败: $e".toHint();
+    }
   }
 
   void search(String key) {
-    TopicApi.topicList(params: {"key": key}).then((value) {
-      refresh();
-    }).catchError((error) {
-      "搜索失败: $error".toHint();
-    });
+    try {
+      TopicApi.topicList(params: {"key": key}).then((value) {
+        refresh();
+      }).catchError((error) {
+        "搜索失败: $error".toHint();
+      });
+    } catch (e) {
+      "搜索失败: $e".toHint();
+    }
   }
 
+  @override
   void refresh() {
-    find(size, page);
+    find(size.value, page.value);
   }
 
   Future<void> exportCurrentPageToCSV() async {
-    final directory = await FilePicker.platform.getDirectoryPath();
-    if (directory == null) return;
+    try {
+      final directory = await FilePicker.platform.getDirectoryPath();
+      if (directory == null) return;
 
-    List<List<dynamic>> rows = [];
-    rows.add(columns.map((column) => column.title).toList());
+      List<List<dynamic>> rows = [];
+      rows.add(columns.map((column) => column.title).toList());
 
-    for (var item in list) {
-      rows.add(columns.map((column) => item[column.key]).toList());
+      for (var item in list) {
+        rows.add(columns.map((column) => item[column.key]).toList());
+      }
+
+      String csv = const ListToCsvConverter().convert(rows);
+      File('$directory/topics_current_page.csv').writeAsStringSync(csv);
+      "导出当前页成功!".toHint();
+    } catch (e) {
+      "导出当前页失败: $e".toHint();
     }
-
-    String csv = const ListToCsvConverter().convert(rows);
-    File('$directory/topics_current_page.csv').writeAsStringSync(csv);
-    "导出当前页成功!".toHint();
   }
 
   Future<void> exportAllToCSV() async {
-    final directory = await FilePicker.platform.getDirectoryPath();
-    if (directory == null) return;
+    try {
+      final directory = await FilePicker.platform.getDirectoryPath();
+      if (directory == null) return;
 
-    List<Map<String, dynamic>> allItems = [];
-    int currentPage = 1;
-    int pageSize = 100;
+      List<Map<String, dynamic>> allItems = [];
+      int currentPage = 1;
+      int pageSize = 100;
 
-    while (true) {
-      var response = await TopicApi.topicList(params: {
-        "size": pageSize.toString(),
-        "page": currentPage.toString(),
-      });
+      while (true) {
+        var response = await TopicApi.topicList(params: {
+          "size": pageSize.toString(),
+          "page": currentPage.toString(),
+        });
 
-      allItems.addAll((response["list"] as List<dynamic>).toListMap());
+        allItems.addAll((response["list"] as List<dynamic>).toListMap());
 
-      if (allItems.length >= response["total"]) break;
-      currentPage++;
+        if (allItems.length >= response["total"]) break;
+        currentPage++;
+      }
+
+      List<List<dynamic>> rows = [];
+      rows.add(columns.map((column) => column.title).toList());
+
+      for (var item in allItems) {
+        rows.add(columns.map((column) => item[column.key]).toList());
+      }
+
+      String csv = const ListToCsvConverter().convert(rows);
+      File('$directory/topics_all_pages.csv').writeAsStringSync(csv);
+      "导出全部成功!".toHint();
+    } catch (e) {
+      "导出全部失败: $e".toHint();
     }
-
-    List<List<dynamic>> rows = [];
-    rows.add(columns.map((column) => column.title).toList());
-
-    for (var item in allItems) {
-      rows.add(columns.map((column) => item[column.key]).toList());
-    }
-
-    String csv = const ListToCsvConverter().convert(rows);
-    File('$directory/topics_all_pages.csv').writeAsStringSync(csv);
-    "导出全部成功!".toHint();
   }
 
   void importFromCSV() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['csv']);
-    if (result != null) {
-      PlatformFile file = result.files.first;
-      String content = utf8.decode(file.bytes!);
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['csv']);
+      if (result != null) {
+        PlatformFile file = result.files.first;
+        String content = utf8.decode(file.bytes!);
 
-      List<List<dynamic>> rows = const CsvToListConverter().convert(content);
-      rows.removeAt(0); // 移除表头
+        List<List<dynamic>> rows = const CsvToListConverter().convert(content);
+        rows.removeAt(0); // 移除表头
 
-      for (var row in rows) {
-        Map<String, dynamic> data = {};
-        for (int i = 0; i < columns.length; i++) {
-          data[columns[i].key] = row[i];
+        for (var row in rows) {
+          Map<String, dynamic> data = {};
+          for (int i = 0; i < columns.length; i++) {
+            data[columns[i].key] = row[i];
+          }
+          await TopicApi.topicBatchImport(File.fromRawPath(file.bytes!)).then((value) {
+            "导入成功!".toHint();
+            refresh();
+          }).catchError((error) {
+            "导入失败: $error".toHint();
+          });
         }
-        TopicApi.topicBatchImport(file.bytes as File).then((value) {
-          "导入成功!".toHint();
-          find(size, page);
-        }).catchError((error) {
-          "导入失败: $error".toHint();
-        });
       }
+    } catch (e) {
+      "导入失败: $e".toHint();
     }
   }
 
   void batchDelete(List<int> ids) {
-    List<String> idsStr = ids.map((id) => id.toString()).toList();
-    TopicApi.topicDelete(idsStr.join(",")).then((value) {
-      "批量删除成功!".toHint();
-      refresh();
-    }).catchError((error) {
-      "批量删除失败: $error".toHint();
-    });
+    try {
+      List<String> idsStr = ids.map((id) => id.toString()).toList();
+      TopicApi.topicDelete(idsStr.join(",")).then((value) {
+        "批量删除成功!".toHint();
+        refresh();
+      }).catchError((error) {
+        "批量删除失败: $error".toHint();
+      });
+    } catch (e) {
+      "批量删除失败: $e".toHint();
+    }
   }
 
   void toggleSelectAll() {
@@ -298,6 +345,6 @@ class TopicLogic extends GetxController {
     // subSubMajorSelected.value = null;
 
     // 重新查询
-    find(page, size);
+    find(page.value, size.value);
   }
 }

@@ -192,15 +192,14 @@ class _TopicAddFormState extends State<TopicAddForm> {
                     onPressed: () {
                       Navigator.pop(context); // 关闭弹窗
                     },
-                    child: const Text('取消'),
                     style: TextButton.styleFrom(
                       foregroundColor: Colors.grey[700],
                     ),
+                    child: const Text('取消'),
                   ),
                   const SizedBox(width: 10),
                   ElevatedButton(
                     onPressed: _submitForm,
-                    child: const Text('提交'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFF25B7E8),
                       foregroundColor: Colors.white,
@@ -208,6 +207,7 @@ class _TopicAddFormState extends State<TopicAddForm> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
+                    child: const Text('提交'),
                   ),
                 ],
               ),

@@ -6,19 +6,7 @@ import 'package:admin_flutter/component/pagination/view.dart';
 import 'package:admin_flutter/component/table/ex.dart';
 import 'package:admin_flutter/app/home/sidebar/logic.dart';
 import 'package:admin_flutter/component/widget.dart';
-import '../../../../component/dialog.dart';
-import 'logic.dart';
-import 'package:admin_flutter/theme/theme_util.dart';
-import 'package:provider/provider.dart';
-
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:get/get.dart';
-import 'package:syncfusion_flutter_datagrid/datagrid.dart';
-import 'package:admin_flutter/component/pagination/view.dart';
-import 'package:admin_flutter/component/table/ex.dart';
-import 'package:admin_flutter/app/home/sidebar/logic.dart';
-import 'package:admin_flutter/component/widget.dart';
+import 'package:admin_flutter/component/dialog.dart';
 import 'logic.dart';
 import 'package:admin_flutter/theme/theme_util.dart';
 import 'package:provider/provider.dart';
@@ -104,7 +92,9 @@ class TopicPage extends StatelessWidget {
               SizedBox(width: 8), // 添加一些间距
               SearchBoxWidget(
                 hint: '题干、答案、标签',
-                onTextChanged: (String value) { logic.searchText.value = value; },
+                onTextChanged: (String value) {
+                  logic.searchText.value = value;
+                },
               ),
               SizedBox(width: 20),
               CustomButton(
@@ -115,7 +105,7 @@ class TopicPage extends StatelessWidget {
               ),
               SizedBox(width: 20),
               SearchButtonWidget(
-                onPressed: () => logic.find(logic.page, logic.size),
+                onPressed: () => logic.find(logic.page as int, logic.size as int),
               )
             ],
           ),
@@ -126,7 +116,7 @@ class TopicPage extends StatelessWidget {
                 ? const Center(child: CircularProgressIndicator())
                 : SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              child: Container(
+              child: SizedBox(
                 width: 1500,
                 child: SfDataGrid(
                   source: TopicDataSource(logic: logic),
@@ -150,9 +140,9 @@ class TopicPage extends StatelessWidget {
                               logic.list.length,
                           onChanged: (value) => logic.toggleSelectAll(),
                           fillColor:
-                          MaterialStateProperty.resolveWith<Color>(
+                          WidgetStateProperty.resolveWith<Color>(
                                   (states) {
-                                if (states.contains(MaterialState.selected)) {
+                                if (states.contains(WidgetState.selected)) {
                                   return Color(
                                       0xFFD43030); // Red background when checked
                                 }
@@ -204,18 +194,15 @@ class TopicPage extends StatelessWidget {
           ),
           Obx(() => Padding(
             padding: EdgeInsets.only(right: 50), // 添加右侧内边距
-            child: PaginationPage(
-              total: logic.total.value,
-              changed: (int newSize, int newPage) {
-                logic.size = newSize;
-                logic.page = newPage;
-                logic.find(newSize, newPage);
-              },
-              // style: PaginationStyle(
-              //   color: Colors.grey[200],
-              //   selectedColor: Colors.red,
-              //   textStyle: TextStyle(color: Colors.black87),
-              // ),
+            child: Column(
+              children: [
+                PaginationPage(
+                  total: logic.total.value,
+                  changed: (int newSize, int newPage) {
+                    logic.find(newSize, newPage);
+                  },
+                ),
+              ],
             ),
           )),
           ThemeUtil.height(height: 30),
@@ -265,18 +252,18 @@ class TopicDataSource extends DataGridSource {
   void _buildRows() {
     _rows = logic.list
         .map((item) => DataGridRow(
-              cells: [
-                DataGridCell(
-                  columnName: 'Select',
-                  value: logic.selectedRows.contains(item['id']),
-                ),
-                ...logic.columns.map((column) => DataGridCell(
-                      columnName: column.key,
-                      value: item[column.key],
-                    )),
-                DataGridCell(columnName: 'Actions', value: item),
-              ],
-            ))
+      cells: [
+        DataGridCell(
+          columnName: 'Select',
+          value: logic.selectedRows.contains(item['id']),
+        ),
+        ...logic.columns.map((column) => DataGridCell(
+          columnName: column.key,
+          value: item[column.key],
+        )),
+        DataGridCell(columnName: 'Actions', value: item),
+      ],
+    ))
         .toList();
   }
 
@@ -297,8 +284,8 @@ class TopicDataSource extends DataGridSource {
           child: Checkbox(
             value: isSelected,
             onChanged: (value) => logic.toggleSelect(rowIndex),
-            fillColor: MaterialStateProperty.resolveWith<Color>((states) {
-              return states.contains(MaterialState.selected)
+            fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+              return states.contains(WidgetState.selected)
                   ? Color(0xFFD43030)
                   : Colors.white;
             }),
@@ -315,7 +302,8 @@ class TopicDataSource extends DataGridSource {
             // Use LayoutBuilder to get the actual width and determine if text exceeds
             return Tooltip(
               message: "点击右侧复制或查看全文",
-              verticalOffset: 25.0, // 可以调整垂直偏移量
+              verticalOffset: 25.0,
+              // 可以调整垂直偏移量
               showDuration: Duration(milliseconds: 200),
               decoration: BoxDecoration(
                 color: Colors.grey.shade800,
@@ -340,23 +328,27 @@ class TopicDataSource extends DataGridSource {
                       ),
                       isOverflowing
                           ? TextButton(
-                        child: Text("全文"),
                         style: ButtonStyle(
-                            textStyle: MaterialStateProperty.all(TextStyle(fontSize: 14)),
-                            foregroundColor: MaterialStateProperty.all(Color(0xFF25B7E8)),
+                          textStyle: WidgetStateProperty.all(
+                              TextStyle(fontSize: 14)),
+                          foregroundColor: WidgetStateProperty.all(
+                              Color(0xFF25B7E8)),
                         ),
                         onPressed: () {
                           CopyDialog.show(context, value);
                         },
+                        child: Text("全文"),
                       )
                           : TextButton(
-                        child: Text("复制"),
                         style: ButtonStyle(
-                          textStyle: MaterialStateProperty.all(TextStyle(fontSize: 14)),
-                          foregroundColor: MaterialStateProperty.all(Color(0xFF25B7E8)),
+                          textStyle: WidgetStateProperty.all(
+                              TextStyle(fontSize: 14)),
+                          foregroundColor: WidgetStateProperty.all(
+                              Color(0xFF25B7E8)),
                         ),
                         onPressed: () async {
-                          await Clipboard.setData(ClipboardData(text: value));
+                          await Clipboard.setData(
+                              ClipboardData(text: value));
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text("复制成功"),
@@ -364,13 +356,13 @@ class TopicDataSource extends DataGridSource {
                             ),
                           );
                         },
+                        child: Text("复制"),
                       ),
                     ],
                   );
                 },
               ),
             );
-
           } else {
             return Container(
               alignment: Alignment.center,
