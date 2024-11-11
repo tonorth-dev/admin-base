@@ -78,7 +78,7 @@ class TopicLogic extends GetxController {
   void onInit() {
     super.onInit();
     columns = [
-      ColumnData(title: "问题ID", key: "id", width: 80),
+      ColumnData(title: "ID", key: "id", width: 80),
       ColumnData(title: "题型", key: "cate"),
       ColumnData(title: "题干", key: "title"),
       ColumnData(title: "答案", key: "answer"),

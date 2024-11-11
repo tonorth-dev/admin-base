@@ -6,6 +6,7 @@ import 'package:admin_flutter/component/pagination/view.dart';
 import 'package:admin_flutter/component/table/ex.dart';
 import 'package:admin_flutter/app/home/sidebar/logic.dart';
 import 'package:admin_flutter/component/widget.dart';
+import '../../../../component/dialog.dart';
 import 'logic.dart';
 import 'package:admin_flutter/theme/theme_util.dart';
 import 'package:provider/provider.dart';
@@ -103,7 +104,7 @@ class TopicPage extends StatelessWidget {
                 : SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Container(
-                      width: 1700,
+                      width: 1500,
                       child: SfDataGrid(
                         source: TopicDataSource(logic: logic),
                         headerGridLinesVisibility:
@@ -152,7 +153,7 @@ class TopicPage extends StatelessWidget {
                                   child: Text(
                                     column.title,
                                     style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 15,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.grey[800],
                                     ),
@@ -161,7 +162,7 @@ class TopicPage extends StatelessWidget {
                               )),
                           GridColumn(
                             columnName: 'Actions',
-                            width: 160,
+                            width: 140,
                             label: Container(
                               color: Color(0xFFF3F4F8),
                               alignment: Alignment.center,
@@ -169,7 +170,7 @@ class TopicPage extends StatelessWidget {
                               child: Text(
                                 '操作',
                                 style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16),
+                                    fontWeight: FontWeight.bold, fontSize: 15),
                               ),
                             ),
                           ),
@@ -199,23 +200,21 @@ class TopicPage extends StatelessWidget {
   double _getColumnWidth(String key) {
     switch (key) {
       case 'id':
-        return 80;
+        return 65;
       case 'cate':
-        return 100;
+        return 90;
       case 'title':
-        return 300;
+        return 240;
       case 'answer':
-        return 400;
+        return 320;
       case 'major_id':
-        return 100;
+        return 80;
       case 'major_name':
         return 100;
       case 'create_time':
         return 0;
-      case 'major_desc':
-        return 200;
       default:
-        return 150; // 默认宽度
+        return 100; // 默认宽度
     }
   }
 
@@ -288,11 +287,16 @@ class TopicDataSource extends DataGridSource {
           if (columnName == 'title' || columnName == 'answer') {
             // Use LayoutBuilder to get the actual width and determine if text exceeds
             return Tooltip(
-              message: value,
+              message: "点击右侧复制或查看全文",
+              verticalOffset: 25.0, // 可以调整垂直偏移量
+              showDuration: Duration(milliseconds: 200),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade800,
+                borderRadius: BorderRadius.circular(4.0),
+              ),
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final isOverflowing =
-                      value.length > 100; // Adjust length condition
+                  final isOverflowing = value.length > 100; // 调整长度条件
                   return Row(
                     children: [
                       Expanded(
@@ -309,39 +313,37 @@ class TopicDataSource extends DataGridSource {
                       ),
                       isOverflowing
                           ? TextButton(
-                              child: Text("全文"),
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => AlertDialog(
-                                    title: Text('全部内容'),
-                                    content: SelectableText(value),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Clipboard.setData(
-                                            ClipboardData(text: value),
-                                          );
-                                          Navigator.pop(context);
-                                        },
-                                        child: Text("复制"),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            )
+                        child: Text("全文"),
+                        style: ButtonStyle(
+                            textStyle: MaterialStateProperty.all(TextStyle(fontSize: 14)),
+                            foregroundColor: MaterialStateProperty.all(Color(0xFF25B7E8)),
+                        ),
+                        onPressed: () {
+                          CopyDialog.show(context, value);
+                        },
+                      )
                           : TextButton(
-                              child: Text("复制"),
-                              onPressed: () {
-                                Clipboard.setData(ClipboardData(text: value));
-                              },
+                        child: Text("复制"),
+                        style: ButtonStyle(
+                          textStyle: MaterialStateProperty.all(TextStyle(fontSize: 14)),
+                          foregroundColor: MaterialStateProperty.all(Color(0xFF25B7E8)),
+                        ),
+                        onPressed: () async {
+                          await Clipboard.setData(ClipboardData(text: value));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("复制成功"),
+                              duration: Duration(seconds: 2), // 显示2秒钟
                             ),
+                          );
+                        },
+                      ),
                     ],
                   );
                 },
               ),
             );
+
           } else {
             return Container(
               alignment: Alignment.center,
