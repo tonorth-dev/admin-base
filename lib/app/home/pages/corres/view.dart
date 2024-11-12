@@ -353,7 +353,7 @@ class MajorTableView extends StatelessWidget {
         Obx(() {
           return PaginationPage(
             total: logic.total.value,
-            changed: (size, page) => logic.find(size, page),
+            changed: (size, page) => logic.find(size, page, ''),
           );
         })
       ],

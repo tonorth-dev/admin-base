@@ -13,27 +13,46 @@ import 'package:admin_flutter/component/form/form_data.dart';
 class MajorLogic extends GetxController {
   var list = <Map<String, dynamic>>[].obs;
   var total = 0.obs;
-  var size = 0;
-  var page = 0;
+  var size = 0.obs;
+  var page = 0.obs;
+  var key = ''.obs;
   var loading = false.obs;
   RxList<int> selectedRows = <int>[].obs;
   Function(List<int>)? onMajorRowSelected;
 
-  void find(int size, int page) {
-    this.size = size;
-    this.page = page;
+  void find(int size, int page, String search) {
+    // 更新 size、page 和 search
+    this.size.value = size;
+    this.page.value = page;
+    this.key.value = search;
+
+    // 清空列表
     list.clear();
+
+    // 设置加载状态
     loading.value = true;
-    MajorApi.majorList(params: {
-      "size": size,
-      "page": page,
-    }).then((value) async {
+
+    // 构建参数
+    final params = {
+      'size': size.toString(),
+      'page': page.toString(),
+      'search': search,
+    };
+
+    // 调用 API 并处理响应
+    MajorApi.majorList(params: params).then((value) async {
       total.value = value["total"];
-      list.addAll((value["list"] as List<dynamic>).toListMap());
+      list.addAll((value["list"] as List<dynamic>).cast<Map<String, dynamic>>());
       list.refresh();
       print('major Data loaded: ${list}');
+
       // 休眠 300 毫秒
       await Future.delayed(const Duration(milliseconds: 300));
+
+      // 关闭加载状态
+      loading.value = false;
+    }).catchError((error) {
+      print('Error in find: $error');
       loading.value = false;
     });
   }
@@ -45,10 +64,9 @@ class MajorLogic extends GetxController {
     super.onInit();
     columns = [
       ColumnData(title: "ID", key: "id", width: 80),
-      ColumnData(title: "岗位名称", key: "job_name"),
-      ColumnData(title: "岗位类别", key: "job_cate"),
-      ColumnData(title: "从事工作", key: "job_desc"),
-      ColumnData(title: "所学专业", key: "majors"),
+      ColumnData(title: "第一分类", key: "first_level_category"),
+      ColumnData(title: "第二分类", key: "second_level_category"),
+      ColumnData(title: "专业名称", key: "major_name"),
       ColumnData(title: "创建时间", key: "create_time"),
     ];
   }
@@ -82,7 +100,7 @@ class MajorLogic extends GetxController {
         submit: (data) => {
           MajorApi.majorInsert(params: data).then((value) {
             "插入成功!".toHint();
-            find(size, page);
+            find(size as int, page as int, '');
             Get.back();
           })
         });
@@ -119,7 +137,7 @@ class MajorLogic extends GetxController {
 
   // 刷新功能
   void refresh() {
-    find(size, page);
+    find(size as int, page as int, '');
   }
 
   // 导出当前页功能
@@ -189,7 +207,7 @@ class MajorLogic extends GetxController {
         }
         MajorApi.majorInsert(params: data).then((value) {
           "导入成功!".toHint();
-          find(size, page);
+          find(size as int, page as int, '');
         }).catchError((error) {
           "导入失败: $error".toHint();
         });

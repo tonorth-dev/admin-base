@@ -11,27 +11,24 @@ class TopicApi {
   ));
 
   // 获取题目列表
-  static Future<dynamic> topicList({
-    String? page,
-    String? pageSize,
-    String? search,
-    String? cate,
-    String? majorId, required Map<String, String> params,
-  }) async {
+  static Future<dynamic> topicList(Map<String, String> params) async {
     try {
-      Map<String, dynamic> params = {
-        'page': page ?? '1', // 默认值为 '1'
-        'pageSize': pageSize ?? '20', // 默认值为 '20'
-        'search': search ?? '', // 默认值为空字符串
-        'cate': cate ?? '', // 默认值为空字符串
-        'major_id': majorId ?? '', // 默认值为空字符串
+      // 使用传入的 params，如果某些键不存在，则使用默认值
+      final Map<String, String> finalParams = {
+        'page': params['page'] ?? '1', // 默认值为 '1'
+        'pageSize': params['size'] ?? '20', // 默认值为 '20'
+        'search': params['search'] ?? '', // 默认值为空字符串
+        'cate': params['cate'] ?? '', // 默认值为空字符串
+        'major_id': params['major_id'] ?? '', // 默认值为空字符串
       };
-      return await HttpUtil.get("/admin/topic/topic/list", params: params);
+
+      return await HttpUtil.get("/admin/topic/topic/list", params: finalParams);
     } catch (e) {
       print('Error in topicList: $e');
       rethrow; // 重新抛出异常以便调用者处理
     }
   }
+
 
   // 创建题目
   static Future<dynamic> topicCreate(Map<String, dynamic> params) async {

@@ -37,11 +37,13 @@ class PaginationLogic extends GetxController {
 
   void reload() {
     totalPage.value = (total ~/ size.value) + (total % size.value != 0 ? 1 : 0);
+    // 确保在调用 changed 之前更新 totalPage 和 current
+    print("当前页码: ${current.value}, 总页数: ${totalPage.value}");  // 调试日志
     changed(size.value, current.value);
   }
 
+
   void updateTotal(int newTotal) {
     total = newTotal;
-    // reload();
   }
 }

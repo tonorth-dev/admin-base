@@ -11,6 +11,7 @@ import 'package:admin_flutter/component/form/enum.dart';
 import 'package:admin_flutter/component/form/form_data.dart';
 import 'package:admin_flutter/component/dialog.dart';
 import 'package:admin_flutter/sources/form/topic_add_form.dart';
+import '../../../../api/major_api.dart';
 import '../../../../component/pagination/logic.dart';
 import '../../../../component/table/table_data.dart';
 import 'edit_topic_dialog.dart';
@@ -29,27 +30,52 @@ class TopicLogic extends GetxController {
   Rx<String?> selectedTopicType = '全部题型'.obs;
   List<String> topicTypeList = ['全部题型', '专业知识', '求职动机', '适岗能力'];  // 根据实际情况填充
 
-  final List<String> majorList = ['全部专业', '计算机科学与技术', '国际关系', '教育学'];  // 根据实际情况填充
-  final Map<String, List<String>> subMajorMap = {
-    '全部专业': ['二级分类1-1', '二级分类1-2'],
-    '计算机科学与技术': ['二级分类2-1', '二级分类2-2'],
-    '国际关系': ['二级分类3-1', '二级分类3-2'],
-    '教育学': ['二级分类3-3', '二级分类3-4'],
-  };
-  final Map<String, List<String>> subSubMajorMap = {
-    '二级分类1-1': ['三级分类1-1-1', '三级分类1-1-2'],
-    '二级分类1-2': ['三级分类1-2-1', '三级分类1-2-2'],
-    '二级分类2-1': ['三级分类2-1-1', '三级分类2-1-2'],
-    '二级分类2-2': ['三级分类2-2-1', '三级分类2-2-2'],
-    '二级分类3-1': ['三级分类3-1-1', '三级分类3-1-2'],
-    '二级分类3-2': ['三级分类3-2-1', '三级分类3-2-2'],
-    '二级分类3-3': ['三级分类3-3-1', '三级分类3-3-2'],
-    '二级分类3-4': ['三级分类3-4-1', '三级分类3-4-2'],
-  };
+  final List<String> majorList = ['全部专业'];
+  final Map<String, List<String>> subMajorMap = {'全部专业': []};
+  final Map<String, List<String>> subSubMajorMap = {};
 
-  final ValueNotifier<String?> selectedMajor = ValueNotifier('全部专业');
-  final ValueNotifier<String?> selectedSubMajor = ValueNotifier(null);
-  final ValueNotifier<String?> selectedSubSubMajor = ValueNotifier(null);
+  void fetchMajors() async {
+    try {
+      var response = await MajorApi.majorList(params: {'size': 3000, 'page': 1});
+      if (response != null && response["total"] > 0) {
+        var dataList = response["list"] as List<dynamic>;
+
+        // 清空数据以避免重复
+        majorList.clear();
+        majorList.add('全部专业');
+        subMajorMap.clear();
+        subMajorMap['全部专业'] = [];
+        subSubMajorMap.clear();
+
+        for (var item in dataList) {
+          String firstLevel = item["first_level_category"];
+          String secondLevel = item["second_level_category"];
+          String thirdLevel = item["major_name"];
+
+          // 添加一级类目
+          if (!majorList.contains(firstLevel)) {
+            majorList.add(firstLevel);
+            subMajorMap[firstLevel] = [];
+          }
+
+          // 检查并添加二级类目
+          if (!subMajorMap[firstLevel]!.contains(secondLevel)) {
+            subMajorMap[firstLevel]!.add(secondLevel);
+            subSubMajorMap[secondLevel] = []; // 初始化三级类目列表
+          }
+
+          // 检查并添加三级类目
+          if (!subSubMajorMap[secondLevel]!.contains(thirdLevel)) {
+            subSubMajorMap[secondLevel]!.add(thirdLevel);
+          }
+        }
+      } else {
+        "获取专业列表失败".toHint();
+      }
+    } catch (e) {
+      "获取专业列表失败: $e".toHint();
+    }
+  }
 
   void applyFilters() {
     // 这里可以添加应用过滤逻辑
@@ -63,18 +89,13 @@ class TopicLogic extends GetxController {
     page.value = newPage;
     list.clear();
     loading.value = true;
-
     // 打印调用堆栈
-    print("find 调用堆栈:");
-    print(StackTrace.current);
-
     try {
-      TopicApi.topicList(params: {
+      TopicApi.topicList({
         "size": size.value.toString(),
         "page": page.value.toString(),
         "search": searchText.value,
         "cate": selectedTopicType.value.toString(),
-        "major_id": selectedMajor.value.toString(),
       }).then((value) async {
         if (value != null) {
           total.value = value["total"] ?? 0;
@@ -104,6 +125,8 @@ class TopicLogic extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    fetchMajors(); // Fetch and populate major data on initialization
+
     columns = [
       ColumnData(title: "ID", key: "id", width: 80),
       ColumnData(title: "题型", key: "cate"),
@@ -206,7 +229,7 @@ class TopicLogic extends GetxController {
 
   void search(String key) {
     try {
-      TopicApi.topicList(params: {"key": key}).then((value) {
+      TopicApi.topicList({"search": key}).then((value) {
         refresh();
       }).catchError((error) {
         "搜索失败: $error".toHint();
@@ -251,7 +274,7 @@ class TopicLogic extends GetxController {
       int pageSize = 100;
 
       while (true) {
-        var response = await TopicApi.topicList(params: {
+        var response = await TopicApi.topicList({
           "size": pageSize.toString(),
           "page": currentPage.toString(),
         });
