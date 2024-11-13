@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 
 class CustomButton extends StatefulWidget {
   final VoidCallback onPressed;
@@ -289,26 +290,37 @@ class _CascadingDropdownFieldState extends State<CascadingDropdownField> {
   String? selectedLevel2;
   String? selectedLevel3;
 
-  void _onLevel1Changed(String? newValue) {
+  // TextEditingControllers for each TypeAheadField
+  final TextEditingController _level1Controller = TextEditingController();
+  final TextEditingController _level2Controller = TextEditingController();
+  final TextEditingController _level3Controller = TextEditingController();
+
+  void _onLevel1Changed(String newValue) {
     setState(() {
       selectedLevel1 = newValue;
-      selectedLevel2 = null; // Reset second level selection
-      selectedLevel3 = null; // Reset third level selection
+      selectedLevel2 = null;
+      selectedLevel3 = null;
+      _level1Controller.text = newValue;
+      _level2Controller.clear();
+      _level3Controller.clear();
     });
     widget.onChanged?.call(selectedLevel1, selectedLevel2, selectedLevel3);
   }
 
-  void _onLevel2Changed(String? newValue) {
+  void _onLevel2Changed(String newValue) {
     setState(() {
       selectedLevel2 = newValue;
-      selectedLevel3 = null; // Reset third level selection
+      selectedLevel3 = null;
+      _level2Controller.text = newValue;
+      _level3Controller.clear();
     });
     widget.onChanged?.call(selectedLevel1, selectedLevel2, selectedLevel3);
   }
 
-  void _onLevel3Changed(String? newValue) {
+  void _onLevel3Changed(String newValue) {
     setState(() {
       selectedLevel3 = newValue;
+      _level3Controller.text = newValue;
     });
     widget.onChanged?.call(selectedLevel1, selectedLevel2, selectedLevel3);
   }
@@ -316,41 +328,119 @@ class _CascadingDropdownFieldState extends State<CascadingDropdownField> {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        DropdownField(
+        SizedBox(
           width: widget.width,
           height: widget.height,
-          hint: widget.hint1,
-          items: widget.level1Items.toSet().toList(),
-          value: selectedLevel1,
-          onChanged: _onLevel1Changed,
+          child: TypeAheadField(
+            textFieldConfiguration: TextFieldConfiguration(
+              controller: _level1Controller,
+              decoration: InputDecoration(
+                labelText: widget.hint1,
+                border: OutlineInputBorder(),
+              ),
+              style: TextStyle(fontSize: 16.0),
+            ),
+            suggestionsCallback: (pattern) {
+              return widget.level1Items
+                  .where((item) => item.toLowerCase().contains(pattern.toLowerCase()))
+                  .toList();
+            },
+            itemBuilder: (context, suggestion) {
+              return ListTile(
+                title: Text(suggestion),
+              );
+            },
+            onSuggestionSelected: (suggestion) {
+              _onLevel1Changed(suggestion);
+            },
+            noItemsFoundBuilder: (context) => SizedBox(
+              height: 50,
+              child: Center(child: Text('No items found')),
+            ),
+          ),
         ),
-        const SizedBox(width: 3),
-        DropdownField(
+        SizedBox(width: 8),
+        SizedBox(
           width: widget.width,
           height: widget.height,
-          hint: widget.hint2,
-          items: selectedLevel1 != null
-              ? widget.level2Items[selectedLevel1!]!.toSet().toList()
-              : [],
-          value: selectedLevel2,
-          onChanged: _onLevel2Changed,
+          child: TypeAheadField(
+            textFieldConfiguration: TextFieldConfiguration(
+              controller: _level2Controller,
+              decoration: InputDecoration(
+                labelText: widget.hint2,
+                border: OutlineInputBorder(),
+              ),
+              style: TextStyle(fontSize: 16.0),
+            ),
+            suggestionsCallback: (pattern) {
+              if (selectedLevel1 == null) return [];
+              return widget.level2Items[selectedLevel1]!
+                  .where((item) => item.toLowerCase().contains(pattern.toLowerCase()))
+                  .toList();
+            },
+            itemBuilder: (context, suggestion) {
+              return ListTile(
+                title: Text(suggestion),
+              );
+            },
+            onSuggestionSelected: (suggestion) {
+              _onLevel2Changed(suggestion);
+            },
+            noItemsFoundBuilder: (context) => SizedBox(
+              height: 50,
+              child: Center(child: Text('No items found')),
+            ),
+          ),
         ),
-        const SizedBox(width: 3),
-        DropdownField(
+        SizedBox(width: 8),
+        SizedBox(
           width: widget.width,
           height: widget.height,
-          hint: widget.hint3,
-          items: selectedLevel2 != null
-              ? widget.level3Items[selectedLevel2!]!.toSet().toList()
-              : [],
-          value: selectedLevel3,
-          onChanged: _onLevel3Changed,
+          child: TypeAheadField(
+            textFieldConfiguration: TextFieldConfiguration(
+              controller: _level3Controller,
+              decoration: InputDecoration(
+                labelText: widget.hint3,
+                border: OutlineInputBorder(),
+              ),
+              style: TextStyle(fontSize: 16.0),
+            ),
+            suggestionsCallback: (pattern) {
+              if (selectedLevel2 == null) return [];
+              return widget.level3Items[selectedLevel2]!
+                  .where((item) => item.toLowerCase().contains(pattern.toLowerCase()))
+                  .toList();
+            },
+            itemBuilder: (context, suggestion) {
+              return ListTile(
+                title: Text(suggestion),
+              );
+            },
+            onSuggestionSelected: (suggestion) {
+              _onLevel3Changed(suggestion);
+            },
+            noItemsFoundBuilder: (context) => SizedBox(
+              height: 50,
+              child: Center(child: Text('No items found')),
+            ),
+          ),
         ),
       ],
     );
   }
+
+  @override
+  void dispose() {
+    // Dispose controllers to prevent memory leaks
+    _level1Controller.dispose();
+    _level2Controller.dispose();
+    _level3Controller.dispose();
+    super.dispose();
+  }
 }
+
 
 class SearchBoxWidget extends StatefulWidget {
   final String hint;

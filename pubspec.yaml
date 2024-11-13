@@ -48,6 +48,7 @@ dependencies:
   form_builder_validators: ^11.0.0
   flutter_quill: ^10.0.0
   html: ^0.15.0
+  flutter_typeahead: ^4.0.0
 
 dev_dependencies:
   flutter_test:

@@ -36,7 +36,7 @@ class TopicLogic extends GetxController {
 
   void fetchMajors() async {
     try {
-      var response = await MajorApi.majorList(params: {'size': 3000, 'page': 1});
+      var response = await MajorApi.majorList(params: {'pageSize': 3000, 'page': 1});
       if (response != null && response["total"] > 0) {
         var dataList = response["list"] as List<dynamic>;
 
@@ -69,6 +69,11 @@ class TopicLogic extends GetxController {
             subSubMajorMap[secondLevel]!.add(thirdLevel);
           }
         }
+
+        // 调试输出
+        print('majorList: $majorList');
+        print('subMajorMap: $subMajorMap');
+        print('subSubMajorMap: $subSubMajorMap');
       } else {
         "获取专业列表失败".toHint();
       }

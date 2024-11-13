@@ -71,23 +71,26 @@ class TopicPage extends StatelessWidget {
                   logic.applyFilters();
                 },
               ),
-              SizedBox(width: 12), // 添加一些间距
-              CascadingDropdownField(
-                width: 160,
-                height: 34,
-                hint1: '选择专业',
-                hint2: '选择XX',
-                hint3: '从事工作',
-                level1Items: [...logic.majorList],
-                level2Items: {
-                  ...logic.subMajorMap,
-                },
-                level3Items: {
-                  ...logic.subSubMajorMap,
-                },
-                onChanged: (level1, level2, level3) {
-                  print('选择的: $level1, 市: $level2, 区: $level3');
-                },
+              SizedBox(width: 12), 
+              Padding(
+                padding: EdgeInsets.all(16.0),
+                  child:CascadingDropdownField(
+                    width: 160,
+                    height: 34,
+                    hint1: '专业类目一',
+                    hint2: '专业类目二',
+                    hint3: '专业名称',
+                    level1Items: [...logic.majorList],
+                    level2Items: {
+                      ...logic.subMajorMap,
+                    },
+                    level3Items: {
+                      ...logic.subSubMajorMap,
+                    },
+                    onChanged: (level1, level2, level3) {
+                      print('选择的: $level1, 市: $level2, 区: $level3');
+                    },
+                  ),
               ),
               SizedBox(width: 8), // 添加一些间距
               SearchBoxWidget(
