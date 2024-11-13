@@ -60,53 +60,65 @@ class TopicPage extends StatelessWidget {
               SizedBox(width: 120), // 添加一些间距
               DropdownField(
                 key: Key('question_cate'),
-                items: logic.topicTypeList.toList(),
-                // 传递选项数据
+                items: logic.questionCate.toList(),
                 hint: '选择题型',
                 width: 120,
-                // 设置宽度
                 height: 34,
-                // 设置高度
-                onChanged: (String? newValue) {
-                  logic.selectedTopicType.value = newValue;
+                onChanged: (dynamic newValue) {
+                  logic.selectedQuestionCate.value = newValue.toString();
                   logic.applyFilters();
                 },
               ),
-              SizedBox(width: 12), 
+              SizedBox(width: 12),
+              DropdownField(
+                key: Key('question_level'),
+                items: logic.questionCate.toList(),
+                hint: '选择难度',
+                width: 120,
+                height: 34,
+                onChanged: (dynamic newValue) {
+                  logic.selectedQuestionLevel.value = newValue.toString();
+                  logic.applyFilters();
+                },
+              ),
               Padding(
                 padding: EdgeInsets.all(16.0),
-                  child:CascadingDropdownField(
-                    width: 160,
-                    height: 34,
-                    hint1: '专业类目一',
-                    hint2: '专业类目二',
-                    hint3: '专业名称',
-                    level1Items: [...logic.majorList],
-                    level2Items: {
-                      ...logic.subMajorMap,
-                    },
-                    level3Items: {
-                      ...logic.subSubMajorMap,
-                    },
-                    onChanged: (level1, level2, level3) {
-                      print('选择的: $level1, 市: $level2, 区: $level3');
-                    },
-                  ),
+                child: CascadingDropdownField(
+                  key: Key('major_id'),
+                  width: 160,
+                  height: 34,
+                  hint1: '专业类目一',
+                  hint2: '专业类目二',
+                  hint3: '专业名称',
+                  level1Items: logic.majorList.map((item) => {'id': item['id'], 'name': item['name']}).toList(),
+                  level2Items: {
+                    for (var entry in logic.subMajorMap.entries)
+                      entry.key.toString(): entry.value.map((item) => {'id': item['id'], 'name': item['name']}).toList()
+                  },
+                  level3Items: {
+                    for (var entry in logic.subSubMajorMap.entries)
+                      entry.key.toString(): entry.value.map((item) => {'id': item['id'], 'name': item['name']}).toList()
+                  },
+                  onChanged: (dynamic level1, dynamic level2, dynamic level3) {
+                    print('选择的: $level1, 二级: $level2, 三级: $level3');
+                    // 这里可以处理选择的 id
+                  },
+                ),
               ),
-              SizedBox(width: 8), // 添加一些间距
               SearchBoxWidget(
+                key:Key('search'),
                 hint: '题干、答案、标签',
                 onTextChanged: (String value) {
                   logic.searchText.value = value;
                 },
               ),
-              SizedBox(width: 20),
+              SizedBox(width: 26),
               ResetButtonWidget(
                 onPressed: () => logic.reset(),
               ),
-              SizedBox(width: 20),
+              SizedBox(width: 10),
               SearchButtonWidget(
-                onPressed: () => logic.find(logic.page as int, logic.size as int),
+                onPressed: () => logic.find(logic.page.value, logic.size.value),
               )
             ],
           ),

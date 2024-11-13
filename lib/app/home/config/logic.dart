@@ -4,23 +4,22 @@ import '../../../api/config_api.dart';
 
 
 class ConfigLogic extends GetxController {
-  static Map<String, dynamic>? configData;
+  static Map<String, dynamic>? ConfigData;
 
-  @override
-  void onInit() async {
+  Future<void> loadConfigData() async {
     try {
       final response = await ConfigApi.configList();
-      if (response['code'] == 0) {
-        configData = response['data'];
+      if (response != null) {
+        ConfigData = response;
         print("load config");
-        print(configData);
+        print(ConfigData);
       } else {
         throw Exception("Failed to load config: ${response['msg'] ?? 'Unknown error'}");
       }
     } catch (e) {
       print("Failed to load config: $e");
+      rethrow; // 重新抛出异常，以便在调用方捕获
     }
-    super.onInit();
   }
 
 }

@@ -99,9 +99,9 @@ class DropdownField extends StatefulWidget {
   final double width;
   final double height;
   final String hint;
-  final List<String> items;
-  final String? value;
-  final Function(String?)? onChanged;
+  final List<Map<String, dynamic>> items; // 修改为 Map 列表
+  final dynamic value; // 修改为 dynamic 类型
+  final Function(dynamic)? onChanged; // 修改为 dynamic 类型
 
   const DropdownField({
     Key? key,
@@ -119,7 +119,7 @@ class DropdownField extends StatefulWidget {
 
 class _DropdownFieldState extends State<DropdownField> with WidgetsBindingObserver {
   final FocusNode _focusNode = FocusNode();
-  String? selectedValue;
+  dynamic selectedValue; // 修改为 dynamic 类型
   bool _isSelected = false;
   final ValueNotifier<bool> _isHovered = ValueNotifier<bool>(false);
 
@@ -178,11 +178,11 @@ class _DropdownFieldState extends State<DropdownField> with WidgetsBindingObserv
               return SizedBox(
                 width: widget.width,
                 height: widget.height,
-                child: DropdownButtonFormField<String>(
+                child: DropdownButtonFormField<dynamic>(
                   focusNode: _focusNode,
                   value: selectedValue,
                   hint: selectedValue == null ? Text(widget.hint) : null,
-                  onChanged: (String? newValue) {
+                  onChanged: (dynamic newValue) {
                     setState(() {
                       selectedValue = newValue;
                       _isSelected = newValue != null;
@@ -191,11 +191,11 @@ class _DropdownFieldState extends State<DropdownField> with WidgetsBindingObserv
                       widget.onChanged!(newValue);
                     }
                   },
-                  items: widget.items.map((value) {
-                    return DropdownMenuItem(
-                      value: value,
+                  items: widget.items.map((item) {
+                    return DropdownMenuItem<dynamic>(
+                      value: item['id'], // 选择的值是 id
                       child: Text(
-                        value,
+                        item['name'], // 显示的值是 name
                         style: const TextStyle(
                           color: Color(0xFF423F3F),
                           fontSize: 14,
@@ -255,10 +255,10 @@ class CascadingDropdownField extends StatefulWidget {
   final String hint1;
   final String hint2;
   final String hint3;
-  final List<String> level1Items;
-  final Map<String, List<String>> level2Items;
-  final Map<String, List<String>> level3Items;
-  final Function(String?, String?, String?)? onChanged;
+  final List<Map<String, dynamic>> level1Items;
+  final Map<String, List<Map<String, dynamic>>> level2Items;
+  final Map<String, List<Map<String, dynamic>>> level3Items;
+  final Function(dynamic, dynamic, dynamic)? onChanged;
 
   const CascadingDropdownField({
     Key? key,
@@ -278,9 +278,9 @@ class CascadingDropdownField extends StatefulWidget {
 }
 
 class _CascadingDropdownFieldState extends State<CascadingDropdownField> {
-  String? selectedLevel1;
-  String? selectedLevel2;
-  String? selectedLevel3;
+  dynamic selectedLevel1;
+  dynamic selectedLevel2;
+  dynamic selectedLevel3;
 
   final TextEditingController _level1Controller = TextEditingController();
   final TextEditingController _level2Controller = TextEditingController();
@@ -295,32 +295,32 @@ class _CascadingDropdownFieldState extends State<CascadingDropdownField> {
     super.initState();
   }
 
-  void _onLevel1Changed(String newValue) {
+  void _onLevel1Changed(Map<String, dynamic> newValue) {
     setState(() {
-      selectedLevel1 = newValue;
+      selectedLevel1 = newValue['id'];
+      _level1Controller.text = newValue['name'];
       selectedLevel2 = null;
       selectedLevel3 = null;
-      _level1Controller.text = newValue;
       _level2Controller.clear();
       _level3Controller.clear();
     });
     widget.onChanged?.call(selectedLevel1, selectedLevel2, selectedLevel3);
   }
 
-  void _onLevel2Changed(String newValue) {
+  void _onLevel2Changed(Map<String, dynamic> newValue) {
     setState(() {
-      selectedLevel2 = newValue;
+      selectedLevel2 = newValue['id'];
+      _level2Controller.text = newValue['name'];
       selectedLevel3 = null;
-      _level2Controller.text = newValue;
       _level3Controller.clear();
     });
     widget.onChanged?.call(selectedLevel1, selectedLevel2, selectedLevel3);
   }
 
-  void _onLevel3Changed(String newValue) {
+  void _onLevel3Changed(Map<String, dynamic> newValue) {
     setState(() {
-      selectedLevel3 = newValue;
-      _level3Controller.text = newValue;
+      selectedLevel3 = newValue['id'];
+      _level3Controller.text = newValue['name'];
     });
     widget.onChanged?.call(selectedLevel1, selectedLevel2, selectedLevel3);
   }
@@ -342,7 +342,7 @@ class _CascadingDropdownFieldState extends State<CascadingDropdownField> {
           controller: _level2Controller,
           focusNode: _level2FocusNode,
           hint: widget.hint2,
-          items: selectedLevel1 != null ? widget.level2Items[selectedLevel1]! : [],
+          items: selectedLevel1 != null ? widget.level2Items[selectedLevel1.toString()] ?? [] : [],
           onSuggestionSelected: _onLevel2Changed,
         ),
         SizedBox(width: 8),
@@ -350,7 +350,7 @@ class _CascadingDropdownFieldState extends State<CascadingDropdownField> {
           controller: _level3Controller,
           focusNode: _level3FocusNode,
           hint: widget.hint3,
-          items: selectedLevel2 != null ? widget.level3Items[selectedLevel2]! : [],
+          items: selectedLevel2 != null ? widget.level3Items[selectedLevel2.toString()] ?? [] : [],
           onSuggestionSelected: _onLevel3Changed,
         ),
       ],
@@ -361,13 +361,13 @@ class _CascadingDropdownFieldState extends State<CascadingDropdownField> {
     required TextEditingController controller,
     required FocusNode focusNode,
     required String hint,
-    required List<String> items,
-    required Function(String) onSuggestionSelected,
+    required List<Map<String, dynamic>> items,
+    required Function(Map<String, dynamic>) onSuggestionSelected,
   }) {
     return SizedBox(
       width: widget.width,
       height: widget.height,
-      child: TypeAheadField(
+      child: TypeAheadField<Map<String, dynamic>>(
         textFieldConfiguration: TextFieldConfiguration(
           controller: controller,
           focusNode: focusNode,
@@ -417,13 +417,13 @@ class _CascadingDropdownFieldState extends State<CascadingDropdownField> {
             return items;
           } else {
             // Filter items when user types
-            return items.where((item) => item.toLowerCase().contains(pattern.toLowerCase())).toList();
+            return items.where((item) => item['name'].toLowerCase().contains(pattern.toLowerCase())).toList();
           }
         },
         itemBuilder: (context, suggestion) {
           return ListTile(
             title: Text(
-              suggestion,
+              suggestion['name'],
               style: const TextStyle(
                 color: Color(0xFF423F3F),
                 fontSize: 14,

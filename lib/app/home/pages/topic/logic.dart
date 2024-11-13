@@ -11,9 +11,11 @@ import 'package:admin_flutter/component/form/enum.dart';
 import 'package:admin_flutter/component/form/form_data.dart';
 import 'package:admin_flutter/component/dialog.dart';
 import 'package:admin_flutter/sources/form/topic_add_form.dart';
+import '../../../../api/config_api.dart';
 import '../../../../api/major_api.dart';
 import '../../../../component/pagination/logic.dart';
 import '../../../../component/table/table_data.dart';
+import '../../config/logic.dart';
 import 'edit_topic_dialog.dart';
 
 class TopicLogic extends GetxController {
@@ -27,50 +29,117 @@ class TopicLogic extends GetxController {
   // 当前编辑的题目数据
   var currentEditTopic = RxMap<String, dynamic>({}).obs;
   RxList<int> selectedRows = <int>[].obs;
-  Rx<String?> selectedTopicType = '全部题型'.obs;
-  List<String> topicTypeList = ['全部题型', '专业知识', '求职动机', '适岗能力'];  // 根据实际情况填充
+  Rx<String?> selectedQuestionCate = '全部题型'.obs;
+  Rx<String?> selectedQuestionLevel = '全部难度'.obs;
+  RxList<Map<String, dynamic>> questionCate = <Map<String, dynamic>>[].obs;
+  RxList<Map<String, dynamic>> questionLevel = <Map<String, dynamic>>[].obs;
 
-  final List<String> majorList = ['全部专业'];
-  final Map<String, List<String>> subMajorMap = {'全部专业': []};
-  final Map<String, List<String>> subSubMajorMap = {};
+  // List<Map<String, dynamic>> questionCate = [
+  //   {'id': 1, 'name': '选项1'},
+  //   {'id': 2, 'name': '选项2'},
+  //   {'id': 3, 'name': '选项3'},
+  // ];
+
+  List<Map<String, dynamic>> majorList = [];
+  Map<String, List<Map<String, dynamic>>> subMajorMap = {};
+  Map<String, List<Map<String, dynamic>>> subSubMajorMap = {};
+
+  Future<void> fetchConfigs() async {
+    try {
+      var configData = await ConfigApi.configList();
+      if (configData != null && configData.containsKey("list")) {
+        final list = configData["list"] as List<dynamic>;
+        final questionCateItem = list.firstWhere(
+              (item) => item["name"] == "question_cate",
+          orElse: () => null,
+        );
+
+        if (questionCateItem != null &&
+            questionCateItem.containsKey("attr") &&
+            questionCateItem["attr"].containsKey("cates")) {
+          questionCate = RxList.from(questionCateItem["attr"]["cates"]);
+        } else {
+          print("配置数据中未找到 'question_cate' 或其 'cates' 属性");
+          questionCate = RxList<Map<String, dynamic>>(); // 作为默认值，防止未初始化
+        }
+
+        final questionLevelItem = list.firstWhere(
+              (item) => item["name"] == "question_level",
+          orElse: () => null,
+        );
+
+        if (questionLevelItem != null &&
+            questionLevelItem.containsKey("attr") &&
+            questionLevelItem["attr"].containsKey("levels")) {
+          questionLevel = RxList.from(questionCateItem["attr"]["levels"]);
+        } else {
+          print("配置数据中未找到 'question_cate' 或其 'cates' 属性");
+          questionLevel = RxList<Map<String, dynamic>>(); // 作为默认值，防止未初始化
+        }
+      } else {
+        print("配置数据中未找到 'config' 或其 'list' 属性");
+        questionCate = RxList<Map<String, dynamic>>();
+      }
+    } catch (e) {
+      print('初始化 config 失败: $e');
+      questionCate = RxList<Map<String, dynamic>>();
+    }
+  }
+
 
   void fetchMajors() async {
     try {
-      var response = await MajorApi.majorList(params: {'pageSize': 3000, 'page': 1});
+      var response =
+          await MajorApi.majorList(params: {'pageSize': 3000, 'page': 1});
       if (response != null && response["total"] > 0) {
         var dataList = response["list"] as List<dynamic>;
 
-        // 清空数据以避免重复
+        // Clear existing data to avoid duplicates
         majorList.clear();
-        majorList.add('全部专业');
+        majorList.add({'id': '0', 'name': '全部专业'});
         subMajorMap.clear();
-        subMajorMap['全部专业'] = [];
         subSubMajorMap.clear();
 
+        // Track the generated IDs for first and second levels
+        Map<String, String> firstLevelIdMap = {};
+        Map<String, String> secondLevelIdMap = {};
+
         for (var item in dataList) {
-          String firstLevel = item["first_level_category"];
-          String secondLevel = item["second_level_category"];
-          String thirdLevel = item["major_name"];
+          String firstLevelName = item["first_level_category"];
+          String secondLevelName = item["second_level_category"];
+          String thirdLevelId = item["id"].toString();
+          String thirdLevelName = item["major_name"];
 
-          // 添加一级类目
-          if (!majorList.contains(firstLevel)) {
-            majorList.add(firstLevel);
-            subMajorMap[firstLevel] = [];
+          // Generate unique IDs based on name for first-level and second-level categories
+          String firstLevelId = firstLevelIdMap.putIfAbsent(
+              firstLevelName, () => firstLevelIdMap.length.toString());
+          String secondLevelId = secondLevelIdMap.putIfAbsent(
+              secondLevelName, () => secondLevelIdMap.length.toString());
+
+          // Add first-level category if it doesn't exist
+          if (!majorList.any((m) => m['name'] == firstLevelName)) {
+            majorList.add({'id': firstLevelId, 'name': firstLevelName});
+            subMajorMap[firstLevelId] = [];
           }
 
-          // 检查并添加二级类目
-          if (!subMajorMap[firstLevel]!.contains(secondLevel)) {
-            subMajorMap[firstLevel]!.add(secondLevel);
-            subSubMajorMap[secondLevel] = []; // 初始化三级类目列表
+          // Add second-level category if it doesn't exist under this first-level category
+          if (!subMajorMap[firstLevelId]!
+              .any((m) => m['name'] == secondLevelName)) {
+            subMajorMap[firstLevelId]!
+                .add({'id': secondLevelId, 'name': secondLevelName});
+            subSubMajorMap[secondLevelId] =
+                []; // Initialize third-level category list
           }
 
-          // 检查并添加三级类目
-          if (!subSubMajorMap[secondLevel]!.contains(thirdLevel)) {
-            subSubMajorMap[secondLevel]!.add(thirdLevel);
+          // Add third-level major if it doesn't exist under this second-level category
+          if (!subSubMajorMap[secondLevelId]!
+              .any((m) => m['name'] == thirdLevelName)) {
+            subSubMajorMap[secondLevelId]!
+                .add({'id': thirdLevelId, 'name': thirdLevelName});
           }
         }
 
-        // 调试输出
+        // Debug output
         print('majorList: $majorList');
         print('subMajorMap: $subMajorMap');
         print('subSubMajorMap: $subSubMajorMap');
@@ -100,7 +169,7 @@ class TopicLogic extends GetxController {
         "size": size.value.toString(),
         "page": page.value.toString(),
         "search": searchText.value,
-        "cate": selectedTopicType.value.toString(),
+        "cate": selectedQuestionCate.value.toString(),
       }).then((value) async {
         if (value != null) {
           total.value = value["total"] ?? 0;
@@ -129,8 +198,19 @@ class TopicLogic extends GetxController {
 
   @override
   void onInit() {
-    super.onInit();
     fetchMajors(); // Fetch and populate major data on initialization
+    fetchConfigs();
+    ever(
+      questionCate,
+          (value) {
+        if (questionCate.isNotEmpty) {
+          // 当 questionCate 被赋值后再执行表单加载逻辑
+          super.onInit();
+          find(size.value, page.value);
+        }
+      },
+    );
+
 
     columns = [
       ColumnData(title: "ID", key: "id", width: 80),
@@ -307,7 +387,8 @@ class TopicLogic extends GetxController {
 
   void importFromCSV() async {
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['csv']);
+      FilePickerResult? result = await FilePicker.platform
+          .pickFiles(type: FileType.custom, allowedExtensions: ['csv']);
       if (result != null) {
         PlatformFile file = result.files.first;
         String content = utf8.decode(file.bytes!);
@@ -320,7 +401,8 @@ class TopicLogic extends GetxController {
           for (int i = 0; i < columns.length; i++) {
             data[columns[i].key] = row[i];
           }
-          await TopicApi.topicBatchImport(File.fromRawPath(file.bytes!)).then((value) {
+          await TopicApi.topicBatchImport(File.fromRawPath(file.bytes!))
+              .then((value) {
             "导入成功!".toHint();
             refresh();
           }).catchError((error) {
@@ -364,7 +446,7 @@ class TopicLogic extends GetxController {
   }
 
   void reset() {
-    selectedTopicType.value = '';
+    selectedQuestionCate.value = '';
     searchText.value = '';
     // 重置其他筛选条件
     // 例如：重置专业选择
