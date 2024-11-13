@@ -95,7 +95,6 @@ class ButtonState with ChangeNotifier {
   }
 }
 
-
 class DropdownField extends StatefulWidget {
   final double width;
   final double height;
@@ -181,17 +180,8 @@ class _DropdownFieldState extends State<DropdownField> with WidgetsBindingObserv
                 height: widget.height,
                 child: DropdownButtonFormField<String>(
                   focusNode: _focusNode,
-                  value: widget.items.contains(selectedValue) ? selectedValue : null,
-                  hint: Text(
-                    widget.hint,
-                    style: const TextStyle(
-                      color: Color(0xFF423F3F),
-                      fontSize: 14,
-                      fontFamily: 'PingFang SC',
-                      fontWeight: FontWeight.w400,
-                      height: 1.2,
-                    ),
-                  ),
+                  value: selectedValue,
+                  hint: selectedValue == null ? Text(widget.hint) : null,
                   onChanged: (String? newValue) {
                     setState(() {
                       selectedValue = newValue;
@@ -225,6 +215,8 @@ class _DropdownFieldState extends State<DropdownField> with WidgetsBindingObserv
                   ),
                   dropdownColor: Colors.white,
                   decoration: InputDecoration(
+                    labelText: widget.hint,
+                    border: OutlineInputBorder(),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     enabledBorder: OutlineInputBorder(
                       borderSide: const BorderSide(
@@ -382,8 +374,39 @@ class _CascadingDropdownFieldState extends State<CascadingDropdownField> {
           decoration: InputDecoration(
             labelText: hint,
             border: OutlineInputBorder(),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            enabledBorder: OutlineInputBorder(
+              borderSide: const BorderSide(
+                color: Colors.grey,
+                width: 0.5,
+              ),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: focusNode.hasFocus ? const Color(0xFF25B7E8) : Colors.grey,
+                width: focusNode.hasFocus ? 1 : 0.5,
+              ),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            hintText: hint,
+            hintStyle: const TextStyle(
+              color: Color(0xFF423F3F),
+              fontSize: 14,
+              fontFamily: 'PingFang SC',
+              fontWeight: FontWeight.w400,
+              height: 1.2,
+            ),
+            fillColor: Colors.white,
+            filled: true,
           ),
-          style: TextStyle(fontSize: 16.0),
+          style: const TextStyle(
+            color: Color(0xFF423F3F),
+            fontSize: 14,
+            fontFamily: 'PingFang SC',
+            fontWeight: FontWeight.w400,
+            height: 1.2,
+          ),
           onChanged: (value) {
             // Empty implementation to trigger suggestionsCallback when typing
           },
@@ -399,7 +422,16 @@ class _CascadingDropdownFieldState extends State<CascadingDropdownField> {
         },
         itemBuilder: (context, suggestion) {
           return ListTile(
-            title: Text(suggestion),
+            title: Text(
+              suggestion,
+              style: const TextStyle(
+                color: Color(0xFF423F3F),
+                fontSize: 14,
+                fontFamily: 'PingFang SC',
+                fontWeight: FontWeight.w400,
+                height: 1.2,
+              ),
+            ),
           );
         },
         onSuggestionSelected: (suggestion) {
@@ -407,7 +439,7 @@ class _CascadingDropdownFieldState extends State<CascadingDropdownField> {
         },
         noItemsFoundBuilder: (context) => SizedBox(
           height: 50,
-          child: Center(child: Text('No items found')),
+          child: Center(child: Text('No items found', style: const TextStyle(color: Color(0xFF423F3F)))),
         ),
       ),
     );
@@ -484,7 +516,7 @@ class _SearchBoxWidgetState extends State<SearchBoxWidget> {
 class SearchButtonWidget extends StatelessWidget {
   final VoidCallback onPressed;
 
-  const SearchButtonWidget({Key? key, required this.onPressed}) : super(key: key);
+  const SearchButtonWidget({super.key, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -501,6 +533,39 @@ class SearchButtonWidget extends StatelessWidget {
         onPressed: onPressed,
         child: Text(
           '查询',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontFamily: 'PingFang SC',
+            fontWeight: FontWeight.w400,
+            height: 0.09,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ResetButtonWidget extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const ResetButtonWidget({super.key, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 80,
+      height: 34,
+      decoration: ShapeDecoration(
+        color: Color(0x80706f6d),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      child: TextButton(
+        onPressed: onPressed,
+        child: Text(
+          '重置',
           style: TextStyle(
             color: Colors.white,
             fontSize: 14,

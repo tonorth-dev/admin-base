@@ -363,7 +363,7 @@ class TopicLogic extends GetxController {
     }
   }
 
-  void resetFilters() {
+  void reset() {
     selectedTopicType.value = '';
     searchText.value = '';
     // 重置其他筛选条件

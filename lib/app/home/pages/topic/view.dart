@@ -59,6 +59,7 @@ class TopicPage extends StatelessWidget {
               ),
               SizedBox(width: 120), // 添加一些间距
               DropdownField(
+                key: Key('question_cate'),
                 items: logic.topicTypeList.toList(),
                 // 传递选项数据
                 hint: '选择题型',
@@ -100,11 +101,8 @@ class TopicPage extends StatelessWidget {
                 },
               ),
               SizedBox(width: 20),
-              CustomButton(
-                onPressed: () => logic.resetFilters(),
-                text: '重置',
-                width: 70, // 自定义宽度
-                height: 32, // 自定义高度
+              ResetButtonWidget(
+                onPressed: () => logic.reset(),
               ),
               SizedBox(width: 20),
               SearchButtonWidget(
