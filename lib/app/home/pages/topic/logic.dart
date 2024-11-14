@@ -71,7 +71,7 @@ class TopicLogic extends GetxController {
         if (questionLevelItem != null &&
             questionLevelItem.containsKey("attr") &&
             questionLevelItem["attr"].containsKey("levels")) {
-          questionLevel = RxList.from(questionCateItem["attr"]["levels"]);
+          questionLevel = RxList.from(questionLevelItem["attr"]["levels"]);
         } else {
           print("配置数据中未找到 'question_cate' 或其 'cates' 属性");
           questionLevel = RxList<Map<String, dynamic>>(); // 作为默认值，防止未初始化
@@ -149,13 +149,6 @@ class TopicLogic extends GetxController {
     } catch (e) {
       "获取专业列表失败: $e".toHint();
     }
-  }
-
-  void applyFilters() {
-    // 这里可以添加应用过滤逻辑
-    // print('Selected Major: ${selectedMajor.value}');
-    // print('Selected Sub Major: ${selectedSubMajor.value}');
-    // print('Selected Sub Sub Major: ${selectedSubSubMajor.value}');
   }
 
   void find(int newSize, int newPage) {
@@ -445,13 +438,26 @@ class TopicLogic extends GetxController {
     }
   }
 
+  void applyFilters() {
+    // 这里可以添加应用过滤逻辑
+    // print('Selected Major: ${selectedMajor.value}');
+    // print('Selected Sub Major: ${selectedSubMajor.value}');
+    // print('Selected Sub Sub Major: ${selectedSubSubMajor.value}');
+  }
+
   void reset() {
     selectedQuestionCate.value = '';
     selectedQuestionLevel.value = '';
     searchText.value = '';
+    selectedRows.clear();
+    page.value = 1;
+    size.value = 15;
+    list.clear();
+    total.value = 0;
 
     // 重新初始化数据
     fetchConfigs();
     fetchMajors();
+    find(size.value, page.value);
   }
 }

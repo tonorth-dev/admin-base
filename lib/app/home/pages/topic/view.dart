@@ -72,7 +72,7 @@ class TopicPage extends StatelessWidget {
               SizedBox(width: 12),
               DropdownField(
                 key: Key('question_level'),
-                items: logic.questionCate.toList(),
+                items: logic.questionLevel.toList(),
                 hint: '选择难度',
                 width: 120,
                 height: 34,
@@ -106,15 +106,19 @@ class TopicPage extends StatelessWidget {
                 ),
               ),
               SearchBoxWidget(
-                key:Key('search'),
+                key: Key('search'),
                 hint: '题干、答案、标签',
                 onTextChanged: (String value) {
                   logic.searchText.value = value;
+                  logic.applyFilters();
                 },
               ),
               SizedBox(width: 26),
               ResetButtonWidget(
-                onPressed: () => logic.reset(),
+                onPressed: () {
+                  logic.reset();
+                  logic.applyFilters();
+                },
               ),
               SizedBox(width: 10),
               SearchButtonWidget(
@@ -133,13 +137,11 @@ class TopicPage extends StatelessWidget {
                 width: 1500,
                 child: SfDataGrid(
                   source: TopicDataSource(logic: logic),
-                  headerGridLinesVisibility:
-                  GridLinesVisibility.values[1],
+                  headerGridLinesVisibility: GridLinesVisibility.values[1],
                   gridLinesVisibility: GridLinesVisibility.values[1],
                   columnWidthMode: ColumnWidthMode.fill,
                   headerRowHeight: 50,
                   rowHeight: 60,
-                  // 设置行高
                   columns: [
                     GridColumn(
                       columnName: 'Select',
@@ -149,23 +151,15 @@ class TopicPage extends StatelessWidget {
                         alignment: Alignment.center,
                         padding: const EdgeInsets.all(8.0),
                         child: Checkbox(
-                          value: logic.selectedRows.length ==
-                              logic.list.length,
+                          value: logic.selectedRows.length == logic.list.length,
                           onChanged: (value) => logic.toggleSelectAll(),
-                          fillColor:
-                          WidgetStateProperty.resolveWith<Color>(
-                                  (states) {
-                                if (states.contains(WidgetState.selected)) {
-                                  return Color(
-                                      0xFFD43030); // Red background when checked
-                                }
-                                return Colors
-                                    .white; // Optional color for unchecked state
-                              }),
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                            BorderRadius.circular(4), // Rounded edges
-                          ),
+                          fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+                            if (states.contains(WidgetState.selected)) {
+                              return Color(0xFFD43030); // Red background when checked
+                            }
+                            return Colors.white; // Optional color for unchecked state
+                          }),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                         ),
                       ),
                     ),
@@ -178,11 +172,7 @@ class TopicPage extends StatelessWidget {
                         padding: const EdgeInsets.all(8.0),
                         child: Text(
                           column.title,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[800],
-                          ),
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[800]),
                         ),
                       ),
                     )),
@@ -195,8 +185,7 @@ class TopicPage extends StatelessWidget {
                         padding: const EdgeInsets.all(8.0),
                         child: Text(
                           '操作',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 15),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                         ),
                       ),
                     ),
@@ -206,7 +195,7 @@ class TopicPage extends StatelessWidget {
             )),
           ),
           Obx(() => Padding(
-            padding: EdgeInsets.only(right: 50), // 添加右侧内边距
+            padding: EdgeInsets.only(right: 50),
             child: Column(
               children: [
                 PaginationPage(
