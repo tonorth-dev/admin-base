@@ -106,7 +106,7 @@ class TopicPage extends StatelessWidget {
                 ),
               ),
               SearchBoxWidget(
-                key: Key('search'),
+                key: Key('keywords'),
                 hint: '题干、答案、标签',
                 onTextChanged: (String value) {
                   logic.searchText.value = value;
@@ -115,6 +115,7 @@ class TopicPage extends StatelessWidget {
               ),
               SizedBox(width: 26),
               ResetButtonWidget(
+                key: Key('reset'),
                 onPressed: () {
                   logic.reset();
                   logic.applyFilters();
@@ -122,6 +123,7 @@ class TopicPage extends StatelessWidget {
               ),
               SizedBox(width: 10),
               SearchButtonWidget(
+                key: Key('search'),
                 onPressed: () => logic.find(logic.page.value, logic.size.value),
               )
             ],
