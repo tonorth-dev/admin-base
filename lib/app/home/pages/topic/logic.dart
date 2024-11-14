@@ -447,14 +447,11 @@ class TopicLogic extends GetxController {
 
   void reset() {
     selectedQuestionCate.value = '';
+    selectedQuestionLevel.value = '';
     searchText.value = '';
-    // 重置其他筛选条件
-    // 例如：重置专业选择
-    // majorSelected.value = null;
-    // subMajorSelected.value = null;
-    // subSubMajorSelected.value = null;
 
-    // 重新查询
-    find(page.value, size.value);
+    // 重新初始化数据
+    fetchConfigs();
+    fetchMajors();
   }
 }
