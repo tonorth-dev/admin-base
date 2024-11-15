@@ -59,7 +59,7 @@ class TopicPage extends StatelessWidget {
               ),
               SizedBox(width: 120), // 添加一些间距
               DropdownField(
-                key: Key('question_cate'),
+                key: logic.cateDropdownKey,
                 items: logic.questionCate.toList(),
                 hint: '选择题型',
                 width: 120,
@@ -71,7 +71,7 @@ class TopicPage extends StatelessWidget {
               ),
               SizedBox(width: 12),
               DropdownField(
-                key: Key('question_level'),
+                key: logic.levelDropdownKey,
                 items: logic.questionLevel.toList(),
                 hint: '选择难度',
                 width: 120,
@@ -83,25 +83,30 @@ class TopicPage extends StatelessWidget {
               ),
               Padding(
                 padding: EdgeInsets.all(16.0),
-                child: CascadingDropdownField(
-                  key: Key('major_id'),
-                  width: 160,
-                  height: 34,
-                  hint1: '专业类目一',
-                  hint2: '专业类目二',
-                  hint3: '专业名称',
-                  level1Items: logic.majorList.map((item) => {'id': item['id'], 'name': item['name']}).toList(),
-                  level2Items: {
-                    for (var entry in logic.subMajorMap.entries)
-                      entry.key.toString(): entry.value.map((item) => {'id': item['id'], 'name': item['name']}).toList()
-                  },
-                  level3Items: {
-                    for (var entry in logic.subSubMajorMap.entries)
-                      entry.key.toString(): entry.value.map((item) => {'id': item['id'], 'name': item['name']}).toList()
-                  },
-                  onChanged: (dynamic level1, dynamic level2, dynamic level3) {
-                    print('选择的: $level1, 二级: $level2, 三级: $level3');
-                    // 这里可以处理选择的 id
+                child: FutureBuilder<void>(
+                  future: logic.fetchMajors(), // 调用 fetchMajors 方法
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator()); // 加载中显示进度条
+                    } else if (snapshot.hasError) {
+                      return Text('加载失败: ${snapshot.error}');
+                    } else {
+                      return CascadingDropdownField(
+                        key: logic.majorDropdownKey,
+                        width: 160,
+                        height: 34,
+                        hint1: '专业类目一',
+                        hint2: '专业类目二',
+                        hint3: '专业名称',
+                        level1Items: logic.level1Items,
+                        level2Items: logic.level2Items,
+                        level3Items: logic.level3Items,
+                        onChanged: (dynamic level1, dynamic level2, dynamic level3) {
+                          print('选择的: $level1, 二级: $level2, 三级: $level3');
+                          // 这里可以处理选择的 id
+                        },
+                      );
+                    }
                   },
                 ),
               ),
@@ -112,8 +117,14 @@ class TopicPage extends StatelessWidget {
                   logic.searchText.value = value;
                   logic.applyFilters();
                 },
+                searchText: logic.searchText,
               ),
               SizedBox(width: 26),
+              SearchButtonWidget(
+                key: Key('search'),
+                onPressed: () => logic.find(logic.page.value, logic.size.value),
+              ),
+              SizedBox(width: 10),
               ResetButtonWidget(
                 key: Key('reset'),
                 onPressed: () {
@@ -121,11 +132,6 @@ class TopicPage extends StatelessWidget {
                   logic.applyFilters();
                 },
               ),
-              SizedBox(width: 10),
-              SearchButtonWidget(
-                key: Key('search'),
-                onPressed: () => logic.find(logic.page.value, logic.size.value),
-              )
             ],
           ),
           ThemeUtil.lineH(),

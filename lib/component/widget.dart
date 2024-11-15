@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:get/get_rx/src/rx_types/rx_types.dart';
 
 class CustomButton extends StatefulWidget {
   final VoidCallback onPressed;
@@ -114,10 +115,10 @@ class DropdownField extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _DropdownFieldState createState() => _DropdownFieldState();
+  DropdownFieldState createState() => DropdownFieldState();
 }
 
-class _DropdownFieldState extends State<DropdownField> with WidgetsBindingObserver {
+class DropdownFieldState extends State<DropdownField> with WidgetsBindingObserver {
   final FocusNode _focusNode = FocusNode();
   dynamic selectedValue; // 修改为 dynamic 类型
   bool _isSelected = false;
@@ -159,6 +160,14 @@ class _DropdownFieldState extends State<DropdownField> with WidgetsBindingObserv
         });
       }
     }
+  }
+
+  void reset() {
+    setState(() {
+      selectedValue = null;
+      _isSelected = false;
+    });
+    widget.onChanged?.call(null);
   }
 
   @override
@@ -264,9 +273,9 @@ class CascadingDropdownField extends StatefulWidget {
     Key? key,
     required this.width,
     required this.height,
-    required this.hint1,
-    required this.hint2,
-    required this.hint3,
+    this.hint1 = '',
+    this.hint2 = '',
+    this.hint3 = '',
     required this.level1Items,
     required this.level2Items,
     required this.level3Items,
@@ -274,10 +283,10 @@ class CascadingDropdownField extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _CascadingDropdownFieldState createState() => _CascadingDropdownFieldState();
+  CascadingDropdownFieldState createState() => CascadingDropdownFieldState();
 }
 
-class _CascadingDropdownFieldState extends State<CascadingDropdownField> {
+class CascadingDropdownFieldState extends State<CascadingDropdownField> {
   dynamic selectedLevel1;
   dynamic selectedLevel2;
   dynamic selectedLevel3;
@@ -293,6 +302,18 @@ class _CascadingDropdownFieldState extends State<CascadingDropdownField> {
   @override
   void initState() {
     super.initState();
+  }
+
+  void reset() {
+    setState(() {
+      selectedLevel1 = null;
+      selectedLevel2 = null;
+      selectedLevel3 = null;
+      _level1Controller.clear();
+      _level2Controller.clear();
+      _level3Controller.clear();
+    });
+    widget.onChanged?.call(null, null, null);
   }
 
   void _onLevel1Changed(Map<String, dynamic> newValue) {
@@ -369,6 +390,7 @@ class _CascadingDropdownFieldState extends State<CascadingDropdownField> {
       height: widget.height,
       child: TypeAheadField<Map<String, dynamic>>(
         textFieldConfiguration: TextFieldConfiguration(
+          // builder: (context, controller, focusNode) => TextField(
           controller: controller,
           focusNode: focusNode,
           decoration: InputDecoration(
@@ -407,9 +429,6 @@ class _CascadingDropdownFieldState extends State<CascadingDropdownField> {
             fontWeight: FontWeight.w400,
             height: 1.2,
           ),
-          onChanged: (value) {
-            // Empty implementation to trigger suggestionsCallback when typing
-          },
         ),
         suggestionsCallback: (pattern) {
           if (pattern.isEmpty) {
@@ -435,6 +454,10 @@ class _CascadingDropdownFieldState extends State<CascadingDropdownField> {
           );
         },
         onSuggestionSelected: (suggestion) {
+          setState(() {
+            controller.text = suggestion['name']; // 更新控制器的文本
+            controller.selection = TextSelection.fromPosition(TextPosition(offset: controller.text.length)); // 设置选区到文本末尾
+          });
           onSuggestionSelected(suggestion);
         },
         noItemsFoundBuilder: (context) => SizedBox(
@@ -460,8 +483,14 @@ class _CascadingDropdownFieldState extends State<CascadingDropdownField> {
 class SearchBoxWidget extends StatefulWidget {
   final String hint;
   final ValueChanged<String> onTextChanged;
+  final RxString searchText;
 
-  const SearchBoxWidget({Key? key, required this.hint, required this.onTextChanged}) : super(key: key);
+  const SearchBoxWidget({
+    Key? key,
+    required this.hint,
+    required this.onTextChanged,
+    required this.searchText,
+  }) : super(key: key);
 
   @override
   _SearchBoxWidgetState createState() => _SearchBoxWidgetState();
@@ -473,7 +502,10 @@ class _SearchBoxWidgetState extends State<SearchBoxWidget> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController();
+    _controller = TextEditingController(text: widget.searchText.value);
+    widget.searchText.listen((value) {
+      _controller.text = value;
+    });
   }
 
   @override

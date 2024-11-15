@@ -15,6 +15,7 @@ import '../../../../api/config_api.dart';
 import '../../../../api/major_api.dart';
 import '../../../../component/pagination/logic.dart';
 import '../../../../component/table/table_data.dart';
+import '../../../../component/widget.dart';
 import '../../config/logic.dart';
 import 'edit_topic_dialog.dart';
 
@@ -26,6 +27,10 @@ class TopicLogic extends GetxController {
   var loading = false.obs;
   final searchText = ''.obs;
 
+  final GlobalKey<CascadingDropdownFieldState> majorDropdownKey = GlobalKey<CascadingDropdownFieldState>();
+  final GlobalKey<DropdownFieldState> cateDropdownKey = GlobalKey<DropdownFieldState>();
+  final GlobalKey<DropdownFieldState> levelDropdownKey = GlobalKey<DropdownFieldState>();
+
   // 当前编辑的题目数据
   var currentEditTopic = RxMap<String, dynamic>({}).obs;
   RxList<int> selectedRows = <int>[].obs;
@@ -34,15 +39,13 @@ class TopicLogic extends GetxController {
   RxList<Map<String, dynamic>> questionCate = <Map<String, dynamic>>[].obs;
   RxList<Map<String, dynamic>> questionLevel = <Map<String, dynamic>>[].obs;
 
-  // List<Map<String, dynamic>> questionCate = [
-  //   {'id': 1, 'name': '选项1'},
-  //   {'id': 2, 'name': '选项2'},
-  //   {'id': 3, 'name': '选项3'},
-  // ];
-
+  // 专业列表数据
   List<Map<String, dynamic>> majorList = [];
   Map<String, List<Map<String, dynamic>>> subMajorMap = {};
   Map<String, List<Map<String, dynamic>>> subSubMajorMap = {};
+  List<Map<String, dynamic>> level1Items = [];
+  Map<String, List<Map<String, dynamic>>> level2Items = {};
+  Map<String, List<Map<String, dynamic>>> level3Items = {};
 
   Future<void> fetchConfigs() async {
     try {
@@ -87,10 +90,10 @@ class TopicLogic extends GetxController {
   }
 
 
-  void fetchMajors() async {
+
+  Future<void> fetchMajors() async {
     try {
-      var response =
-          await MajorApi.majorList(params: {'pageSize': 3000, 'page': 1});
+      var response = await MajorApi.majorList(params: {'pageSize': 3000, 'page': 1});
       if (response != null && response["total"] > 0) {
         var dataList = response["list"] as List<dynamic>;
 
@@ -99,6 +102,9 @@ class TopicLogic extends GetxController {
         majorList.add({'id': '0', 'name': '全部专业'});
         subMajorMap.clear();
         subSubMajorMap.clear();
+        level1Items.clear();
+        level2Items.clear();
+        level3Items.clear();
 
         // Track the generated IDs for first and second levels
         Map<String, String> firstLevelIdMap = {};
@@ -119,7 +125,9 @@ class TopicLogic extends GetxController {
           // Add first-level category if it doesn't exist
           if (!majorList.any((m) => m['name'] == firstLevelName)) {
             majorList.add({'id': firstLevelId, 'name': firstLevelName});
+            level1Items.add({'id': firstLevelId, 'name': firstLevelName});
             subMajorMap[firstLevelId] = [];
+            level2Items[firstLevelId] = [];
           }
 
           // Add second-level category if it doesn't exist under this first-level category
@@ -127,8 +135,9 @@ class TopicLogic extends GetxController {
               .any((m) => m['name'] == secondLevelName)) {
             subMajorMap[firstLevelId]!
                 .add({'id': secondLevelId, 'name': secondLevelName});
-            subSubMajorMap[secondLevelId] =
-                []; // Initialize third-level category list
+            level2Items[firstLevelId]?.add({'id': secondLevelId, 'name': secondLevelName});
+            subSubMajorMap[secondLevelId] = [];
+            level3Items[secondLevelId] = [];
           }
 
           // Add third-level major if it doesn't exist under this second-level category
@@ -136,6 +145,7 @@ class TopicLogic extends GetxController {
               .any((m) => m['name'] == thirdLevelName)) {
             subSubMajorMap[secondLevelId]!
                 .add({'id': thirdLevelId, 'name': thirdLevelName});
+            level3Items[secondLevelId]?.add({'id': thirdLevelId, 'name': thirdLevelName});
           }
         }
 
@@ -143,6 +153,9 @@ class TopicLogic extends GetxController {
         print('majorList: $majorList');
         print('subMajorMap: $subMajorMap');
         print('subSubMajorMap: $subSubMajorMap');
+        print('level1Items: $level1Items');
+        print('level2Items: $level2Items');
+        print('level3Items: $level3Items');
       } else {
         "获取专业列表失败".toHint();
       }
@@ -446,14 +459,11 @@ class TopicLogic extends GetxController {
   }
 
   void reset() {
-    selectedQuestionCate.value = '';
-    selectedQuestionLevel.value = '';
+    majorDropdownKey.currentState?.reset();
+    cateDropdownKey.currentState?.reset();
+    levelDropdownKey.currentState?.reset();
     searchText.value = '';
     selectedRows.clear();
-    page.value = 1;
-    size.value = 15;
-    list.clear();
-    total.value = 0;
 
     // 重新初始化数据
     fetchConfigs();
