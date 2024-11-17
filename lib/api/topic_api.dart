@@ -11,15 +11,16 @@ class TopicApi {
   ));
 
   // 获取题目列表
-  static Future<dynamic> topicList(Map<String, String> params) async {
+  static Future<dynamic> topicList(Map<String, String?> params) async {
     try {
-      // 使用传入的 params，如果某些键不存在，则使用默认值
+      // 构建最终参数，并确保 null 值替换为 ''
       final Map<String, String> finalParams = {
         'page': params['page'] ?? '1', // 默认值为 '1'
-        'pageSize': params['size'] ?? '20', // 默认值为 '20'
-        'search': params['search'] ?? '', // 默认值为空字符串
-        'cate': params['cate'] ?? '', // 默认值为空字符串
-        'major_id': params['major_id'] ?? '', // 默认值为空字符串
+        'pageSize': params['size'] ?? '15', // 重命名并设置默认值
+        'keyword': handleNullOrEmpty(params['keyword']),
+        'cate': handleNullOrEmpty(params['cate']),
+        'level': handleNullOrEmpty(params['level']),
+        'major_id': handleNullOrEmpty(params['major_id']),
       };
 
       return await HttpUtil.get("/admin/topic/topic/list", params: finalParams);
@@ -27,6 +28,13 @@ class TopicApi {
       print('Error in topicList: $e');
       rethrow; // 重新抛出异常以便调用者处理
     }
+  }
+
+  static String handleNullOrEmpty(String? value) {
+    if (value == null || value == 'null') {
+      return '';
+    }
+    return value;
   }
 
 

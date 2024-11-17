@@ -34,6 +34,7 @@ class TopicLogic extends GetxController {
   // 当前编辑的题目数据
   var currentEditTopic = RxMap<String, dynamic>({}).obs;
   RxList<int> selectedRows = <int>[].obs;
+
   Rx<String?> selectedQuestionCate = '全部题型'.obs;
   Rx<String?> selectedQuestionLevel = '全部难度'.obs;
   RxList<Map<String, dynamic>> questionCate = <Map<String, dynamic>>[].obs;
@@ -46,6 +47,7 @@ class TopicLogic extends GetxController {
   List<Map<String, dynamic>> level1Items = [];
   Map<String, List<Map<String, dynamic>>> level2Items = {};
   Map<String, List<Map<String, dynamic>>> level3Items = {};
+  Rx<String> selectedMajorId = "0".obs;
 
   Future<void> fetchConfigs() async {
     try {
@@ -174,10 +176,12 @@ class TopicLogic extends GetxController {
       TopicApi.topicList({
         "size": size.value.toString(),
         "page": page.value.toString(),
-        "search": searchText.value,
-        "cate": selectedQuestionCate.value.toString(),
+        "keyword": searchText.value.toString() ?? "",
+        "cate": getSelectedCateId() ?? "",
+        "level": getSelectedLevelId() ?? "",
+        "major_id": (selectedMajorId.value?.toString() ?? ""),
       }).then((value) async {
-        if (value != null) {
+        if (value != null && value["list"] != null) {
           total.value = value["total"] ?? 0;
           list.addAll((value["list"] as List<dynamic>).toListMap());
           await Future.delayed(const Duration(milliseconds: 300));
@@ -188,7 +192,7 @@ class TopicLogic extends GetxController {
           paginationLogic.updateTotal(total.value);
         } else {
           loading.value = false;
-          "获取题库列表失败: 服务器返回为空".toHint();
+          "未获取到题库数据".toHint();
         }
       }).catchError((error) {
         loading.value = false;
@@ -220,11 +224,13 @@ class TopicLogic extends GetxController {
 
     columns = [
       ColumnData(title: "ID", key: "id", width: 80),
-      ColumnData(title: "题型", key: "cate"),
+      ColumnData(title: "题型", key: "cate_name"),
+      ColumnData(title: "难度", key: "level_name"),
       ColumnData(title: "题干", key: "title"),
       ColumnData(title: "答案", key: "answer"),
       ColumnData(title: "专业ID", key: "major_id"),
       ColumnData(title: "专业名称", key: "major_name"),
+      ColumnData(title: "标签", key: "tag"),
       ColumnData(title: "录入人", key: "author"),
       ColumnData(title: "创建时间", key: "create_time"),
       ColumnData(title: "更新时间", key: "update_time"),
@@ -318,17 +324,17 @@ class TopicLogic extends GetxController {
     }
   }
 
-  void search(String key) {
-    try {
-      TopicApi.topicList({"search": key}).then((value) {
-        refresh();
-      }).catchError((error) {
-        "搜索失败: $error".toHint();
-      });
-    } catch (e) {
-      "搜索失败: $e".toHint();
-    }
-  }
+  // void search(String key) {
+  //   try {
+  //     TopicApi.topicList({"search": key}).then((value) {
+  //       refresh();
+  //     }).catchError((error) {
+  //       "搜索失败: $error".toHint();
+  //     });
+  //   } catch (e) {
+  //     "搜索失败: $e".toHint();
+  //   }
+  // }
 
   @override
   void refresh() {
@@ -449,6 +455,20 @@ class TopicLogic extends GetxController {
     } else {
       selectedRows.add(index);
     }
+  }
+
+  String? getSelectedCateId() {
+    if (selectedQuestionCate.value == '全部题型') {
+      return "";
+    }
+    return selectedQuestionCate.value?.toString() ?? "";
+  }
+
+  String? getSelectedLevelId() {
+    if (selectedQuestionLevel.value == '全部难度') {
+      return "";
+    }
+    return selectedQuestionLevel.value?.toString() ?? "";
   }
 
   void applyFilters() {

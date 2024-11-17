@@ -66,7 +66,6 @@ class TopicPage extends StatelessWidget {
                 height: 34,
                 onChanged: (dynamic newValue) {
                   logic.selectedQuestionCate.value = newValue.toString();
-                  logic.applyFilters();
                 },
               ),
               SizedBox(width: 12),
@@ -102,7 +101,7 @@ class TopicPage extends StatelessWidget {
                         level2Items: logic.level2Items,
                         level3Items: logic.level3Items,
                         onChanged: (dynamic level1, dynamic level2, dynamic level3) {
-                          print('选择的: $level1, 二级: $level2, 三级: $level3');
+                          logic.selectedMajorId.value = level3.toString();
                           // 这里可以处理选择的 id
                         },
                       );
@@ -122,14 +121,14 @@ class TopicPage extends StatelessWidget {
               SizedBox(width: 26),
               SearchButtonWidget(
                 key: Key('search'),
-                onPressed: () => logic.find(logic.page.value, logic.size.value),
+                onPressed: () => logic.find(logic.size.value, logic.page.value),
               ),
               SizedBox(width: 10),
               ResetButtonWidget(
                 key: Key('reset'),
                 onPressed: () {
                   logic.reset();
-                  logic.applyFilters();
+                  logic.find(logic.size.value, logic.page.value);
                 },
               ),
             ],
