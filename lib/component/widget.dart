@@ -682,9 +682,288 @@ class SearchAndButtonWidget extends StatelessWidget {
   }
 }
 
+class TextInputWidget extends StatefulWidget {
+  final String hint;
+  final ValueChanged<String> onTextChanged;
+  final RxString text;
+  final double width; // 动态宽度
+  final double height; // 动态宽度
 
+  const TextInputWidget({
+    Key? key,
+    required this.hint,
+    required this.onTextChanged,
+    required this.text,
+    this.width = 120, // 默认宽度为120
+    this.height = 40, // 默认宽度为120
+  }) : super(key: key);
 
+  @override
+  _TextInputWidgetState createState() => _TextInputWidgetState();
+}
 
+class _TextInputWidgetState extends State<TextInputWidget> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.text.value);
+    widget.text.listen((value) {
+      if (_controller.text != value) {
+        _controller.text = value;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: widget.height,
+      width: widget.width, // 动态宽度
+      child: TextField(
+        key: const Key('text_input_box'),
+        controller: _controller,
+        decoration: InputDecoration(
+          hintText: widget.hint,
+          hintStyle: const TextStyle(
+            color: Color(0xFF999999),
+            fontSize: 12,
+            fontFamily: 'PingFang SC',
+            fontWeight: FontWeight.w400,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(2), // 圆角
+          ),
+          filled: true,
+          fillColor: Colors.white, // 背景填充色
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        ),
+        onChanged: widget.onTextChanged, // 输入时回调
+      ),
+    );
+  }
+}
+
+class NumberDropdownInputWidget extends StatefulWidget {
+  final String hint;
+  final RxString selectedValue;
+  final double width; // 控件宽度
+  final double height; // 控件宽度
+  final ValueChanged<String> onValueChanged;
+
+  NumberDropdownInputWidget({
+    required this.hint,
+    required this.selectedValue,
+    required this.width,
+    required this.height,
+    required this.onValueChanged,
+  });
+
+  @override
+  _NumberDropdownInputWidgetState createState() => _NumberDropdownInputWidgetState();
+}
+
+class _NumberDropdownInputWidgetState extends State<NumberDropdownInputWidget> {
+  late TextEditingController _controller;
+  late FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.selectedValue.value);
+    _focusNode = FocusNode();
+
+    // 监听输入框内容变化，同步到 RxString
+    _controller.addListener(() {
+      widget.selectedValue.value = _controller.text;
+      widget.onValueChanged(_controller.text);
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: widget.width, // 设置宽度
+      height: widget.height, // 设置宽度
+      child: Stack(
+        alignment: Alignment.centerRight,
+        children: [
+          TextField(
+            controller: _controller,
+            focusNode: _focusNode,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              hintText: widget.hint,
+              hintStyle: const TextStyle(
+                color: Color(0xFF999999),
+                fontSize: 12,
+                fontFamily: 'PingFang SC',
+                fontWeight: FontWeight.w400,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(2), // 圆角
+              ),
+              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            ),
+          ),
+          Positioned(
+            right: 4,
+            child: DropdownButton<String>(
+              value: null, // 不默认选中任何值
+              underline: SizedBox.shrink(), // 去掉下划线
+              icon: Icon(Icons.arrow_drop_down),
+              items: List.generate(50, (index) => (index + 1).toString()).map((value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  _controller.text = value; // 更新输入框内容
+                  _focusNode.requestFocus(); // 聚焦输入框
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SelectableList extends StatefulWidget {
+  final List<String> items;
+  final Function(int) onDelete;
+  final Function(int) onSelected;
+
+  SelectableList({
+    required this.items,
+    required this.onDelete,
+    required this.onSelected,
+  });
+
+  @override
+  _SelectableListState createState() => _SelectableListState();
+}
+
+class _SelectableListState extends State<SelectableList> {
+  int selectedIndex = -1; // 初始化为 -1 表示没有选中项
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      // appBar: AppBar(
+      //   title: Text("Selectable List"),
+      // ),
+      body: ListView.builder(
+        itemCount: widget.items.length,
+        itemBuilder: (context, index) {
+          return Card(
+            margin: EdgeInsets.symmetric(horizontal: 8, vertical: 2), // 减小卡片间距
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(2.0), // 增大圆角
+            ),
+            color: selectedIndex == index ? Colors.blueGrey[200] : Colors.white,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4), // 减小内容内边距
+              child: ListTile(
+                enableFeedback: false, // 禁用点击动效
+                dense: true, // 使 ListTile 更紧凑
+                onTap: () {
+                  setState(() {
+                    selectedIndex = index;
+                    widget.onSelected(index); // 调用 onSelected 回调
+                  });
+                },
+                title: Text(widget.items[index]),
+                trailing: PopupMenuButton<String>(
+                  onSelected: (String value) {
+                    if (value == "Edit") {
+                      _editItem(index);
+                    } else if (value == "Delete") {
+                      _deleteItem(index);
+                    }
+                  },
+                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                    PopupMenuItem<String>(
+                      value: "Edit",
+                      child: Text("Edit"),
+                    ),
+                    PopupMenuItem<String>(
+                      value: "Delete",
+                      child: Text("Delete"),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _editItem(int index) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        TextEditingController _controller = TextEditingController(text: widget.items[index]);
+        return AlertDialog(
+          title: Text("Edit Item"),
+          content: TextField(
+            controller: _controller,
+            decoration: InputDecoration(labelText: "Item Name"),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  widget.items[index] = _controller.text;
+                });
+                Navigator.of(context).pop();
+              },
+              child: Text("Save"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteItem(int index) {
+    widget.onDelete(index);
+    setState(() {
+      widget.items.removeAt(index);
+      if (selectedIndex >= widget.items.length) {
+        selectedIndex = -1; // 如果删除的是最后一个项，重置选中状态
+      } else if (selectedIndex == index) {
+        selectedIndex = -1; // 如果删除的是当前选中的项，重置选中状态
+      }
+    });
+  }
+}
 
 
 

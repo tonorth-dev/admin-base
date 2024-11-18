@@ -60,7 +60,7 @@ class SidebarLogic extends GetxController {
     SidebarTree(
       name: "讲义管理",
       icon: Icons.expand,
-      children: bookList,
+      children: demoList,
     ),
     SidebarTree(
       name: "原始题库",
@@ -91,12 +91,9 @@ class SidebarLogic extends GetxController {
     ExecutePage.newThis(),
   ];
 
-  static List<SidebarTree> bookList = [
-    BookManagerPage.newThis(),
-  ];
-
   static List<SidebarTree> topicList = [
     TopicPage.newThis(),
+    BookPage.newThis(),
   ];
 
   static List<SidebarTree> demoList = [
