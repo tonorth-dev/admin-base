@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:open_file/open_file.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart';
-import 'dart:convert';
-import 'dart:typed_data';
-import 'package:http/http.dart' as http;
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../../../../api/book_api.dart';
 
@@ -66,24 +61,43 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
             style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w400,
-                // fontFamily: 'OPPOSans',
+                fontFamily: 'OPPOSans',
                 color: Color(0xFF003F91)))
             : Text("题本详情",
             style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w400,
-                // fontFamily: 'OPPOSans',
+                fontFamily: 'OPPOSans',
                 color: Color(0xFF051923))),
         actions: [
-          IconButton(
+          OutlinedButton.icon(
             icon: Icon(Icons.save_alt),
-            tooltip: '导出教师版',
+            label: Text('导出教师版'),
             onPressed: () => _exportPdf(isTeacherVersion: true),
+            style: ButtonStyle(
+              side: MaterialStateProperty.all<BorderSide>(
+                BorderSide(color: Colors.redAccent, width: 2.0),
+              ),
+              foregroundColor: MaterialStateProperty.all<Color>(Colors.redAccent),
+              padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
+                EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              ),
+            ),
           ),
-          IconButton(
+          SizedBox(width: 16), // 添加一些间距
+          OutlinedButton.icon(
             icon: Icon(Icons.save),
-            tooltip: '导出学生版',
+            label: Text('导出学生版'),
             onPressed: () => _exportPdf(isTeacherVersion: false),
+            style: ButtonStyle(
+              side: MaterialStateProperty.all<BorderSide>(
+                BorderSide(color: Colors.blueAccent, width: 2.0),
+              ),
+              foregroundColor: MaterialStateProperty.all<Color>(Colors.blueAccent),
+              padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
+                EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              ),
+            ),
           ),
           SizedBox(width: 300,)
         ],
@@ -119,7 +133,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                         style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w400,
-                            // fontFamily: 'OPPOSans',
+                            fontFamily: 'OPPOSans',
                             color: Color(0xFF102b3f))),
                     Text(' ${_data?['major_name']}',
                         style: TextStyle(
@@ -136,7 +150,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                         style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w400,
-                            // fontFamily: 'OPPOSans',
+                            fontFamily: 'OPPOSans',
                             color: Color(0xFF102b3f))),
                     Text(' ${_data?['level_name']}',
                         style: TextStyle(
@@ -153,7 +167,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                         style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w400,
-                            // fontFamily: 'OPPOSans',
+                            fontFamily: 'OPPOSans',
                             color: Color(0xFF102b3f))),
                     Text(' ${_data?['unit_number']}',
                         style: TextStyle(
@@ -174,7 +188,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                       style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w400,
-                          // fontFamily: 'OPPOSans',
+                          fontFamily: 'OPPOSans',
                           color: Color(0xFF102b3f))),
                   Text(' ${_data?['questions_number']}',
                       style: TextStyle(
@@ -191,7 +205,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                       style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w400,
-                          // fontFamily: 'OPPOSans',
+                          fontFamily: 'OPPOSans',
                           color: Color(0xFF102b3f))),
                   ...((_data?['component_desc'] as List?) ?? [])
                       .map((desc) => Text(desc + "，",
@@ -227,7 +241,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
             style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w400,
-                // fontFamily: 'OPPOSans',
+                fontFamily: 'OPPOSans',
                 color: Color(0xFFf3722c)),
           ),
           SizedBox(height: 10),
@@ -276,7 +290,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           text,
           style: TextStyle(
               fontWeight: FontWeight.bold,
-              // fontFamily: 'OPPOSans',
+              fontFamily: 'OPPOSans',
               color: Colors.white),
           textAlign: TextAlign.center,
         ),
@@ -300,19 +314,22 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   Future<void> _exportPdf({required bool isTeacherVersion}) async {
     final pdf = pw.Document();
 
+    // 加载字体
+    final font = await rootBundle.load("assets/fonts/OPPOSans-Regular.ttf");
+    final ttf = pw.Font.ttf(font);
+
     pdf.addPage(pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
       build: (pw.Context context) {
         return <pw.Widget>[
-          pw.Header(level: 0, child: pw.Text(_data!['name'])),
-          pw.Paragraph(text: '专业：${_data?['major_name']}'),
-          pw.Paragraph(text: '难度：${_data?['level_name']}'),
-          pw.Paragraph(text: '试题套数：${_data?['unit_number']}'),
+          pw.Header(level: 0, child: pw.Text(_data!['name'], style: pw.TextStyle(font: ttf, fontSize: 20))),
+          pw.Paragraph(text: '专业：${_data?['major_name']}', style: pw.TextStyle(font: ttf, fontSize: 9)),
+          pw.Paragraph(text: '难度：${_data?['level_name']}', style: pw.TextStyle(font: ttf, fontSize: 9)),
+          pw.Paragraph(text: '试题套数：${_data?['unit_number']}', style: pw.TextStyle(font: ttf, fontSize: 9)),
+          pw.Paragraph(text: '试题总数：${_data?['questions_number']}', style: pw.TextStyle(font: ttf, fontSize: 9)),
+          pw.Paragraph(text: '试题组成：${(_data?['component_desc'] as List?)?.join(", ")}', style: pw.TextStyle(font: ttf, fontSize: 9)),
           pw.Divider(),
-          pw.Paragraph(text: '试题总数：${_data?['questions_number']}'),
-          pw.Paragraph(text: '试题组成：${(_data?['component_desc'] as List?)?.join(", ")}'),
-          pw.Divider(),
-          ...(_buildPdfTables(isTeacherVersion: isTeacherVersion)),
+          ...(_buildPdfTables(isTeacherVersion: isTeacherVersion, font: ttf)),
         ];
       },
     ));
@@ -326,7 +343,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     OpenFile.open(file.path);
   }
 
-  List<pw.Widget> _buildPdfTables({required bool isTeacherVersion}) {
+  List<pw.Widget> _buildPdfTables({required bool isTeacherVersion, required pw.Font font}) {
     final questionsDesc = _data?['questions_desc'] as List?;
     if (questionsDesc == null || questionsDesc.isEmpty) return [];
 
@@ -338,9 +355,10 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           pw.Text(
             '章节：${section['title']}',
             style: pw.TextStyle(
-                fontSize: 18,
+                fontSize: 11,
                 fontWeight: pw.FontWeight.bold,
-                color: PdfColors.orange),
+                color: PdfColors.orange,
+                font: font),
           ),
           pw.SizedBox(height: 10),
           pw.Table(
@@ -355,21 +373,21 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
               pw.TableRow(
                 decoration: pw.BoxDecoration(color: PdfColor.fromHex('#68b0ab')), // 标题行背景色
                 children: [
-                  _buildPdfTableHeader('序号'),
-                  _buildPdfTableHeader('试题分类'),
-                  _buildPdfTableHeader('试题标题'),
-                  _buildPdfTableHeader('试题答案'),
+                  _buildPdfTableHeader('序号', font: font),
+                  _buildPdfTableHeader('试题分类', font: font),
+                  _buildPdfTableHeader('试题标题', font: font),
+                  _buildPdfTableHeader('试题答案', font: font),
                 ],
               ),
               for (var detail in (section['questions_detail'] as List? ?? []))
                 for (var i = 0; i < (detail['list'] as List? ?? []).length; i++)
                   pw.TableRow(
                     children: [
-                      _buildPdfTableCell((i + 1).toString()), // 显示序号
-                      _buildPdfTableCell(detail['list'][i]['cate_name'] ?? ''),
-                      _buildPdfTableCell(detail['list'][i]['title'] ?? ''),
+                      _buildPdfTableCell((i + 1).toString(), font: font), // 显示序号
+                      _buildPdfTableCell(detail['list'][i]['cate_name'] ?? '', font: font),
+                      _buildPdfTableCell(detail['list'][i]['title'] ?? '', font: font),
                       _buildPdfTableCell(
-                          isTeacherVersion ? (detail['list'][i]['answer'] ?? '') : ' ' * 200),
+                          isTeacherVersion ? (detail['list'][i]['answer'] ?? '') : ' ' * 400, font: font),
                     ],
                   ),
             ],
@@ -380,7 +398,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     }).toList();
   }
 
-  pw.Widget _buildPdfTableHeader(String text) {
+  pw.Widget _buildPdfTableHeader(String text, {required pw.Font font}) {
     return pw.ConstrainedBox(
       constraints: pw.BoxConstraints(minHeight: 40),
       child: pw.Padding(
@@ -389,14 +407,17 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           text,
           style: pw.TextStyle(
               fontWeight: pw.FontWeight.bold,
-              color: PdfColors.white),
+              color: PdfColors.white,
+              font: font,
+              fontSize: 9
+          ),
           textAlign: pw.TextAlign.center,
         ),
       ),
     );
   }
 
-  pw.Widget _buildPdfTableCell(String text) {
+  pw.Widget _buildPdfTableCell(String text, {required pw.Font font}) {
     return pw.ConstrainedBox(
       constraints: pw.BoxConstraints(minHeight: 40),
       child: pw.Padding(
@@ -404,6 +425,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
         child: pw.Text(
           text,
           textAlign: pw.TextAlign.left,
+          style: pw.TextStyle(font: font, fontSize: 8, fontWeight: pw.FontWeight.normal),
         ),
       ),
     );

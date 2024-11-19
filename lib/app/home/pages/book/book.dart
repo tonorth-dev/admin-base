@@ -9,6 +9,7 @@ import 'package:admin_flutter/component/table/ex.dart';
 import 'package:admin_flutter/app/home/sidebar/logic.dart';
 import 'package:admin_flutter/component/widget.dart';
 import 'package:admin_flutter/component/dialog.dart';
+import '../../../../api/template_api.dart';
 import 'detail.dart';
 import 'logic.dart';
 import 'package:admin_flutter/theme/theme_util.dart';
@@ -261,20 +262,16 @@ class BookPage extends StatelessWidget {
     }
   }
 
-  Widget _buildInteractiveCardLeft(
-      String title, double? width, double? height) {
+  Widget _buildInteractiveCardLeft(String title, double? width, double? height) {
     return Container(
       width: width,
-      // 方形区域宽度
       height: height,
-      // 方形区域高度
       decoration: BoxDecoration(
         color: Color(0xFFE6F0FF),
         borderRadius: BorderRadius.circular(3.0),
         border: Border.all(color: Color(0xFFE6F0FF), width: 1),
       ),
       padding: EdgeInsets.all(16.0),
-      // 内边距
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -284,7 +281,6 @@ class BookPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 标题
             Text(
               title,
               style: TextStyle(
@@ -292,17 +288,25 @@ class BookPage extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                   color: Colors.blue[800]),
             ),
-            SizedBox(height: 16), // 间距
+            SizedBox(height: 16),
             Expanded(
               child: Center(
-                // 使用 Center 小部件使文本居中
                 child: SelectableList(
-                  items: List.generate(20, (index) => "Item ${index + 1}"),
-                  onDelete: (int index) {
-                    print("Custom delete action for item at index $index");
+                  items: logic.templateList,
+                  onDelete: (Map<String, dynamic> item) async {
+                    try {
+                      await TemplateApi.templateDelete(item["id"]);
+                      "删除成功".toHint();
+                      setState(() {
+                        logic.templateList.removeWhere((template) => template["id"] == item["id"]);
+                      });
+                    } catch (error) {
+                      "删除失败: $error".toHint();
+                      throw error;
+                    }
                   },
-                  onSelected: (int index) {
-                    print("Item at index $index is selected");
+                  onSelected: (Map<String, dynamic> item) {
+                    print("Item with ID ${item['id']} and name ${item['name']} is selected");
                   },
                 ),
               ),
@@ -521,7 +525,7 @@ class BookPage extends StatelessWidget {
                 ElevatedButton(
                   onPressed: () {
                     // 保存模板的逻辑
-                    print("保存模板");
+                    logic.saveTemplate();
                   },
                   child: Text("保存模板"),
                 ),
@@ -695,7 +699,7 @@ class BookDataSource extends DataGridSource {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextButton(
-              onPressed: () => logic.delete(item, rowIndex),
+              onPressed: () => logic.deleteBook(item, rowIndex),
               child: Text("删除", style: TextStyle(color: Color(0xFFFD941D))),
             ),
             TextButton(

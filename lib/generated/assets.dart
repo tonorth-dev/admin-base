@@ -6,7 +6,6 @@ class Assets {
   static const String fontsOPPOSansMedium = 'assets/fonts/OPPOSans-Medium.ttf';
   static const String fontsOPPOSansRegular = 'assets/fonts/OPPOSans-Regular.ttf';
   static const String imagesCat = 'assets/images/cat.jpeg';
-  static const String images空 = 'assets/images/空.md';
   static const String messagesCn = 'assets/messages/cn.json';
   static const String messagesEn = 'assets/messages/en.json';
 

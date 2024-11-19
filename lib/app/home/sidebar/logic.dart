@@ -22,7 +22,7 @@ import 'package:admin_flutter/app/home/pages/class/view.dart';
 import 'package:admin_flutter/app/home/pages/institution/view.dart';
 import 'package:admin_flutter/app/home/pages/student/view.dart';
 
-import '../pages/book/view.dart';
+import '../pages/book/book.dart';
 import '../pages/execute/view.dart';
 import '../pages/plan/view.dart';
 import '../pages/student_question/view.dart';

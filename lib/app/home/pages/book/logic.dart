@@ -1,4 +1,3 @@
-import 'package:admin_flutter/app/home/pages/book/view.dart';
 import 'package:admin_flutter/ex/ex_list.dart';
 import 'package:admin_flutter/ex/ex_string.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,13 +6,12 @@ import 'package:admin_flutter/api/book_api.dart';
 import 'package:admin_flutter/ex/ex_hint.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
-import 'dart:convert';
 import 'package:csv/csv.dart';
 import 'package:admin_flutter/component/form/enum.dart';
 import 'package:admin_flutter/component/form/form_data.dart';
-import 'package:admin_flutter/component/dialog.dart';
 import '../../../../api/config_api.dart';
 import '../../../../api/major_api.dart';
+import '../../../../api/template_api.dart';
 import '../../../../component/pagination/logic.dart';
 import '../../../../component/table/table_data.dart';
 import '../../../../component/widget.dart';
@@ -27,9 +25,12 @@ class BookLogic extends GetxController {
   var loading = false.obs;
   final searchText = ''.obs;
 
-  final GlobalKey<CascadingDropdownFieldState> majorDropdownKey = GlobalKey<CascadingDropdownFieldState>();
-  final GlobalKey<DropdownFieldState> cateDropdownKey = GlobalKey<DropdownFieldState>();
-  final GlobalKey<DropdownFieldState> levelDropdownKey = GlobalKey<DropdownFieldState>();
+  final GlobalKey<CascadingDropdownFieldState> majorDropdownKey =
+      GlobalKey<CascadingDropdownFieldState>();
+  final GlobalKey<DropdownFieldState> cateDropdownKey =
+      GlobalKey<DropdownFieldState>();
+  final GlobalKey<DropdownFieldState> levelDropdownKey =
+      GlobalKey<DropdownFieldState>();
 
   // 当前编辑的题目数据
   var currentEditBook = RxMap<String, dynamic>({}).obs;
@@ -39,6 +40,7 @@ class BookLogic extends GetxController {
   Rx<String?> selectedQuestionLevel = '全部难度'.obs;
   RxList<Map<String, dynamic>> questionCate = <Map<String, dynamic>>[].obs;
   RxList<Map<String, dynamic>> questionLevel = <Map<String, dynamic>>[].obs;
+  RxList<Map<String, dynamic>> templateList = <Map<String, dynamic>>[].obs;
 
   // 专业列表数据
   List<Map<String, dynamic>> majorList = [];
@@ -61,7 +63,7 @@ class BookLogic extends GetxController {
       if (configData != null && configData.containsKey("list")) {
         final list = configData["list"] as List<dynamic>;
         final questionCateItem = list.firstWhere(
-              (item) => item["name"] == "question_cate",
+          (item) => item["name"] == "question_cate",
           orElse: () => null,
         );
 
@@ -76,7 +78,7 @@ class BookLogic extends GetxController {
         }
 
         final questionLevelItem = list.firstWhere(
-              (item) => item["name"] == "question_level",
+          (item) => item["name"] == "question_level",
           orElse: () => null,
         );
 
@@ -98,9 +100,26 @@ class BookLogic extends GetxController {
     }
   }
 
+  Future<void> fetchTemplates() async {
+    try {
+      var templates =
+          await TemplateApi.templateList({'pageSize': "30", 'page': "1"});
+      if (templates != null && templates.containsKey("list")) {
+        final templateItem = templates["list"] as List<dynamic>;
+
+        templateList = RxList.from(templateItem);
+        print("debug templateList: $templateList");
+      }
+    } catch (e) {
+      print('debug templateList 初始化 templates 失败: $e');
+      templateList = RxList<Map<String, dynamic>>();
+    }
+  }
+
   Future<void> fetchMajors() async {
     try {
-      var response = await MajorApi.majorList(params: {'pageSize': 3000, 'page': 1});
+      var response =
+          await MajorApi.majorList(params: {'pageSize': 3000, 'page': 1});
       if (response != null && response["total"] > 0) {
         var dataList = response["list"] as List<dynamic>;
 
@@ -142,7 +161,8 @@ class BookLogic extends GetxController {
               .any((m) => m['name'] == secondLevelName)) {
             subMajorMap[firstLevelId]!
                 .add({'id': secondLevelId, 'name': secondLevelName});
-            level2Items[firstLevelId]?.add({'id': secondLevelId, 'name': secondLevelName});
+            level2Items[firstLevelId]
+                ?.add({'id': secondLevelId, 'name': secondLevelName});
             subSubMajorMap[secondLevelId] = [];
             level3Items[secondLevelId] = [];
           }
@@ -152,7 +172,8 @@ class BookLogic extends GetxController {
               .any((m) => m['name'] == thirdLevelName)) {
             subSubMajorMap[secondLevelId]!
                 .add({'id': thirdLevelId, 'name': thirdLevelName});
-            level3Items[secondLevelId]?.add({'id': thirdLevelId, 'name': thirdLevelName});
+            level3Items[secondLevelId]
+                ?.add({'id': thirdLevelId, 'name': thirdLevelName});
           }
         }
 
@@ -232,14 +253,14 @@ class BookLogic extends GetxController {
     ColumnData(title: "创建时间", key: "update_time"),
   ];
 
-
   @override
   void onInit() {
     fetchMajors(); // Fetch and populate major data on initialization
     fetchConfigs();
+    fetchTemplates();
     ever(
       questionCate,
-          (value) {
+      (value) {
         if (questionCate.isNotEmpty) {
           // 当 questionCate 被赋值后再执行表单加载逻辑
           super.onInit();
@@ -281,7 +302,7 @@ class BookLogic extends GetxController {
     ),
   ]);
 
-  void delete(Map<String, dynamic> d, int index) {
+  void deleteBook(Map<String, dynamic> d, int index) {
     try {
       BookApi.bookDelete(d["id"].toString()).then((value) {
         list.removeAt(index);
@@ -483,13 +504,93 @@ class BookLogic extends GetxController {
         };
 
         dynamic result = await BookApi.bookCreate(params);
-        print(result);
+        "生成题本成功".toHint();
       } catch (e) {
         print('Error: $e');
       }
     } else {
       // 显示错误提示
       errorMessage.toHint();
+    }
+  }
+
+  Future<void> saveTemplate() async {
+    // 生成题本的逻辑
+    final bookNameSubmit = bookName.value;
+    final int bookSelectedMajorIdSubmit = bookSelectedMajorId.value.toInt();
+    final bookSelectedQuestionCateSubmit = bookSelectedQuestionCate.value;
+    final bookSelectedQuestionLevelSubmit = bookSelectedQuestionLevel.value;
+    final bookQuestionCountSubmit = bookQuestionCount.value;
+
+    bool isValid = true;
+    String errorMessage = "";
+
+    if (bookNameSubmit.isEmpty) {
+      isValid = false;
+      errorMessage += "题本名称不能为空\n";
+    }
+    if (bookSelectedMajorIdSubmit == 0) {
+      isValid = false;
+      errorMessage += "请选择专业\n";
+    }
+    if (bookSelectedQuestionLevelSubmit.isEmpty) {
+      isValid = false;
+      errorMessage += "请选择难度\n";
+    }
+    if (bookQuestionCountSubmit <= 0) {
+      isValid = false;
+      errorMessage += "生成套数必须大于0\n";
+    }
+
+    List<Map<String, dynamic>> components = questionCate.map((item) {
+      String key = item['id'] ?? '';
+      int value = item['value'] ?? 0;
+      return {
+        'key': key,
+        'number': value ?? 0,
+      };
+    }).toList();
+
+    print("debug questionCate: $questionCate");
+    print("debug components: $components");
+
+    if (isValid) {
+      // 提交表单
+      print("生成题本：");
+      print("题本名称: $bookName");
+      print("选择专业: $bookSelectedMajorId");
+      print("选择题型: $bookSelectedQuestionCate");
+      print("选择难度: $bookSelectedQuestionLevel");
+      print("生成套数: $bookQuestionCount");
+      try {
+        Map<String, dynamic> params = {
+          "name": bookNameSubmit,
+          "major_id": bookSelectedMajorIdSubmit,
+          "level": bookSelectedQuestionLevelSubmit,
+          "component": components,
+          "unit_number": bookQuestionCountSubmit,
+          "creator": "杜立东", //todo 从登录信息中获取
+          "template_id": 1,
+          "template_name": "demo",
+        };
+
+        dynamic result = await TemplateApi.templateCreate(params);
+        "保存模板成功".toHint();
+      } catch (e) {
+        print('Error: $e');
+      }
+    } else {
+      // 显示错误提示
+      errorMessage.toHint();
+    }
+  }
+
+  void deleteTemplate(Map<String, dynamic> d) async {
+    try {
+      await TemplateApi.templateDelete(d["id"]);
+      "删除成功".toHint();
+    } catch (error) {
+      "删除失败: $error".toHint();
     }
   }
 }
