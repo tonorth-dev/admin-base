@@ -2,8 +2,11 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_material_pickers/helpers/show_number_picker.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 class CustomButton extends StatefulWidget {
   final VoidCallback onPressed;
@@ -100,6 +103,7 @@ class DropdownField extends StatefulWidget {
   final double width;
   final double height;
   final String hint;
+  final bool? label;
   final List<Map<String, dynamic>> items; // 修改为 Map 列表
   final dynamic value; // 修改为 dynamic 类型
   final Function(dynamic)? onChanged; // 修改为 dynamic 类型
@@ -110,6 +114,7 @@ class DropdownField extends StatefulWidget {
     required this.height,
     required this.hint,
     required this.items,
+    this.label,
     this.value,
     this.onChanged,
   }) : super(key: key);
@@ -224,7 +229,7 @@ class DropdownFieldState extends State<DropdownField> with WidgetsBindingObserve
                   ),
                   dropdownColor: Colors.white,
                   decoration: InputDecoration(
-                    labelText: widget.hint,
+                    labelText: widget.label == true ? widget.hint : null,
                     border: OutlineInputBorder(),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     enabledBorder: OutlineInputBorder(
@@ -751,14 +756,16 @@ class _TextInputWidgetState extends State<TextInputWidget> {
   }
 }
 
-class NumberDropdownInputWidget extends StatefulWidget {
+class NumberInputWidget extends StatefulWidget {
   final String hint;
-  final RxString selectedValue;
+  final RxInt selectedValue;
   final double width; // 控件宽度
-  final double height; // 控件宽度
-  final ValueChanged<String> onValueChanged;
+  final double height; // 控件高度
+  final ValueChanged<int> onValueChanged;
+  final Key key; // 添加独立 Key
 
-  NumberDropdownInputWidget({
+  NumberInputWidget({
+    required this.key, // 独立的 Key
     required this.hint,
     required this.selectedValue,
     required this.width,
@@ -767,23 +774,37 @@ class NumberDropdownInputWidget extends StatefulWidget {
   });
 
   @override
-  _NumberDropdownInputWidgetState createState() => _NumberDropdownInputWidgetState();
+  _NumberInputWidgetState createState() => _NumberInputWidgetState();
 }
 
-class _NumberDropdownInputWidgetState extends State<NumberDropdownInputWidget> {
+class _NumberInputWidgetState extends State<NumberInputWidget> {
   late TextEditingController _controller;
   late FocusNode _focusNode;
+  OverlayEntry? _overlayEntry;
+  GlobalKey _inputKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.selectedValue.value);
+    _controller = TextEditingController(text: widget.selectedValue.value.toString());
     _focusNode = FocusNode();
 
-    // 监听输入框内容变化，同步到 RxString
+    // 监听输入框内容变化，同步到 RxInt 和回调
     _controller.addListener(() {
-      widget.selectedValue.value = _controller.text;
-      widget.onValueChanged(_controller.text);
+      final text = _controller.text.isEmpty ? '0' : _controller.text;
+      final value = int.tryParse(text) ?? 0;
+      widget.selectedValue.value = value;
+      widget.onValueChanged(value); // 调用回调
+      _removeOverlay(); // 输入数字时关闭下拉列表
+    });
+
+    // 监听键盘事件，处理上下键调整数字
+    _focusNode.addListener(() {
+      if (_focusNode.hasFocus) {
+        RawKeyboard.instance.addListener(_handleKeyEvent);
+      } else {
+        RawKeyboard.instance.removeListener(_handleKeyEvent);
+      }
     });
   }
 
@@ -791,60 +812,135 @@ class _NumberDropdownInputWidgetState extends State<NumberDropdownInputWidget> {
   void dispose() {
     _controller.dispose();
     _focusNode.dispose();
+    RawKeyboard.instance.removeListener(_handleKeyEvent);
+    _removeOverlay();
     super.dispose();
+  }
+
+  void _handleKeyEvent(RawKeyEvent event) {
+    if (event is RawKeyDownEvent) {
+      final value = widget.selectedValue.value;
+      if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+        setState(() {
+          widget.selectedValue.value += 1; // 按上键增加 1
+        });
+      } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+        setState(() {
+          widget.selectedValue.value = (value - 1).clamp(0, double.infinity).toInt(); // 按下键减少 1，不小于 0
+        });
+      }
+      _controller.text = widget.selectedValue.value.toString();
+      _controller.selection = TextSelection.fromPosition(
+        TextPosition(offset: _controller.text.length),
+      ); // 将光标移动到末尾
+      widget.onValueChanged(widget.selectedValue.value); // 调用回调
+    }
+  }
+
+  void _showNumberPicker() {
+    final RenderBox renderBox = _inputKey.currentContext!.findRenderObject() as RenderBox;
+    final Offset offset = renderBox.localToGlobal(Offset.zero);
+    final Size size = renderBox.size;
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) {
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: () {
+                  _removeOverlay(); // 点击其他区域时关闭下拉列表
+                },
+              ),
+            ),
+            Positioned(
+              left: offset.dx,
+              top: offset.dy + size.height,
+              width: 100, // 下拉列表的宽度
+              child: Material(
+                elevation: 8.0,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: 10, // 默认显示20个选项
+                  itemBuilder: (context, index) {
+                    final value = index * 1; // 例如每5个数一个选项
+                    return InkWell(
+                      onTap: () {
+                        widget.selectedValue.value = value;
+                        _controller.text = value.toString();
+                        _controller.selection = TextSelection.fromPosition(
+                          TextPosition(offset: _controller.text.length),
+                        ); // 将光标移动到末尾
+                        widget.onValueChanged(value); // 调用回调
+                        _removeOverlay(); // 选中后关闭下拉列表
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                        child: Text(value.toString(), style: TextStyle(fontSize: 14)),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    Overlay.of(context)?.insert(_overlayEntry!);
+  }
+
+  void _removeOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
   }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: widget.width, // 设置宽度
-      height: widget.height, // 设置宽度
-      child: Stack(
-        alignment: Alignment.centerRight,
-        children: [
-          TextField(
-            controller: _controller,
-            focusNode: _focusNode,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              hintText: widget.hint,
-              hintStyle: const TextStyle(
-                color: Color(0xFF999999),
-                fontSize: 12,
-                fontFamily: 'PingFang SC',
-                fontWeight: FontWeight.w400,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(2), // 圆角
-              ),
-              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            ),
-          ),
-          Positioned(
-            right: 4,
-            child: DropdownButton<String>(
-              value: null, // 不默认选中任何值
-              underline: SizedBox.shrink(), // 去掉下划线
-              icon: Icon(Icons.arrow_drop_down),
-              items: List.generate(50, (index) => (index + 1).toString()).map((value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  _controller.text = value; // 更新输入框内容
-                  _focusNode.requestFocus(); // 聚焦输入框
-                }
-              },
-            ),
-          ),
+      height: widget.height, // 设置高度
+      child: TextField(
+        key: _inputKey,
+        controller: _controller,
+        focusNode: _focusNode,
+        keyboardType: TextInputType.number,
+        inputFormatters: [
+          FilteringTextInputFormatter.digitsOnly, // 仅允许数字输入
         ],
+        decoration: InputDecoration(
+          hintText: widget.hint,
+          hintStyle: const TextStyle(
+            color: Color(0xFF999999),
+            fontSize: 12,
+            fontFamily: 'PingFang SC',
+            fontWeight: FontWeight.w400,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(4), // 圆角
+          ),
+          contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          suffixIcon: IconButton(
+            icon: Icon(Icons.arrow_drop_down),
+            onPressed: _showNumberPicker,
+          ),
+        ),
+        onChanged: (text) {
+          if (text.isEmpty) {
+            _controller.text = '0'; // 清空时显示默认值 0
+            _controller.selection = TextSelection.fromPosition(
+              TextPosition(offset: _controller.text.length),
+            ); // 将光标移动到末尾
+            widget.selectedValue.value = 0;
+            widget.onValueChanged(0); // 调用回调
+          }
+        },
       ),
     );
   }
 }
+
 
 class SelectableList extends StatefulWidget {
   final List<String> items;

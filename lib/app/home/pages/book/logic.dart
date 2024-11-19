@@ -1,4 +1,6 @@
+import 'package:admin_flutter/app/home/pages/book/view.dart';
 import 'package:admin_flutter/ex/ex_list.dart';
+import 'package:admin_flutter/ex/ex_string.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:admin_flutter/api/book_api.dart';
@@ -47,6 +49,12 @@ class BookLogic extends GetxController {
   Map<String, List<Map<String, dynamic>>> level3Items = {};
   Rx<String> selectedMajorId = "0".obs;
 
+  final bookName = ''.obs;
+  final bookQuestionCount = 0.obs;
+  final bookSelectedMajorId = "0".obs;
+  final bookSelectedQuestionCate = "".obs;
+  final bookSelectedQuestionLevel = "".obs;
+
   Future<void> fetchConfigs() async {
     try {
       var configData = await ConfigApi.configList();
@@ -61,6 +69,7 @@ class BookLogic extends GetxController {
             questionCateItem.containsKey("attr") &&
             questionCateItem["attr"].containsKey("cates")) {
           questionCate = RxList.from(questionCateItem["attr"]["cates"]);
+          print("debug Question Cate: $questionCate");
         } else {
           print("配置数据中未找到 'question_cate' 或其 'cates' 属性");
           questionCate = RxList<Map<String, dynamic>>(); // 作为默认值，防止未初始化
@@ -204,7 +213,17 @@ class BookLogic extends GetxController {
     ColumnData(title: "题本名称", key: "name"),
     ColumnData(title: "专业名称", key: "major_name"),
     ColumnData(title: "难度", key: "level_name"),
-    ColumnData(title: "题目组合", key: "component"),
+    ColumnData(
+      title: "题目组合",
+      key: "component_desc",
+      render: (value, rowData, rowIndex, tableData) {
+        if (value is List) {
+          // 格式化 JSON 数据为友好的字符串
+          return Text(value.join("\n"));
+        }
+        return Text(value?.toString() ?? ""); // 默认处理其他类型
+      },
+    ),
     ColumnData(title: "题目份数", key: "unit_number"),
     ColumnData(title: "题目数量", key: "questions_number"),
     ColumnData(title: "创建人", key: "creator"),
@@ -212,6 +231,7 @@ class BookLogic extends GetxController {
     ColumnData(title: "标签", key: "tag"),
     ColumnData(title: "创建时间", key: "update_time"),
   ];
+
 
   @override
   void onInit() {
@@ -334,36 +354,6 @@ class BookLogic extends GetxController {
     }
   }
 
-  void importFromCSV() async {
-    try {
-      FilePickerResult? result = await FilePicker.platform
-          .pickFiles(type: FileType.custom, allowedExtensions: ['csv']);
-      if (result != null) {
-        PlatformFile file = result.files.first;
-        String content = utf8.decode(file.bytes!);
-
-        List<List<dynamic>> rows = const CsvToListConverter().convert(content);
-        rows.removeAt(0); // 移除表头
-
-        for (var row in rows) {
-          Map<String, dynamic> data = {};
-          for (int i = 0; i < columns.length; i++) {
-            data[columns[i].key] = row[i];
-          }
-          await BookApi.bookBatchImport(File.fromRawPath(file.bytes!))
-              .then((value) {
-            "导入成功!".toHint();
-            refresh();
-          }).catchError((error) {
-            "导入失败: $error".toHint();
-          });
-        }
-      }
-    } catch (e) {
-      "导入失败: $e".toHint();
-    }
-  }
-
   void batchDelete(List<int> ids) {
     try {
       List<String> idsStr = ids.map((id) => id.toString()).toList();
@@ -425,5 +415,81 @@ class BookLogic extends GetxController {
     fetchConfigs();
     fetchMajors();
     find(size.value, page.value);
+  }
+
+  Future<void> saveBook() async {
+    // 生成题本的逻辑
+    final bookNameSubmit = bookName.value;
+    final int bookSelectedMajorIdSubmit = bookSelectedMajorId.value.toInt();
+    final bookSelectedQuestionCateSubmit = bookSelectedQuestionCate.value;
+    final bookSelectedQuestionLevelSubmit = bookSelectedQuestionLevel.value;
+    final bookQuestionCountSubmit = bookQuestionCount.value;
+
+    bool isValid = true;
+    String errorMessage = "";
+
+    if (bookNameSubmit.isEmpty) {
+      isValid = false;
+      errorMessage += "题本名称不能为空\n";
+    }
+    print("bookSelectedMajorIdSubmit:$bookSelectedMajorIdSubmit");
+    if (bookSelectedMajorIdSubmit == 0) {
+      isValid = false;
+      errorMessage += "请选择专业\n";
+    }
+    // if (bookSelectedQuestionCateSubmit.isEmpty) {
+    //   isValid = false;
+    //   errorMessage += "请选择题型\n";
+    // }
+    if (bookSelectedQuestionLevelSubmit.isEmpty) {
+      isValid = false;
+      errorMessage += "请选择难度\n";
+    }
+    if (bookQuestionCountSubmit <= 0) {
+      isValid = false;
+      errorMessage += "生成套数必须大于0\n";
+    }
+
+    List<Map<String, dynamic>> components = questionCate.map((item) {
+      String key = item['id'] ?? '';
+      int value = item['value'] ?? 0;
+      return {
+        'key': key,
+        'number': value ?? 0,
+      };
+    }).toList();
+
+    print("debug questionCate: $questionCate");
+    print("debug components: $components");
+
+    if (isValid) {
+      // 提交表单
+      print("生成题本：");
+      print("题本名称: $bookName");
+      print("选择专业: $bookSelectedMajorId");
+      print("选择题型: $bookSelectedQuestionCate");
+      print("选择难度: $bookSelectedQuestionLevel");
+      print("生成套数: $bookQuestionCount");
+      try {
+        Map<String, dynamic> params = {
+          "name": bookNameSubmit,
+          "major_id": bookSelectedMajorIdSubmit,
+          "level": bookSelectedQuestionLevelSubmit,
+          "component": components,
+          "unit_number": bookQuestionCountSubmit,
+          "creator": "杜立东", //todo 从登录信息中获取
+          "template_id": 1,
+          "template_name": "demo",
+        };
+
+        dynamic result = await BookApi.bookCreate(params);
+        print(result);
+      } catch (e) {
+        print('Error: $e');
+      }
+    } else {
+      // 显示错误提示
+      errorMessage.toHint();
+    }
   }
 }

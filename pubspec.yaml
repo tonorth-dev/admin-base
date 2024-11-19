@@ -49,6 +49,8 @@ dependencies:
   flutter_quill: ^10.0.0
   html: ^0.15.0
   flutter_typeahead: ^4.0.0
+  flutter_styled_toast: ^2.2.1
+  flutter_material_pickers: ^3.7.0
 
 dev_dependencies:
   flutter_test:
@@ -62,8 +64,10 @@ flutter:
   assets:
     - assets/images/
     - assets/messages/
-#  fonts:
-#    - family: MyFont
-#      fonts:
-#        - asset: assets/font/NotoSansSC-Regular.ttf
+  fonts:
+  - family: OPPOSans
+    fonts:
+      - asset: assets/fonts/OPPOSans-Bold.ttf
+      - asset: assets/fonts/OPPOSans-Medium.ttf
+      - asset: assets/fonts/OPPOSans-Regular.ttf
 

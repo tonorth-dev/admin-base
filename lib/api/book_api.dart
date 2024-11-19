@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:admin_flutter/common/http_util.dart';
@@ -41,14 +42,24 @@ class BookApi {
   static Future<dynamic> bookCreate(Map<String, dynamic> params) async {
     try {
       // 必传字段校验
-      List<String> requiredFields = ['title', 'author', 'content', 'answer', 'cate', 'major_id'];
+      List<String> requiredFields = [
+        'name',
+        'major_id',
+        'level',
+        'component',
+        'unit_number',
+        'creator',
+      ];
       for (var field in requiredFields) {
         if (!params.containsKey(field) || params[field] == null) {
           throw ArgumentError('Missing required field: $field');
         }
       }
 
-      return await HttpUtil.post("/admin/book/book/create", params: params);
+      // 发送POST请求
+      dynamic response = await HttpUtil.post('/admin/book/book', params: params);
+
+      return response;
     } catch (e) {
       print('Error in bookCreate: $e');
       rethrow; // 重新抛出异常以便调用者处理
@@ -56,37 +67,11 @@ class BookApi {
   }
 
   // 查看题目详细
-  static Future<dynamic> bookDetail(String id) async {
+  static Future<dynamic> bookDetail(int id) async {
     try {
       return await HttpUtil.get("/admin/book/book/$id");
     } catch (e) {
       print('Error in bookDetail: $e');
-      rethrow; // 重新抛出异常以便调用者处理
-    }
-  }
-
-  // 更新题目
-  static Future<dynamic> bookUpdate({
-    required String id,
-    required String title,
-    required String content,
-    required String category,
-    required int difficulty,
-    required List<String> options,
-    required String answer,
-  }) async {
-    try {
-      Map<String, dynamic> params = {
-        'title': title,
-        'content': content,
-        'category': category,
-        'difficulty': difficulty,
-        'options': options,
-        'answer': answer,
-      };
-      return await HttpUtil.put("/admin/book/book/$id", params: params);
-    } catch (e) {
-      print('Error in bookUpdate: $e');
       rethrow; // 重新抛出异常以便调用者处理
     }
   }
@@ -101,39 +86,5 @@ class BookApi {
     }
   }
 
-  // 导入题目
-  static Future<dynamic> bookBatchImport(File file) async {
-    try {
-      Map<String, dynamic> params = {
-        'file': file,
-      };
-      return await HttpUtil.post("/admin/book/book/batch-import", params: params);
-    } catch (e) {
-      print('Error in bookBatchImport: $e');
-      rethrow; // 重新抛出异常以便调用者处理
-    }
-  }
 
-  // 导出题目为 CSV
-  static Future<dynamic> bookExport({
-    required String page,
-    required String pageSize,
-    required String search,
-    required String cate,
-    required String major_id,
-  }) async {
-    try {
-      Map<String, dynamic> params = {
-        'page': page,
-        'pageSize': pageSize,
-        'search': search,
-        'cate': cate,
-        'major_id': major_id,
-      };
-      return await HttpUtil.get("/admin/book/book/export", params: params);
-    } catch (e) {
-      print('Error in bookExport: $e');
-      rethrow; // 重新抛出异常以便调用者处理
-    }
-  }
 }

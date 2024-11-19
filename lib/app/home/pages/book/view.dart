@@ -1,3 +1,5 @@
+import 'package:admin_flutter/ex/ex_hint.dart';
+import 'package:admin_flutter/ex/ex_string.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -7,6 +9,7 @@ import 'package:admin_flutter/component/table/ex.dart';
 import 'package:admin_flutter/app/home/sidebar/logic.dart';
 import 'package:admin_flutter/component/widget.dart';
 import 'package:admin_flutter/component/dialog.dart';
+import 'detail.dart';
 import 'logic.dart';
 import 'package:admin_flutter/theme/theme_util.dart';
 import 'package:provider/provider.dart';
@@ -22,7 +25,7 @@ class BookPage extends StatelessWidget {
         children: [
           Container(
             // width: 1600, // 灰色区域宽度
-            height: 400, // 灰色区域高度
+            height: 420, // 灰色区域高度
             color: Color(0xFFF7F7F9), // 灰色背景
             padding: EdgeInsets.all(16.0), // 内边距
             child: Column(
@@ -42,9 +45,9 @@ class BookPage extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    _buildInteractiveCardLeft("模板管理", 400, 300),
+                    _buildInteractiveCardLeft("通过模板创建", 400, 320),
                     SizedBox(width: 40),
-                    _buildInteractiveCardRight("生成题本", 1000, 300),
+                    _buildInteractiveCardRight("生成题本", 1200, 320),
                   ],
                 ),
               ],
@@ -145,13 +148,13 @@ class BookPage extends StatelessWidget {
                     child: SizedBox(
                       width: 1500,
                       child: SfDataGrid(
-                        source: BookDataSource(logic: logic),
+                        source: BookDataSource(logic: logic, context: context),
                         headerGridLinesVisibility:
                             GridLinesVisibility.values[1],
                         gridLinesVisibility: GridLinesVisibility.values[1],
                         columnWidthMode: ColumnWidthMode.fill,
                         headerRowHeight: 50,
-                        rowHeight: 60,
+                        rowHeight: 100,
                         columns: [
                           GridColumn(
                             columnName: 'Select',
@@ -243,7 +246,7 @@ class BookPage extends StatelessWidget {
         return 120;
       case 'major_name':
         return 100;
-      case 'component':
+      case 'component_desc':
         return 150;
       case 'unit_number':
         return 80;
@@ -266,44 +269,52 @@ class BookPage extends StatelessWidget {
       height: height,
       // 方形区域高度
       decoration: BoxDecoration(
-        color: Color(0xFFE6F0FF), // 浅蓝色背景
-        borderRadius: BorderRadius.circular(3.0), // 圆角
-        border: Border.all(color: Color(0xFFE6F0FF), width: 1), // 边框
+        color: Color(0xFFE6F0FF),
+        borderRadius: BorderRadius.circular(3.0),
+        border: Border.all(color: Color(0xFFE6F0FF), width: 1),
       ),
       padding: EdgeInsets.all(16.0),
       // 内边距
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 标题
-          Text(
-            title,
-            style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue[800]),
-          ),
-          SizedBox(height: 16), // 间距
-          Expanded(
-            child: Center(
-              // 使用 Center 小部件使文本居中
-              child: SelectableList(
-                items: List.generate(20, (index) => "Item ${index + 1}"),
-                onDelete: (int index) {
-                  print("Custom delete action for item at index $index");
-                },
-                onSelected: (int index) {
-                  print("Item at index $index is selected");
-                },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(3.0),
+        ),
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 标题
+            Text(
+              title,
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue[800]),
+            ),
+            SizedBox(height: 16), // 间距
+            Expanded(
+              child: Center(
+                // 使用 Center 小部件使文本居中
+                child: SelectableList(
+                  items: List.generate(20, (index) => "Item ${index + 1}"),
+                  onDelete: (int index) {
+                    print("Custom delete action for item at index $index");
+                  },
+                  onSelected: (int index) {
+                    print("Item at index $index is selected");
+                  },
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildInteractiveCardRight(String title, double? width, double? height) {
+  Widget _buildInteractiveCardRight(
+      String title, double? width, double? height) {
     return Container(
       width: width,
       height: height,
@@ -325,7 +336,8 @@ class BookPage extends StatelessWidget {
             // 标题
             Text(
               title,
-              style: TextStyle(fontSize: 16,
+              style: TextStyle(
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.blue[800]),
             ),
@@ -333,8 +345,9 @@ class BookPage extends StatelessWidget {
             // 第一行：题本名称、选择专业
             Row(
               children: [
-                Expanded(
-                  flex: 1,
+                // 题本名称
+                SizedBox(
+                  width: 240, // 设置固定宽度
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -346,19 +359,20 @@ class BookPage extends StatelessWidget {
                       SizedBox(height: 8),
                       TextInputWidget(
                         width: 240,
-                        height: 38,
+                        height: 34,
                         hint: "输入题本名称",
-                        text: "".obs,
+                        text: logic.bookName,
                         onTextChanged: (value) {
-                          print("输入内容：$value");
+                          logic.bookName.value = value; // 保存题本名称
                         },
                       ),
                     ],
                   ),
                 ),
-                SizedBox(width: 16),
-                Expanded(
-                  flex: 1,
+                SizedBox(width: 120), // 减少间距
+                // 选择专业
+                SizedBox(
+                  width: 500, // 设置固定宽度
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -377,9 +391,9 @@ class BookPage extends StatelessWidget {
                         level1Items: logic.level1Items,
                         level2Items: logic.level2Items,
                         level3Items: logic.level3Items,
-                        onChanged: (dynamic level1, dynamic level2,
-                            dynamic level3) {
-                          logic.selectedMajorId.value = level3.toString();
+                        onChanged:
+                            (dynamic level1, dynamic level2, dynamic level3) {
+                          logic.bookSelectedMajorId.value = level3.toString();
                         },
                       ),
                     ],
@@ -389,34 +403,65 @@ class BookPage extends StatelessWidget {
             ),
             SizedBox(height: 16),
             // 第二行：选择题型、选择难度、生成套数
-            Row(
+            Wrap(
+              spacing: 16,
+              runSpacing: 16,
               children: [
-                Expanded(
-                  flex: 1,
+                // 题型数量
+                SizedBox(
+                  width: 550, // 固定宽度
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "选择题型：",
+                        "题型数量：",
                         style: TextStyle(
                             fontWeight: FontWeight.bold, color: Colors.black),
                       ),
-                      SizedBox(height: 8),
-                      NumberDropdownInputWidget(
-                        hint: "选择题型",
-                        selectedValue: "".obs,
-                        width: 60,
-                        height: 38,
-                        onValueChanged: (value) {
-                          print("当前值：$value");
-                        },
+                      Row(
+                        children: logic.questionCate.map((item) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Row(
+                              children: [
+                                Text(
+                                  "${item['name']}：",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black),
+                                ),
+                                NumberInputWidget(
+                                  key: Key(item['id']),
+                                  width: 90,
+                                  height: 34,
+                                  hint: "${item['value']}",
+                                  selectedValue: 0.obs,
+                                  onValueChanged: (value) {
+                                    final key = item['id'];
+                                    logic.questionCate.value =
+                                        logic.questionCate.value.map((e) {
+                                      if (e['id'] == key) {
+                                        return {
+                                          ...e, // 保留所有原始字段
+                                          'value': value, // 更新 value 字段
+                                        };
+                                      }
+                                      return e;
+                                    }).toList();
+                                  },
+                                ),
+                                SizedBox(width: 8),
+                              ],
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ],
                   ),
                 ),
-                SizedBox(width: 16),
-                Expanded(
-                  flex: 1,
+                // 选择难度
+                SizedBox(
+                  width: 200,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -430,9 +475,9 @@ class BookPage extends StatelessWidget {
                         items: logic.questionLevel.toList(),
                         hint: '选择难度',
                         width: 120,
-                        height: 38,
+                        height: 34,
                         onChanged: (dynamic newValue) {
-                          logic.selectedQuestionLevel.value =
+                          logic.bookSelectedQuestionLevel.value =
                               newValue.toString();
                           logic.applyFilters();
                         },
@@ -440,9 +485,9 @@ class BookPage extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(width: 16),
-                Expanded(
-                  flex: 1,
+                // 生成套数
+                SizedBox(
+                  width: 200,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -452,15 +497,17 @@ class BookPage extends StatelessWidget {
                             fontWeight: FontWeight.bold, color: Colors.black),
                       ),
                       SizedBox(height: 8),
-                      NumberDropdownInputWidget(
-                        hint: "生成套数",
-                        selectedValue: "".obs,
-                        width: 60,
-                        height: 38,
+                      NumberInputWidget(
+                        key: Key("book_count"),
+                        width: 90,
+                        height: 34,
+                        hint: "0",
+                        selectedValue: 0.obs,
                         onValueChanged: (value) {
-                          print("当前值：$value");
+                          logic.bookQuestionCount.value =
+                              value.toInt(); // 保存生成套数
                         },
-                      ),
+                      )
                     ],
                   ),
                 ),
@@ -481,7 +528,7 @@ class BookPage extends StatelessWidget {
                 ElevatedButton(
                   onPressed: () {
                     // 生成题本的逻辑
-                    print("生成题本");
+                    logic.saveBook();
                   },
                   child: Text("生成题本"),
                 ),
@@ -504,9 +551,10 @@ class BookPage extends StatelessWidget {
 
 class BookDataSource extends DataGridSource {
   final BookLogic logic;
+  final BuildContext context;
   List<DataGridRow> _rows = [];
 
-  BookDataSource({required this.logic}) {
+  BookDataSource({required this.logic, required this.context}) {
     _buildRows();
   }
 
@@ -518,10 +566,18 @@ class BookDataSource extends DataGridSource {
                   columnName: 'Select',
                   value: logic.selectedRows.contains(item['id']),
                 ),
-                ...logic.columns.map((column) => DataGridCell(
-                      columnName: column.key,
-                      value: item[column.key],
-                    )),
+                ...logic.columns.map((column) {
+                  // 特殊处理 component_desc 列
+                  var value = item[column.key];
+                  if (column.key == 'component_desc' && value is List) {
+                    // 将列表转化为多行字符串
+                    value = value.join("\n");
+                  }
+                  return DataGridCell(
+                    columnName: column.key,
+                    value: value,
+                  );
+                }),
                 DataGridCell(columnName: 'Actions', value: item),
               ],
             ))
@@ -643,7 +699,14 @@ class BookDataSource extends DataGridSource {
               child: Text("删除", style: TextStyle(color: Color(0xFFFD941D))),
             ),
             TextButton(
-              onPressed: () => logic.refresh(),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => QuestionDetailPage(id: item['id']), // 替换为实际的 ID
+                  ),
+                );
+              },
               child: Text("查看题本", style: TextStyle(color: Color(0xFFFD941D))),
             ),
           ],

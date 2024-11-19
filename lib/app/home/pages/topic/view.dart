@@ -62,6 +62,7 @@ class TopicPage extends StatelessWidget {
                 key: logic.cateDropdownKey,
                 items: logic.questionCate.toList(),
                 hint: '选择题型',
+                label: true,
                 width: 120,
                 height: 34,
                 onChanged: (dynamic newValue) {
@@ -73,6 +74,7 @@ class TopicPage extends StatelessWidget {
                 key: logic.levelDropdownKey,
                 items: logic.questionLevel.toList(),
                 hint: '选择难度',
+                label: true,
                 width: 120,
                 height: 34,
                 onChanged: (dynamic newValue) {
