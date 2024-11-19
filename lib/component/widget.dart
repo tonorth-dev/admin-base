@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:admin_flutter/ex/ex_hint.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_material_pickers/helpers/show_number_picker.dart';
@@ -941,11 +942,10 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
   }
 }
 
-
 class SelectableList extends StatefulWidget {
-  final List<String> items;
-  final Function(int) onDelete;
-  final Function(int) onSelected;
+  final RxList<Map<String, dynamic>> items;
+  final Future<void> Function(Map<String, dynamic>) onDelete;
+  final Function(Map<String, dynamic>) onSelected;
 
   SelectableList({
     required this.items,
@@ -963,12 +963,10 @@ class _SelectableListState extends State<SelectableList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: Text("Selectable List"),
-      // ),
       body: ListView.builder(
         itemCount: widget.items.length,
         itemBuilder: (context, index) {
+          final item = widget.items[index];
           return Card(
             margin: EdgeInsets.symmetric(horizontal: 8, vertical: 2), // 减小卡片间距
             elevation: 2,
@@ -984,10 +982,10 @@ class _SelectableListState extends State<SelectableList> {
                 onTap: () {
                   setState(() {
                     selectedIndex = index;
-                    widget.onSelected(index); // 调用 onSelected 回调
+                    widget.onSelected(item); // 调用 onSelected 回调并传递 item
                   });
                 },
-                title: Text(widget.items[index]),
+                title: Text(item['name'] ?? ''),
                 trailing: PopupMenuButton<String>(
                   onSelected: (String value) {
                     if (value == "Edit") {
@@ -997,13 +995,13 @@ class _SelectableListState extends State<SelectableList> {
                     }
                   },
                   itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                    PopupMenuItem<String>(
-                      value: "Edit",
-                      child: Text("Edit"),
-                    ),
+                    // PopupMenuItem<String>(
+                    //   value: "Edit",
+                    //   child: Text("编辑"),
+                    // ),
                     PopupMenuItem<String>(
                       value: "Delete",
-                      child: Text("Delete"),
+                      child: Text("删除"),
                     ),
                   ],
                 ),
@@ -1019,28 +1017,29 @@ class _SelectableListState extends State<SelectableList> {
     showDialog(
       context: context,
       builder: (context) {
-        TextEditingController _controller = TextEditingController(text: widget.items[index]);
+        final item = widget.items[index];
+        TextEditingController _controller = TextEditingController(text: item['name']);
         return AlertDialog(
-          title: Text("Edit Item"),
+          title: Text("编辑项目"),
           content: TextField(
             controller: _controller,
-            decoration: InputDecoration(labelText: "Item Name"),
+            decoration: InputDecoration(labelText: "项目名称"),
           ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text("Cancel"),
+              child: Text("取消"),
             ),
             TextButton(
               onPressed: () {
                 setState(() {
-                  widget.items[index] = _controller.text;
+                  widget.items[index]['name'] = _controller.text;
                 });
                 Navigator.of(context).pop();
               },
-              child: Text("Save"),
+              child: Text("保存"),
             ),
           ],
         );
@@ -1048,18 +1047,24 @@ class _SelectableListState extends State<SelectableList> {
     );
   }
 
-  void _deleteItem(int index) {
-    widget.onDelete(index);
-    setState(() {
-      widget.items.removeAt(index);
-      if (selectedIndex >= widget.items.length) {
-        selectedIndex = -1; // 如果删除的是最后一个项，重置选中状态
-      } else if (selectedIndex == index) {
-        selectedIndex = -1; // 如果删除的是当前选中的项，重置选中状态
-      }
-    });
+  void _deleteItem(int index) async {
+    final item = widget.items[index];
+    try {
+      await widget.onDelete(item); // 调用 onDelete 回调并传递 item
+      setState(() {
+        widget.items.removeAt(index);
+        if (selectedIndex >= widget.items.length) {
+          selectedIndex = -1; // 如果删除的是最后一个项，重置选中状态
+        } else if (selectedIndex == index) {
+          selectedIndex = -1; // 如果删除的是当前选中的项，重置选中状态
+        }
+      });
+    } catch (error) {
+      "删除失败: $error".toHint();
+    }
   }
 }
+
 
 
 
