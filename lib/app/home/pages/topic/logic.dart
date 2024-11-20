@@ -27,9 +27,12 @@ class TopicLogic extends GetxController {
   var loading = false.obs;
   final searchText = ''.obs;
 
-  final GlobalKey<CascadingDropdownFieldState> majorDropdownKey = GlobalKey<CascadingDropdownFieldState>();
-  final GlobalKey<DropdownFieldState> cateDropdownKey = GlobalKey<DropdownFieldState>();
-  final GlobalKey<DropdownFieldState> levelDropdownKey = GlobalKey<DropdownFieldState>();
+  final GlobalKey<CascadingDropdownFieldState> majorDropdownKey =
+      GlobalKey<CascadingDropdownFieldState>();
+  final GlobalKey<DropdownFieldState> cateDropdownKey =
+      GlobalKey<DropdownFieldState>();
+  final GlobalKey<DropdownFieldState> levelDropdownKey =
+      GlobalKey<DropdownFieldState>();
 
   // 当前编辑的题目数据
   var currentEditTopic = RxMap<String, dynamic>({}).obs;
@@ -49,13 +52,21 @@ class TopicLogic extends GetxController {
   Map<String, List<Map<String, dynamic>>> level3Items = {};
   Rx<String> selectedMajorId = "0".obs;
 
+  final topicTitle = ''.obs;
+  final topicSelectedQuestionCate = "".obs;
+  final topicSelectedQuestionLevel = "".obs;
+  final topicSelectedMajorId = "".obs;
+  final topicAnswer = "".obs;
+  final topicAuthor = "".obs;
+  final topicTag = "".obs;
+
   Future<void> fetchConfigs() async {
     try {
       var configData = await ConfigApi.configList();
       if (configData != null && configData.containsKey("list")) {
         final list = configData["list"] as List<dynamic>;
         final questionCateItem = list.firstWhere(
-              (item) => item["name"] == "question_cate",
+          (item) => item["name"] == "question_cate",
           orElse: () => null,
         );
 
@@ -69,7 +80,7 @@ class TopicLogic extends GetxController {
         }
 
         final questionLevelItem = list.firstWhere(
-              (item) => item["name"] == "question_level",
+          (item) => item["name"] == "question_level",
           orElse: () => null,
         );
 
@@ -91,11 +102,10 @@ class TopicLogic extends GetxController {
     }
   }
 
-
-
   Future<void> fetchMajors() async {
     try {
-      var response = await MajorApi.majorList(params: {'pageSize': 3000, 'page': 1});
+      var response =
+          await MajorApi.majorList(params: {'pageSize': 3000, 'page': 1});
       if (response != null && response["total"] > 0) {
         var dataList = response["list"] as List<dynamic>;
 
@@ -137,7 +147,8 @@ class TopicLogic extends GetxController {
               .any((m) => m['name'] == secondLevelName)) {
             subMajorMap[firstLevelId]!
                 .add({'id': secondLevelId, 'name': secondLevelName});
-            level2Items[firstLevelId]?.add({'id': secondLevelId, 'name': secondLevelName});
+            level2Items[firstLevelId]
+                ?.add({'id': secondLevelId, 'name': secondLevelName});
             subSubMajorMap[secondLevelId] = [];
             level3Items[secondLevelId] = [];
           }
@@ -147,7 +158,8 @@ class TopicLogic extends GetxController {
               .any((m) => m['name'] == thirdLevelName)) {
             subSubMajorMap[secondLevelId]!
                 .add({'id': thirdLevelId, 'name': thirdLevelName});
-            level3Items[secondLevelId]?.add({'id': thirdLevelId, 'name': thirdLevelName});
+            level3Items[secondLevelId]
+                ?.add({'id': thirdLevelId, 'name': thirdLevelName});
           }
         }
 
@@ -212,7 +224,7 @@ class TopicLogic extends GetxController {
     fetchConfigs();
     ever(
       questionCate,
-          (value) {
+      (value) {
         if (questionCate.isNotEmpty) {
           // 当 questionCate 被赋值后再执行表单加载逻辑
           super.onInit();
@@ -220,7 +232,6 @@ class TopicLogic extends GetxController {
         }
       },
     );
-
 
     columns = [
       ColumnData(title: "ID", key: "id", width: 80),
@@ -283,6 +294,72 @@ class TopicLogic extends GetxController {
         print('提交的数据: $formData');
       },
     );
+  }
+
+  Future<void> saveTopic() async {
+    // 生成题本的逻辑
+    final topicTitleSubmit = topicTitle.value;
+    final int topicSelectedMajorIdSubmit = topicSelectedMajorId.value as int;
+    final topicSelectedQuestionCateSubmit = topicSelectedQuestionCate.value;
+    final topicSelectedQuestionLevelSubmit = topicSelectedQuestionLevel.value;
+    final topicAnswerSubmit = topicAnswer.value;
+    final topicAuthorSubmit = topicAuthor.value;
+    final topicTagSubmit = topicTag.value;
+
+    bool isValid = true;
+    String errorMessage = "";
+
+    if (topicTitleSubmit.isEmpty) {
+      isValid = false;
+      errorMessage += "问题提干不能为空\n";
+    }
+    if (topicSelectedMajorIdSubmit == 0) {
+      isValid = false;
+      errorMessage += "请选择专业\n";
+    }
+    if (topicSelectedQuestionCateSubmit.isEmpty) {
+      isValid = false;
+      errorMessage += "请选择题型\n";
+    }
+    if (topicSelectedQuestionLevelSubmit.isEmpty) {
+      isValid = false;
+      errorMessage += "请选择难度\n";
+    }
+    if (topicAnswerSubmit == "") {
+      isValid = false;
+      errorMessage += "请填入问题答案\n";
+    }
+
+    if (isValid) {
+      // 提交表单
+      print("生成问题：");
+      print("题干: $topicTitleSubmit");
+      print("选择题型: $topicSelectedQuestionCateSubmit");
+      print("选择难度: $topicSelectedQuestionLevelSubmit");
+      print("选择专业: $topicSelectedMajorIdSubmit");
+      print("问题答案: $topicAnswerSubmit");
+      print("作者: $topicAuthorSubmit");
+      print("标签: $topicTagSubmit");
+      try {
+        Map<String, dynamic> params = {
+          "title": topicTitleSubmit,
+          "cate": topicSelectedQuestionCateSubmit,
+          "level": topicSelectedQuestionLevelSubmit,
+          "answer": topicAnswerSubmit,
+          "author": "杜立东",
+          "major_id": topicSelectedMajorIdSubmit,
+          "tag": topicTagSubmit,
+        };
+
+        dynamic result = await TopicApi.topicCreate(params);
+        "创建试题成功".toHint();
+      } catch (e) {
+        print('Error: $e');
+      }
+    } else {
+      // 显示错误提示
+      errorMessage.toHint();
+    }
   }
 
   void edit(Map<String, dynamic> topic) {

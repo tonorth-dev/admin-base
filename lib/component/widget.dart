@@ -696,6 +696,7 @@ class TextInputWidget extends StatefulWidget {
   final double width; // 动态宽度
   final double height; // 动态高度
   final int maxLines; // 最大行数
+  final FormFieldValidator<String>? validator; // 验证器
 
   const TextInputWidget({
     Key? key,
@@ -705,6 +706,7 @@ class TextInputWidget extends StatefulWidget {
     this.width = 120, // 默认宽度为120
     this.height = 40, // 默认高度为40
     this.maxLines = 1, // 默认单行输入
+    this.validator, // 验证器
   }) : super(key: key);
 
   @override
@@ -736,7 +738,7 @@ class _TextInputWidgetState extends State<TextInputWidget> {
     return SizedBox(
       height: widget.height,
       width: widget.width, // 动态宽度
-      child: TextField(
+      child: TextFormField(
         key: const Key('text_input_box'),
         controller: _controller,
         decoration: InputDecoration(
@@ -765,11 +767,11 @@ class _TextInputWidgetState extends State<TextInputWidget> {
         ),
         onChanged: widget.onTextChanged, // 输入时回调
         maxLines: widget.maxLines, // 设置最大行数
+        validator: widget.validator, // 使用验证器
       ),
     );
   }
 }
-
 
 
 

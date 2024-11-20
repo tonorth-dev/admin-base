@@ -20,24 +20,7 @@ class _TopicAddFormState extends State<TopicAddForm> {
 
   Future<void> _submitForm() async {
     if (_formKey.currentState?.saveAndValidate() ?? false) {
-      final formValue = _formKey.currentState?.value;
-      try {
-        bool result = await TopicApi.topicCreate(formValue!);
-        if (result) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('题目创建成功')),
-          );
-          Navigator.pop(context); // 关闭弹窗
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('题目创建失败')),
-          );
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('创建题目时发生错误: $e')),
-        );
-      }
+      logic.saveTopic();
     }
   }
 
@@ -57,19 +40,25 @@ class _TopicAddFormState extends State<TopicAddForm> {
                 children: [
                   SizedBox(
                     width: 150,
-                    child: const Text('题干：'),
+                    child: Row(
+                      children: const [
+                        Text('题干'),
+                        Text('*', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
                   ),
                   SizedBox(
                     width: 600,
                     child: TextInputWidget(
                       width: 240,
-                      height: 50,
+                      height: 65,
                       maxLines: 8,
                       hint: "输入问题题干",
-                      text: ''.obs,
+                      text: logic.topicTitle,
                       onTextChanged: (value) {
-                        print('title changed: $value');
+                        logic.topicTitle.value = value;
                       },
+                      validator: FormBuilderValidators.required(errorText: '题干不能为空'),
                     ),
                   ),
                 ],
@@ -79,7 +68,12 @@ class _TopicAddFormState extends State<TopicAddForm> {
                 children: [
                   SizedBox(
                     width: 150,
-                    child: const Text('题型：'),
+                    child: Row(
+                      children: const [
+                        Text('题型'),
+                        Text('*', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
                   ),
                   SizedBox(
                     width: 600,
@@ -90,7 +84,7 @@ class _TopicAddFormState extends State<TopicAddForm> {
                       width: 120,
                       height: 34,
                       onChanged: (dynamic newValue) {
-                        logic.selectedQuestionCate.value = newValue.toString();
+                        logic.topicSelectedQuestionCate.value = newValue.toString();
                       },
                     ),
                   ),
@@ -101,7 +95,12 @@ class _TopicAddFormState extends State<TopicAddForm> {
                 children: [
                   SizedBox(
                     width: 150,
-                    child: const Text('难度：'),
+                    child: Row(
+                      children: const [
+                        Text('难度'),
+                        Text('*', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
                   ),
                   SizedBox(
                     width: 600,
@@ -112,7 +111,7 @@ class _TopicAddFormState extends State<TopicAddForm> {
                       width: 120,
                       height: 34,
                       onChanged: (dynamic newValue) {
-                        logic.selectedQuestionLevel.value = newValue.toString();
+                        logic.topicSelectedQuestionLevel.value = newValue.toString();
                         logic.applyFilters();
                       },
                     ),
@@ -124,7 +123,12 @@ class _TopicAddFormState extends State<TopicAddForm> {
                 children: [
                   SizedBox(
                     width: 150,
-                    child: const Text('专业：'),
+                    child: Row(
+                      children: const [
+                        Text('专业'),
+                        Text('*', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
                   ),
                   SizedBox(
                     width: 500,
@@ -138,7 +142,7 @@ class _TopicAddFormState extends State<TopicAddForm> {
                       level2Items: logic.level2Items,
                       level3Items: logic.level3Items,
                       onChanged: (dynamic level1, dynamic level2, dynamic level3) {
-                        logic.selectedMajorId.value = level3.toString();
+                        logic.topicSelectedMajorId.value = level3.toString();
                         // 这里可以处理选择的 id
                       },
                     ),
@@ -150,19 +154,26 @@ class _TopicAddFormState extends State<TopicAddForm> {
                 children: [
                   SizedBox(
                     width: 150,
-                    child: const Text('答案：'),
+                    child: Row(
+                      children: const [
+                        Text('答案'),
+                        Text('*', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
                   ),
                   SizedBox(
                     width: 600,
-                    child:TextInputWidget(
+                    height: 60,
+                    child: TextInputWidget(
                       width: 240,
                       height: 120,
                       maxLines: 30,
                       hint: "输入问题答案",
-                      text: ''.obs,
+                      text: logic.topicAnswer,
                       onTextChanged: (value) {
-                        print('answer changed: $value');
+                        logic.topicAnswer.value = value;
                       },
+                      validator: FormBuilderValidators.required(errorText: '答案不能为空'),
                     ),
                   ),
                 ],
@@ -172,19 +183,28 @@ class _TopicAddFormState extends State<TopicAddForm> {
                 children: [
                   SizedBox(
                     width: 150,
-                    child: const Text('作者：'),
+                    child: Row(
+                      children: const [
+                        Text('作者：'),
+                      ],
+                    ),
                   ),
                   SizedBox(
                     width: 600,
-                    child:
-                    TextInputWidget(
+                    child: TextInputWidget(
                       width: 240,
                       height: 34,
                       hint: "输入作者名称",
-                      text: ''.obs,
+                      text: logic.topicAuthor,
                       onTextChanged: (value) {
-                        print('author changed: $value');
+                        logic.topicAuthor.value = value;
                       },
+                      // validator: FormBuilderValidators.compose([
+                      //   FormBuilderValidators.match(
+                      //     RegExp(r'^[a-zA-Z0-9\u4e00-\u9fa5]+$'),
+                      //     errorText: '作者名字只能由英文和汉字组成',
+                      //   ),
+                      // ]),
                     ),
                   ),
                 ],
@@ -202,9 +222,9 @@ class _TopicAddFormState extends State<TopicAddForm> {
                       width: 240,
                       height: 34,
                       hint: "可以给问题打一个标签",
-                      text: ''.obs,
+                      text: logic.topicTag,
                       onTextChanged: (value) {
-                        print('author changed: $value');
+                        logic.topicTag.value = value;
                       },
                     ),
                   ),
