@@ -236,7 +236,7 @@ class DropdownFieldState extends State<DropdownField> with WidgetsBindingObserve
                     enabledBorder: OutlineInputBorder(
                       borderSide: const BorderSide(
                         color: Colors.grey,
-                        width: 0.5,
+                        width: 1,
                       ),
                       borderRadius: BorderRadius.circular(4),
                     ),
@@ -406,7 +406,7 @@ class CascadingDropdownFieldState extends State<CascadingDropdownField> {
             enabledBorder: OutlineInputBorder(
               borderSide: const BorderSide(
                 color: Colors.grey,
-                width: 0.5,
+                width: 1,
               ),
               borderRadius: BorderRadius.circular(4),
             ),
@@ -666,6 +666,7 @@ class SearchAndButtonWidget extends StatelessWidget {
               color: Color(0xFFD43030),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
+                side: BorderSide(width: 1, color:Colors.grey),
               ),
             ),
             child: TextButton(
@@ -693,7 +694,8 @@ class TextInputWidget extends StatefulWidget {
   final ValueChanged<String> onTextChanged;
   final RxString text;
   final double width; // 动态宽度
-  final double height; // 动态宽度
+  final double height; // 动态高度
+  final int maxLines; // 最大行数
 
   const TextInputWidget({
     Key? key,
@@ -701,7 +703,8 @@ class TextInputWidget extends StatefulWidget {
     required this.onTextChanged,
     required this.text,
     this.width = 120, // 默认宽度为120
-    this.height = 40, // 默认宽度为120
+    this.height = 40, // 默认高度为40
+    this.maxLines = 1, // 默认单行输入
   }) : super(key: key);
 
   @override
@@ -745,17 +748,35 @@ class _TextInputWidgetState extends State<TextInputWidget> {
             fontWeight: FontWeight.w400,
           ),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(2), // 圆角
+            borderRadius: BorderRadius.circular(3), // 圆角
+            borderSide: const BorderSide(color: Colors.grey, width: 1.0),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(3),
+            borderSide: const BorderSide(color: Colors.grey, width: 1.0), // 失焦状态下的边框
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(3),
+            borderSide: const BorderSide(color: Colors.grey, width: 1.0), // 聚焦状态下的边框
           ),
           filled: true,
           fillColor: Colors.white, // 背景填充色
           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         ),
         onChanged: widget.onTextChanged, // 输入时回调
+        maxLines: widget.maxLines, // 设置最大行数
       ),
     );
   }
 }
+
+
+
+
+
+
+
+
 
 class NumberInputWidget extends StatefulWidget {
   final String hint;
@@ -918,8 +939,13 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
             fontFamily: 'PingFang SC',
             fontWeight: FontWeight.w400,
           ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(4), // 圆角
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(3), // 圆角
+            borderSide: BorderSide(color: Colors.grey, width: 1.0), // 失焦状态边框颜色
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(3), // 圆角
+            borderSide: BorderSide(color: Colors.grey, width: 1.0), // 聚焦状态边框颜色
           ),
           contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           suffixIcon: IconButton(
@@ -941,6 +967,7 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
     );
   }
 }
+
 
 class SelectableList extends StatefulWidget {
   final RxList<Map<String, dynamic>> items;

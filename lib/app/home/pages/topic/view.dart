@@ -294,7 +294,7 @@ class TopicDataSource extends DataGridSource {
           padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: Checkbox(
             value: isSelected,
-            onChanged: (value) => logic.toggleSelect(rowIndex),
+            onChanged: (value) => logic.toggleSelect(item['id']),
             fillColor: WidgetStateProperty.resolveWith<Color>((states) {
               return states.contains(WidgetState.selected)
                   ? Color(0xFFD43030)

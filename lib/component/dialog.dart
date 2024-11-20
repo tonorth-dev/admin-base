@@ -124,7 +124,7 @@ class DynamicInputDialog {
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF25B7E8),
+              color: Color(0xFFFFBA00),
             ),
             textAlign: TextAlign.center,
           ),

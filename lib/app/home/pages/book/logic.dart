@@ -24,6 +24,7 @@ class BookLogic extends GetxController {
   var page = 1.obs;
   var loading = false.obs;
   final searchText = ''.obs;
+  var templateSaved = false.obs;
 
   final GlobalKey<CascadingDropdownFieldState> majorDropdownKey =
       GlobalKey<CascadingDropdownFieldState>();
@@ -575,6 +576,7 @@ class BookLogic extends GetxController {
         };
 
         dynamic result = await TemplateApi.templateCreate(params);
+        templateSaved.value = true;
         "保存模板成功".toHint();
       } catch (e) {
         print('Error: $e');

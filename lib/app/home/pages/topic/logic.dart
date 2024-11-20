@@ -10,13 +10,13 @@ import 'package:csv/csv.dart';
 import 'package:admin_flutter/component/form/enum.dart';
 import 'package:admin_flutter/component/form/form_data.dart';
 import 'package:admin_flutter/component/dialog.dart';
-import 'package:admin_flutter/sources/form/topic_add_form.dart';
 import '../../../../api/config_api.dart';
 import '../../../../api/major_api.dart';
 import '../../../../component/pagination/logic.dart';
 import '../../../../component/table/table_data.dart';
 import '../../../../component/widget.dart';
 import '../../config/logic.dart';
+import 'topic_add_form.dart';
 import 'edit_topic_dialog.dart';
 
 class TopicLogic extends GetxController {
@@ -443,17 +443,21 @@ class TopicLogic extends GetxController {
 
   void toggleSelectAll() {
     if (selectedRows.length == list.length) {
+      // 当前所有行都被选中，清空选中状态
       selectedRows.clear();
     } else {
-      selectedRows.addAll(list.map((item) => item['id']));
+      // 当前不是所有行都被选中，选择所有行
+      selectedRows.assignAll(list.map((item) => item['id']));
     }
   }
 
-  void toggleSelect(int index) {
-    if (selectedRows.contains(index)) {
-      selectedRows.remove(index);
+  void toggleSelect(int id) {
+    if (selectedRows.contains(id)) {
+      // 当前行已被选中，取消选中
+      selectedRows.remove(id);
     } else {
-      selectedRows.add(index);
+      // 当前行未被选中，选中
+      selectedRows.add(id);
     }
   }
 

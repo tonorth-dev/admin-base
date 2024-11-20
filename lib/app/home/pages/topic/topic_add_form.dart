@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:admin_flutter/api/topic_api.dart'; // 导入 topic_api.dart
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import '../../../../component/widget.dart';
+import 'logic.dart';
 
 class TopicAddForm extends StatefulWidget {
   const TopicAddForm({super.key});
@@ -11,6 +15,7 @@ class TopicAddForm extends StatefulWidget {
 }
 
 class _TopicAddFormState extends State<TopicAddForm> {
+  final logic = Get.put(TopicLogic());
   final _formKey = GlobalKey<FormBuilderState>();
 
   Future<void> _submitForm() async {
@@ -56,15 +61,15 @@ class _TopicAddFormState extends State<TopicAddForm> {
                   ),
                   SizedBox(
                     width: 600,
-                    child: FormBuilderTextField(
-                      name: 'title',
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
-                      maxLines: 3,
-                      validator: FormBuilderValidators.compose([
-                        FormBuilderValidators.required(errorText: '题干不能为空'),
-                      ]),
+                    child: TextInputWidget(
+                      width: 240,
+                      height: 50,
+                      maxLines: 8,
+                      hint: "输入问题题干",
+                      text: ''.obs,
+                      onTextChanged: (value) {
+                        print('title changed: $value');
+                      },
                     ),
                   ),
                 ],
@@ -78,20 +83,64 @@ class _TopicAddFormState extends State<TopicAddForm> {
                   ),
                   SizedBox(
                     width: 600,
-                    child: FormBuilderDropdown<int>(
-                      name: 'cate',
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: FormBuilderValidators.compose([
-                        FormBuilderValidators.required(errorText: '请选择题型'),
-                      ]),
-                      items: const [
-                        DropdownMenuItem(value: 1, child: Text('专业知识')),
-                        DropdownMenuItem(value: 2, child: Text('适岗能力')),
-                        DropdownMenuItem(value: 3, child: Text('求职动机')),
-                        // Add more categories as needed
-                      ],
+                    child: DropdownField(
+                      items: logic.questionCate.toList(),
+                      hint: '',
+                      label: true,
+                      width: 120,
+                      height: 34,
+                      onChanged: (dynamic newValue) {
+                        logic.selectedQuestionCate.value = newValue.toString();
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 150,
+                    child: const Text('难度：'),
+                  ),
+                  SizedBox(
+                    width: 600,
+                    child: DropdownField(
+                      items: logic.questionLevel.toList(),
+                      hint: '',
+                      label: true,
+                      width: 120,
+                      height: 34,
+                      onChanged: (dynamic newValue) {
+                        logic.selectedQuestionLevel.value = newValue.toString();
+                        logic.applyFilters();
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 150,
+                    child: const Text('专业：'),
+                  ),
+                  SizedBox(
+                    width: 500,
+                    child: CascadingDropdownField(
+                      width: 160,
+                      height: 34,
+                      hint1: '专业类目一',
+                      hint2: '专业类目二',
+                      hint3: '专业名称',
+                      level1Items: logic.level1Items,
+                      level2Items: logic.level2Items,
+                      level3Items: logic.level3Items,
+                      onChanged: (dynamic level1, dynamic level2, dynamic level3) {
+                        logic.selectedMajorId.value = level3.toString();
+                        // 这里可以处理选择的 id
+                      },
                     ),
                   ),
                 ],
@@ -105,15 +154,15 @@ class _TopicAddFormState extends State<TopicAddForm> {
                   ),
                   SizedBox(
                     width: 600,
-                    child: FormBuilderTextField(
-                      name: 'answer',
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
-                      maxLines: 6,
-                      validator: FormBuilderValidators.compose([
-                        FormBuilderValidators.required(errorText: '答案不能为空'),
-                      ]),
+                    child:TextInputWidget(
+                      width: 240,
+                      height: 120,
+                      maxLines: 30,
+                      hint: "输入问题答案",
+                      text: ''.obs,
+                      onTextChanged: (value) {
+                        print('answer changed: $value');
+                      },
                     ),
                   ),
                 ],
@@ -127,41 +176,15 @@ class _TopicAddFormState extends State<TopicAddForm> {
                   ),
                   SizedBox(
                     width: 600,
-                    child: FormBuilderTextField(
-                      name: 'author',
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: FormBuilderValidators.compose([
-                        FormBuilderValidators.required(errorText: '作者不能为空'),
-                            (value) {
-                          if (value != null && value.length > 10) {
-                            return '作者名称不能超过10个字符';
-                          }
-                          return null;
-                        },
-                      ]),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  SizedBox(
-                    width: 150,
-                    child: const Text('专业名称：'),
-                  ),
-                  SizedBox(
-                    width: 600,
-                    child: FormBuilderTextField(
-                      name: 'major_name',
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: FormBuilderValidators.compose([
-                        FormBuilderValidators.required(errorText: '专业名称不能为空'),
-                      ]),
+                    child:
+                    TextInputWidget(
+                      width: 240,
+                      height: 34,
+                      hint: "输入作者名称",
+                      text: ''.obs,
+                      onTextChanged: (value) {
+                        print('author changed: $value');
+                      },
                     ),
                   ),
                 ],
@@ -175,11 +198,14 @@ class _TopicAddFormState extends State<TopicAddForm> {
                   ),
                   SizedBox(
                     width: 600,
-                    child: FormBuilderTextField(
-                      name: 'tag',
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
+                    child: TextInputWidget(
+                      width: 240,
+                      height: 34,
+                      hint: "可以给问题打一个标签",
+                      text: ''.obs,
+                      onTextChanged: (value) {
+                        print('author changed: $value');
+                      },
                     ),
                   ),
                 ],
