@@ -38,7 +38,7 @@ class TopicPage extends StatelessWidget {
               ),
               SizedBox(width: 8), // 添加一些间距
               CustomButton(
-                onPressed: logic.exportCurrentPageToCSV,
+                onPressed: logic.exportSelectedItemsToCSV,
                 text: '导出选中',
                 width: 90, // 自定义宽度
                 height: 32, // 自定义高度

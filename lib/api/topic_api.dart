@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:admin_flutter/common/http_util.dart';
 import 'package:dio/dio.dart';
+import 'package:path/path.dart';
 
 class TopicApi {
 
@@ -103,14 +104,52 @@ class TopicApi {
   }
 
   // 导入题目
+  // static Future<dynamic> topicBatchImport(File file) async {
+  //   try {
+  //     MultipartFile multipartFile = await MultipartFile.fromFile(
+  //       file.path,
+  //       filename: basename(file.path),
+  //     );
+  //
+  //     Map<String, dynamic> params = {
+  //       'file': multipartFile,
+  //     };
+  //
+  //     return await HttpUtil.post("/admin/topic/topic/batch-import", params: params);
+  //   } catch (e) {
+  //     print('调用导入接口错误: $e');
+  //     rethrow; // 重新抛出异常以便调用者处理
+  //   }
+  // }
+
   static Future<dynamic> topicBatchImport(File file) async {
     try {
-      Map<String, dynamic> params = {
-        'file': file,
-      };
-      return await HttpUtil.post("/admin/topic/topic/batch-import", params: params);
+      // 构造 MultipartFile 对象
+      MultipartFile multipartFile = await MultipartFile.fromFile(
+        file.path,
+        filename: basename(file.path), // 使用文件名
+      );
+
+      // 构造 FormData
+      FormData formData = FormData.fromMap({
+        'file': multipartFile, // 'file' 对应后端接收的字段名
+      });
+
+      // 调用上传接口
+      Response response = await Dio().post(
+        "http://127.0.0.1:8888/admin/topic/topic/batch-import",
+        data: formData,
+        options: Options(
+          headers: {
+            'User-Agent': 'Apifox/1.0.0 (https://apifox.com)',
+          },
+          contentType: 'multipart/form-data',
+        ),
+      );
+
+      return response.data; // 返回接口响应
     } catch (e) {
-      print('Error in topicBatchImport: $e');
+      print('调用导入接口错误: $e');
       rethrow; // 重新抛出异常以便调用者处理
     }
   }

@@ -2,6 +2,7 @@ import 'package:admin_flutter/app/home/pages/book/book.dart';
 import 'package:admin_flutter/ex/ex_list.dart';
 import 'package:admin_flutter/ex/ex_string.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:admin_flutter/api/topic_api.dart';
 import 'package:admin_flutter/ex/ex_hint.dart';
@@ -12,6 +13,7 @@ import 'package:csv/csv.dart';
 import 'package:admin_flutter/component/form/enum.dart';
 import 'package:admin_flutter/component/form/form_data.dart';
 import 'package:admin_flutter/component/dialog.dart';
+import 'package:intl/intl.dart';
 import '../../../../api/config_api.dart';
 import '../../../../api/major_api.dart';
 import '../../../../component/pagination/logic.dart';
@@ -301,7 +303,8 @@ class TopicLogic extends GetxController {
   Future<bool> saveTopic() async {
     // 生成题本的逻辑
     final topicTitleSubmit = topicTitle.value;
-    final int? topicSelectedMajorIdSubmit = int.tryParse(topicSelectedMajorId.value);
+    final int? topicSelectedMajorIdSubmit =
+        int.tryParse(topicSelectedMajorId.value);
     final topicSelectedQuestionCateSubmit = topicSelectedQuestionCate.value;
     final topicSelectedQuestionLevelSubmit = topicSelectedQuestionLevel.value;
     final topicAnswerSubmit = topicAnswer.value;
@@ -439,7 +442,8 @@ class TopicLogic extends GetxController {
     find(size.value, page.value);
   }
 
-  Future<void> exportCurrentPageToCSV() async {
+  // 导出选中项到 CSV 文件
+  Future<void> exportSelectedItemsToCSV() async {
     try {
       final directory = await FilePicker.platform.getDirectoryPath();
       if (directory == null) return;
@@ -448,14 +452,19 @@ class TopicLogic extends GetxController {
       rows.add(columns.map((column) => column.title).toList());
 
       for (var item in list) {
-        rows.add(columns.map((column) => item[column.key]).toList());
+        if (selectedRows.contains(item['id'])) {
+          rows.add(columns.map((column) => item[column.key]).toList());
+        }
       }
 
+      final now = DateTime.now();
+      final formattedDate = DateFormat('yyyyMMdd_HHmmss').format(now);
       String csv = const ListToCsvConverter().convert(rows);
-      File('$directory/topics_current_page.csv').writeAsStringSync(csv);
-      "导出当前页成功!".toHint();
+      File('$directory/topics_selected_$formattedDate.csv')
+          .writeAsStringSync(csv);
+      "导出选中项成功!".toHint();
     } catch (e) {
-      "导出当前页失败: $e".toHint();
+      "导出选中项失败: $e".toHint();
     }
   }
 
@@ -501,35 +510,54 @@ class TopicLogic extends GetxController {
           .pickFiles(type: FileType.custom, allowedExtensions: ['csv']);
       if (result != null) {
         PlatformFile file = result.files.first;
-        String content = utf8.decode(file.bytes!);
+        String content;
 
-        List<List<dynamic>> rows = const CsvToListConverter().convert(content);
-        rows.removeAt(0); // 移除表头
+        // 使用文件路径读取内容
+        if (file.path != null) {
+          content = await File(file.path!).readAsString(encoding: utf8);
 
-        for (var row in rows) {
-          Map<String, dynamic> data = {};
-          for (int i = 0; i < columns.length; i++) {
-            data[columns[i].key] = row[i];
+          // 检查文件内容是否为空
+          if (content.isEmpty) {
+            "文件内容为空".toHint();
+            return;
           }
-          await TopicApi.topicBatchImport(File.fromRawPath(file.bytes!))
+
+          // 检查 BOM 并移除
+          if (content.startsWith('\uFEFF')) {
+            content = content.substring(1);
+          }
+
+          // 解析 CSV 内容
+          List<List<dynamic>> rows = const CsvToListConverter().convert(content);
+          rows.removeAt(0); // 移除表头
+
+          // 调用 API 执行批量导入
+          await TopicApi.topicBatchImport(File(file.path!))
               .then((value) {
             "导入成功!".toHint();
             refresh();
           }).catchError((error) {
             "导入失败: $error".toHint();
           });
+        } else {
+          "文件路径为空，无法读取文件".toHint();
         }
+      } else {
+        "没有选择文件".toHint();
       }
     } catch (e) {
       "导入失败: $e".toHint();
     }
   }
 
+
+
   void batchDelete(List<int> ids) {
     try {
       List<String> idsStr = ids.map((id) => id.toString()).toList();
       TopicApi.topicDelete(idsStr.join(",")).then((value) {
         "批量删除成功!".toHint();
+        selectedRows.clear();
         refresh();
       }).catchError((error) {
         "批量删除失败: $error".toHint();
