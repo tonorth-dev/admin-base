@@ -1,4 +1,6 @@
+import 'package:admin_flutter/app/home/pages/book/book.dart';
 import 'package:admin_flutter/ex/ex_list.dart';
+import 'package:admin_flutter/ex/ex_string.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:admin_flutter/api/topic_api.dart';
@@ -296,15 +298,24 @@ class TopicLogic extends GetxController {
     );
   }
 
-  Future<void> saveTopic() async {
+  Future<bool> saveTopic() async {
     // 生成题本的逻辑
     final topicTitleSubmit = topicTitle.value;
-    final int topicSelectedMajorIdSubmit = topicSelectedMajorId.value as int;
+    final int? topicSelectedMajorIdSubmit = int.tryParse(topicSelectedMajorId.value);
     final topicSelectedQuestionCateSubmit = topicSelectedQuestionCate.value;
     final topicSelectedQuestionLevelSubmit = topicSelectedQuestionLevel.value;
     final topicAnswerSubmit = topicAnswer.value;
     final topicAuthorSubmit = topicAuthor.value;
     final topicTagSubmit = topicTag.value;
+
+    print("生成问题：");
+    print("题干: $topicTitleSubmit");
+    print("选择题型: $topicSelectedQuestionCateSubmit");
+    print("选择难度: $topicSelectedQuestionLevelSubmit");
+    print("选择专业: $topicSelectedMajorIdSubmit");
+    print("问题答案: $topicAnswerSubmit");
+    print("作者: $topicAuthorSubmit");
+    print("标签: $topicTagSubmit");
 
     bool isValid = true;
     String errorMessage = "";
@@ -313,7 +324,7 @@ class TopicLogic extends GetxController {
       isValid = false;
       errorMessage += "问题提干不能为空\n";
     }
-    if (topicSelectedMajorIdSubmit == 0) {
+    if (topicSelectedMajorIdSubmit == null || topicSelectedMajorIdSubmit <= 0) {
       isValid = false;
       errorMessage += "请选择专业\n";
     }
@@ -325,7 +336,7 @@ class TopicLogic extends GetxController {
       isValid = false;
       errorMessage += "请选择难度\n";
     }
-    if (topicAnswerSubmit == "") {
+    if (topicAnswerSubmit.isEmpty) {
       isValid = false;
       errorMessage += "请填入问题答案\n";
     }
@@ -352,13 +363,23 @@ class TopicLogic extends GetxController {
         };
 
         dynamic result = await TopicApi.topicCreate(params);
-        "创建试题成功".toHint();
+        print(result['id']);
+        if (result['id'] > 0) {
+          "创建试题成功".toHint();
+          return true;
+        } else {
+          "创建试题失败".toHint();
+          return false;
+        }
       } catch (e) {
         print('Error: $e');
+        "创建试题时发生错误".toHint();
+        return false;
       }
     } else {
       // 显示错误提示
       errorMessage.toHint();
+      return false;
     }
   }
 

@@ -42,14 +42,14 @@ class TopicApi {
   static Future<dynamic> topicCreate(Map<String, dynamic> params) async {
     try {
       // 必传字段校验
-      List<String> requiredFields = ['title', 'author', 'content', 'answer', 'cate', 'major_id'];
+      List<String> requiredFields = ['title', 'author', 'answer', 'cate', 'level', 'major_id'];
       for (var field in requiredFields) {
         if (!params.containsKey(field) || params[field] == null) {
           throw ArgumentError('Missing required field: $field');
         }
       }
 
-      return await HttpUtil.post("/admin/topic/topic/create", params: params);
+      return await HttpUtil.post("/admin/topic/topic", params: params);
     } catch (e) {
       print('Error in topicCreate: $e');
       rethrow; // 重新抛出异常以便调用者处理

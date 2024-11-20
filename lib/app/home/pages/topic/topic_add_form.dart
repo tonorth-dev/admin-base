@@ -20,7 +20,11 @@ class _TopicAddFormState extends State<TopicAddForm> {
 
   Future<void> _submitForm() async {
     if (_formKey.currentState?.saveAndValidate() ?? false) {
-      logic.saveTopic();
+      final result = await logic.saveTopic();
+      if(result) {
+        Navigator.pop(context);
+      }
+
     }
   }
 
