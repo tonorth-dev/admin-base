@@ -773,13 +773,6 @@ class _TextInputWidgetState extends State<TextInputWidget> {
   }
 }
 
-
-
-
-
-
-
-
 class NumberInputWidget extends StatefulWidget {
   final String hint;
   final RxInt selectedValue;
@@ -972,73 +965,77 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
 
 
 class SelectableList extends StatefulWidget {
+  final Key key;
   final RxList<Map<String, dynamic>> items;
   final Future<void> Function(Map<String, dynamic>) onDelete;
   final Function(Map<String, dynamic>) onSelected;
 
   SelectableList({
+    required this.key,
     required this.items,
     required this.onDelete,
     required this.onSelected,
-  });
+  }) : super(key: key);
 
   @override
-  _SelectableListState createState() => _SelectableListState();
+  SelectableListState createState() => SelectableListState();
 }
 
-class _SelectableListState extends State<SelectableList> {
+class SelectableListState extends State<SelectableList> {
   int selectedIndex = -1; // 初始化为 -1 表示没有选中项
+
+  void refresh() {
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView.builder(
-        itemCount: widget.items.length,
-        itemBuilder: (context, index) {
-          final item = widget.items[index];
-          return Card(
-            margin: EdgeInsets.symmetric(horizontal: 8, vertical: 2), // 减小卡片间距
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(2.0), // 增大圆角
-            ),
-            color: selectedIndex == index ? Colors.blueGrey[200] : Colors.white,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4), // 减小内容内边距
-              child: ListTile(
-                enableFeedback: false, // 禁用点击动效
-                dense: true, // 使 ListTile 更紧凑
-                onTap: () {
-                  setState(() {
-                    selectedIndex = index;
-                    widget.onSelected(item); // 调用 onSelected 回调并传递 item
-                  });
-                },
-                title: Text(item['name'] ?? ''),
-                trailing: PopupMenuButton<String>(
-                  onSelected: (String value) {
-                    if (value == "Edit") {
-                      _editItem(index);
-                    } else if (value == "Delete") {
-                      _deleteItem(index);
-                    }
+      body: Obx(() {
+        return ListView.builder(
+          itemCount: widget.items.length,
+          itemBuilder: (context, index) {
+            final item = widget.items[index];
+            return Card(
+              margin: EdgeInsets.symmetric(horizontal: 8, vertical: 2), // 减小卡片间距
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(2.0), // 增大圆角
+              ),
+              color: selectedIndex == index ? Colors.blueGrey[200] : Colors.white,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4), // 减小内容内边距
+                child: ListTile(
+                  enableFeedback: false, // 禁用点击动效
+                  dense: true, // 使 ListTile 更紧凑
+                  onTap: () {
+                    setState(() {
+                      selectedIndex = index;
+                      widget.onSelected(item); // 调用 onSelected 回调并传递 item
+                    });
                   },
-                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                    // PopupMenuItem<String>(
-                    //   value: "Edit",
-                    //   child: Text("编辑"),
-                    // ),
-                    PopupMenuItem<String>(
-                      value: "Delete",
-                      child: Text("删除"),
-                    ),
-                  ],
+                  title: Text(item['name'] ?? ''),
+                  trailing: PopupMenuButton<String>(
+                    onSelected: (String value) {
+                      if (value == "Edit") {
+                        _editItem(index);
+                      } else if (value == "Delete") {
+                        _deleteItem(index);
+                      }
+                    },
+                    itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                      PopupMenuItem<String>(
+                        value: "Delete",
+                        child: Text("删除"),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        },
-      ),
+            );
+          },
+        );
+      }),
     );
   }
 
@@ -1088,11 +1085,66 @@ class _SelectableListState extends State<SelectableList> {
           selectedIndex = -1; // 如果删除的是当前选中的项，重置选中状态
         }
       });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("删除成功")));
     } catch (error) {
-      "删除失败: $error".toHint();
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("删除失败: $error")));
     }
   }
 }
+
+class SingleSelectForm extends StatefulWidget {
+  final List<Map<String, dynamic>> items;
+  final Function(Map<String, dynamic>) onSelected;
+
+  const SingleSelectForm({
+    Key? key,
+    required this.items,
+    required this.onSelected,
+  }) : super(key: key);
+
+  @override
+  _SingleSelectFormState createState() => _SingleSelectFormState();
+}
+
+class _SingleSelectFormState extends State<SingleSelectForm> {
+  int selectedIndex = -1;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: widget.items.asMap().entries.map((entry) {
+        final index = entry.key;
+        final item = entry.value;
+
+        return Expanded( // 确保每个单选按钮在一行中占据合适的空间
+          child: RadioListTile<int>(
+            value: index,
+            groupValue: selectedIndex,
+            onChanged: (int? value) {
+              if (value != null) {
+                setState(() {
+                  selectedIndex = value;
+                  widget.onSelected(item);
+                  print("选中值: ${item['name']}"); // 调试日志
+                });
+              }
+            },
+            title: Text(
+              item['name'] ?? '',
+              style: TextStyle(fontSize: 14),
+            ),
+            dense: true, // 紧凑布局
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+
+
+
 
 
 

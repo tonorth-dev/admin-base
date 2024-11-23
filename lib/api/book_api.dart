@@ -7,8 +7,8 @@ import 'package:dio/dio.dart';
 class BookApi {
 
   static Dio dio = Dio(BaseOptions(
-    connectTimeout: const Duration(seconds: 3),
-    receiveTimeout: const Duration(seconds: 3),
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 10),
   ));
 
   // 获取题目列表

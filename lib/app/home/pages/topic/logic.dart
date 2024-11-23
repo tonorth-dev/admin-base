@@ -63,6 +63,7 @@ class TopicLogic extends GetxController {
   final topicAnswer = "".obs;
   final topicAuthor = "".obs;
   final topicTag = "".obs;
+  final topicStatus = 0.obs;
 
   Future<void> fetchConfigs() async {
     try {
@@ -247,6 +248,7 @@ class TopicLogic extends GetxController {
       ColumnData(title: "专业名称", key: "major_name"),
       ColumnData(title: "标签", key: "tag"),
       ColumnData(title: "录入人", key: "author"),
+      ColumnData(title: "状态", key: "status_name"),
       ColumnData(title: "创建时间", key: "create_time"),
       ColumnData(title: "更新时间", key: "update_time"),
     ];
@@ -310,6 +312,7 @@ class TopicLogic extends GetxController {
     final topicAnswerSubmit = topicAnswer.value;
     final topicAuthorSubmit = topicAuthor.value;
     final topicTagSubmit = topicTag.value;
+    final topicStatusSubmit = topicStatus.value;
 
     print("生成问题：");
     print("题干: $topicTitleSubmit");
@@ -319,6 +322,7 @@ class TopicLogic extends GetxController {
     print("问题答案: $topicAnswerSubmit");
     print("作者: $topicAuthorSubmit");
     print("标签: $topicTagSubmit");
+    print("状态: $topicStatusSubmit");
 
     bool isValid = true;
     String errorMessage = "";
@@ -343,6 +347,10 @@ class TopicLogic extends GetxController {
       isValid = false;
       errorMessage += "请填入问题答案\n";
     }
+    if (topicStatusSubmit == 0) {
+      isValid = false;
+      errorMessage += "请选择问题状态\n";
+    }
 
     if (isValid) {
       // 提交表单
@@ -363,6 +371,7 @@ class TopicLogic extends GetxController {
           "author": "杜立东",
           "major_id": topicSelectedMajorIdSubmit,
           "tag": topicTagSubmit,
+          "status": topicStatusSubmit,
         };
 
         dynamic result = await TopicApi.topicCreate(params);

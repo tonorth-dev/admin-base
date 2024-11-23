@@ -137,6 +137,7 @@ class MajorPage extends StatelessWidget {
         ),
         Obx(() {
           return PaginationPage(
+            uniqueId: 'major_pagination',
             total: logic.total.value,
             changed: (size, page) => logic.find(size, page, ''),
           );

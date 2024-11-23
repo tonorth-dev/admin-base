@@ -32,6 +32,8 @@ class BookLogic extends GetxController {
       GlobalKey<DropdownFieldState>();
   final GlobalKey<DropdownFieldState> levelDropdownKey =
       GlobalKey<DropdownFieldState>();
+  final GlobalKey<SelectableListState> selectableListKey =
+      GlobalKey<SelectableListState>();
 
   // 当前编辑的题目数据
   var currentEditBook = RxMap<String, dynamic>({}).obs;

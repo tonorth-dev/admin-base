@@ -49,6 +49,7 @@ class AdminPage extends StatelessWidget {
         ),
         Obx(() {
           return PaginationPage(
+            uniqueId: 'admin_pagination',
             total: logic.total.value,
             changed: (size, page) {
               logic.find(size, page);

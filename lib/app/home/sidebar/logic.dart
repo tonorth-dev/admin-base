@@ -63,7 +63,7 @@ class SidebarLogic extends GetxController {
       children: demoList,
     ),
     SidebarTree(
-      name: "原始题库",
+      name: "总部题库",
       icon: Icons.expand,
       children: topicList,
     ),

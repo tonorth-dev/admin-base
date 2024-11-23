@@ -145,6 +145,7 @@ class StudentQuestionTableView extends StatelessWidget {
         ),
         Obx(() {
           return PaginationPage(
+            uniqueId: 'question2_pagination',
             total: logic.total.value,
             changed: (size, page) => logic.find(size, page),
           );
@@ -371,6 +372,7 @@ class StudentTableView extends StatelessWidget {
         ),
         Obx(() {
           return PaginationPage(
+            uniqueId: 'plan_pagination',
             total: logic.total.value,
             changed: (size, page) => logic.find(size, page),
           );

@@ -208,6 +208,7 @@ class TopicPage extends StatelessWidget {
             child: Column(
               children: [
                 PaginationPage(
+                  uniqueId: 'topic_pagination',
                   total: logic.total.value,
                   changed: (int newSize, int newPage) {
                     logic.find(newSize, newPage);

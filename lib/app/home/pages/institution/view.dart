@@ -137,6 +137,7 @@ class InstitutionPage extends StatelessWidget {
         ),
         Obx(() {
           return PaginationPage(
+            uniqueId: 'institution_pagination',
             total: logic.total.value,
             changed: (size, page) => logic.find(size, page),
           );

@@ -137,6 +137,7 @@ class JobPage extends StatelessWidget {
         ),
         Obx(() {
           return PaginationPage(
+            uniqueId: 'job_pagination',
             total: logic.total.value,
             changed: (size, page) => logic.find(size, page),
           );

@@ -67,6 +67,7 @@ class UserPage extends StatelessWidget {
         ),
         Obx(() {
           return PaginationPage(
+            uniqueId: 'user_pagination',
             total: logic.total.value,
             changed: (size, page) {
               logic.size = size;

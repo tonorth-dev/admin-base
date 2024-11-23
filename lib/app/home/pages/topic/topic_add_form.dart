@@ -21,10 +21,9 @@ class _TopicAddFormState extends State<TopicAddForm> {
   Future<void> _submitForm() async {
     if (_formKey.currentState?.saveAndValidate() ?? false) {
       final result = await logic.saveTopic();
-      if(result) {
+      if (result) {
         Navigator.pop(context);
       }
-
     }
   }
 
@@ -62,7 +61,8 @@ class _TopicAddFormState extends State<TopicAddForm> {
                       onTextChanged: (value) {
                         logic.topicTitle.value = value;
                       },
-                      validator: FormBuilderValidators.required(errorText: '题干不能为空'),
+                      validator:
+                          FormBuilderValidators.required(errorText: '题干不能为空'),
                     ),
                   ),
                 ],
@@ -88,7 +88,8 @@ class _TopicAddFormState extends State<TopicAddForm> {
                       width: 120,
                       height: 34,
                       onChanged: (dynamic newValue) {
-                        logic.topicSelectedQuestionCate.value = newValue.toString();
+                        logic.topicSelectedQuestionCate.value =
+                            newValue.toString();
                       },
                     ),
                   ),
@@ -115,7 +116,8 @@ class _TopicAddFormState extends State<TopicAddForm> {
                       width: 120,
                       height: 34,
                       onChanged: (dynamic newValue) {
-                        logic.topicSelectedQuestionLevel.value = newValue.toString();
+                        logic.topicSelectedQuestionLevel.value =
+                            newValue.toString();
                         logic.applyFilters();
                       },
                     ),
@@ -145,7 +147,8 @@ class _TopicAddFormState extends State<TopicAddForm> {
                       level1Items: logic.level1Items,
                       level2Items: logic.level2Items,
                       level3Items: logic.level3Items,
-                      onChanged: (dynamic level1, dynamic level2, dynamic level3) {
+                      onChanged:
+                          (dynamic level1, dynamic level2, dynamic level3) {
                         logic.topicSelectedMajorId.value = level3.toString();
                         // 这里可以处理选择的 id
                       },
@@ -167,17 +170,18 @@ class _TopicAddFormState extends State<TopicAddForm> {
                   ),
                   SizedBox(
                     width: 600,
-                    height: 60,
+                    height: 300,
                     child: TextInputWidget(
                       width: 240,
-                      height: 120,
-                      maxLines: 30,
+                      height: 300,
+                      maxLines: 40,
                       hint: "输入问题答案",
                       text: logic.topicAnswer,
                       onTextChanged: (value) {
                         logic.topicAnswer.value = value;
                       },
-                      validator: FormBuilderValidators.required(errorText: '答案不能为空'),
+                      validator:
+                          FormBuilderValidators.required(errorText: '答案不能为空'),
                     ),
                   ),
                 ],
@@ -229,6 +233,33 @@ class _TopicAddFormState extends State<TopicAddForm> {
                       text: logic.topicTag,
                       onTextChanged: (value) {
                         logic.topicTag.value = value;
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 150,
+                    child: Row(
+                      children: const [
+                        Text('试题状态'),
+                        Text('*', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    width: 240,
+                    child: SingleSelectForm(
+                      // key: Key("status_select"),
+                      items: RxList<Map<String, dynamic>>([
+                        {'id': 1, 'name': '草稿', 'selected': false},
+                        {'id': 2, 'name': '完成', 'selected': false},
+                      ]),
+                      onSelected: (item) => {
+                        logic.topicStatus.value = item['id']
                       },
                     ),
                   ),

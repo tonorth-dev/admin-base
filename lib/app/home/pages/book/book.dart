@@ -1,5 +1,4 @@
 import 'package:admin_flutter/ex/ex_hint.dart';
-import 'package:admin_flutter/ex/ex_string.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -23,7 +22,7 @@ class BookPage extends StatefulWidget {
 
   static SidebarTree newThis() {
     return SidebarTree(
-      name: "书籍管理",
+      name: "题本管理",
       icon: Icons.book,
       page: BookPage(),
     );
@@ -31,6 +30,10 @@ class BookPage extends StatefulWidget {
 }
 
 class _BookPageState extends State<BookPage> {
+  void refresh() {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<ButtonState>(
@@ -219,6 +222,7 @@ class _BookPageState extends State<BookPage> {
             child: Column(
               children: [
                 PaginationPage(
+                  uniqueId: 'book_pagination',
                   total: widget.logic.total.value,
                   changed: (int newSize, int newPage) {
                     widget.logic.find(newSize, newPage);
@@ -285,6 +289,7 @@ class _BookPageState extends State<BookPage> {
             Expanded(
               child: Center(
                 child: SelectableList(
+                  key: widget.logic.selectableListKey,
                   items: widget.logic.templateList,
                   onDelete: (Map<String, dynamic> item) async {
                     try {
@@ -489,14 +494,19 @@ class _BookPageState extends State<BookPage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: () {
-                    widget.logic.saveTemplate();
+                  onPressed: () async {
+                    await widget.logic.saveTemplate();
+                    await widget.logic.fetchTemplates();
+                    print('测试');
+                    refresh();
+
                   },
                   child: Text("保存模板"),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    widget.logic.saveBook();
+                  onPressed: () async {
+                    await widget.logic.saveBook();
+                    refresh();
                   },
                   child: Text("生成题本"),
                 ),

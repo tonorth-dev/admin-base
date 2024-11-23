@@ -9,13 +9,16 @@ import 'logic.dart';
 
 class PaginationPage extends StatelessWidget {
   final MainAxisAlignment alignment;
+  final String uniqueId;
 
   PaginationPage({
     super.key,
     this.alignment = MainAxisAlignment.end,
+    required this.uniqueId,
     int total = 0,
     required Function(int size, int page) changed,
   }) {
+    final logic = Get.put(PaginationLogic(), tag: uniqueId);
     logic.total = total;
     logic.changed = changed;
     // 初次延迟加载
@@ -23,8 +26,6 @@ class PaginationPage extends StatelessWidget {
       logic.reload();
     });
   }
-
-  final logic = Get.put(PaginationLogic());
 
   final sizeList = [15, 20, 50, 100, 500];
 
@@ -52,6 +53,8 @@ class PaginationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var style = const TextStyle(fontSize: 14);
+    final logic = Get.find<PaginationLogic>(tag: uniqueId);
+
     return SizedBox(
       height: 48,
       child: Row(
@@ -60,8 +63,8 @@ class PaginationPage extends StatelessWidget {
           ThemeUtil.width(),
           Text("共 ", style: style),
           Text("${logic.total}", style: TextStyle(
-            color: Color(0xFFD43030),
-            fontSize: 15
+              color: Color(0xFFD43030),
+              fontSize: 15
           )),
           Text(" 条记录", style: style),
           ThemeUtil.width(),
@@ -105,16 +108,11 @@ class PaginationPage extends StatelessWidget {
               child: TextButton(
                 onPressed: logic.current.value > 1 ? logic.prev : null, // 禁用条件：第一页
                 style: ButtonStyle(
-                  foregroundColor: WidgetStateProperty.resolveWith<Color>(
-                        (Set<WidgetState> states) {
-                      return states.contains(WidgetState.disabled) ? Colors.grey : Color(0xFFD43030);
+                  foregroundColor: MaterialStateProperty.resolveWith<Color>(
+                        (Set<MaterialState> states) {
+                      return states.contains(MaterialState.disabled) ? Colors.grey : Color(0xFFD43030);
                     },
                   ),
-                  // backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                  //       (Set<WidgetState> states) {
-                  //     return states.contains(WidgetState.disabled) ? Colors.white : Color(0xFFD43030);
-                  //   },
-                  // ),
                 ),
                 child: Icon(Icons.arrow_left, color: logic.current.value > 1 ? Color(0xFFD43030) : Colors.grey),
               ),
@@ -165,9 +163,9 @@ class PaginationPage extends StatelessWidget {
               child: TextButton(
                 onPressed: logic.current.value < logic.totalPage.value ? logic.next : null, // 禁用条件：最后一页
                 style: ButtonStyle(
-                  foregroundColor: WidgetStateProperty.resolveWith<Color>(
+                  foregroundColor: MaterialStateProperty.resolveWith<Color>(
                         (Set<MaterialState> states) {
-                      return states.contains(WidgetState.disabled) ? Colors.grey : Colors.blue;
+                      return states.contains(MaterialState.disabled) ? Colors.grey : Color(0xFFD43030);
                     },
                   ),
                 ),

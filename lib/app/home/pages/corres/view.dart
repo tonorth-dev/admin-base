@@ -144,6 +144,7 @@ class JobTableView extends StatelessWidget {
         ),
         Obx(() {
           return PaginationPage(
+            uniqueId: 'corres_pagination',
             total: logic.total.value,
             changed: (size, page) => logic.find(size, page),
           );
@@ -352,6 +353,7 @@ class MajorTableView extends StatelessWidget {
         ),
         Obx(() {
           return PaginationPage(
+            uniqueId: 'corres_pagination',
             total: logic.total.value,
             changed: (size, page) => logic.find(size, page, ''),
           );
