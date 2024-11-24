@@ -214,21 +214,17 @@ class BookLogic extends GetxController {
           list.addAll((value["list"] as List<dynamic>).toListMap());
           await Future.delayed(const Duration(milliseconds: 300));
           loading.value = false;
-
-          // 更新 PaginationLogic 的总条数
-          final paginationLogic = Get.find<PaginationLogic>();
-          paginationLogic.updateTotal(total.value);
         } else {
           loading.value = false;
-          "未获取到题库数据".toHint();
+          "未获取到题本数据".toHint();
         }
       }).catchError((error) {
         loading.value = false;
-        "获取题库列表失败: $error".toHint();
+        "获取题本列表失败: $error".toHint();
       });
     } catch (e) {
       loading.value = false;
-      "获取题库列表失败: $e".toHint();
+      "获取题本列表失败: $e".toHint();
     }
   }
 

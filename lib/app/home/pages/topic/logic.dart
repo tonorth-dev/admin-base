@@ -203,20 +203,18 @@ class TopicLogic extends GetxController {
           list.addAll((value["list"] as List<dynamic>).toListMap());
           await Future.delayed(const Duration(milliseconds: 300));
           loading.value = false;
-
-          // 更新 PaginationLogic 的总条数
-          final paginationLogic = Get.find<PaginationLogic>();
-          paginationLogic.updateTotal(total.value);
         } else {
           loading.value = false;
           "未获取到题库数据".toHint();
         }
       }).catchError((error) {
         loading.value = false;
+        print("获取题库列表失败: $error");
         "获取题库列表失败: $error".toHint();
       });
     } catch (e) {
       loading.value = false;
+      print("获取题库列表失败: $e");
       "获取题库列表失败: $e".toHint();
     }
   }
@@ -314,16 +312,6 @@ class TopicLogic extends GetxController {
     final topicTagSubmit = topicTag.value;
     final topicStatusSubmit = topicStatus.value;
 
-    print("生成问题：");
-    print("题干: $topicTitleSubmit");
-    print("选择题型: $topicSelectedQuestionCateSubmit");
-    print("选择难度: $topicSelectedQuestionLevelSubmit");
-    print("选择专业: $topicSelectedMajorIdSubmit");
-    print("问题答案: $topicAnswerSubmit");
-    print("作者: $topicAuthorSubmit");
-    print("标签: $topicTagSubmit");
-    print("状态: $topicStatusSubmit");
-
     bool isValid = true;
     String errorMessage = "";
 
@@ -343,9 +331,9 @@ class TopicLogic extends GetxController {
       isValid = false;
       errorMessage += "请选择难度\n";
     }
-    if (topicAnswerSubmit.isEmpty) {
+    if (topicAnswerSubmit.isEmpty && topicStatusSubmit == 2) {
       isValid = false;
-      errorMessage += "请填入问题答案\n";
+      errorMessage += "完成状态下的问题，答案不能为空\n";
     }
     if (topicStatusSubmit == 0) {
       isValid = false;
@@ -353,15 +341,6 @@ class TopicLogic extends GetxController {
     }
 
     if (isValid) {
-      // 提交表单
-      print("生成问题：");
-      print("题干: $topicTitleSubmit");
-      print("选择题型: $topicSelectedQuestionCateSubmit");
-      print("选择难度: $topicSelectedQuestionLevelSubmit");
-      print("选择专业: $topicSelectedMajorIdSubmit");
-      print("问题答案: $topicAnswerSubmit");
-      print("作者: $topicAuthorSubmit");
-      print("标签: $topicTagSubmit");
       try {
         Map<String, dynamic> params = {
           "title": topicTitleSubmit,
@@ -375,7 +354,6 @@ class TopicLogic extends GetxController {
         };
 
         dynamic result = await TopicApi.topicCreate(params);
-        print(result['id']);
         if (result['id'] > 0) {
           "创建试题成功".toHint();
           return true;
@@ -385,7 +363,7 @@ class TopicLogic extends GetxController {
         }
       } catch (e) {
         print('Error: $e');
-        "创建试题时发生错误".toHint();
+        "创建试题时发生错误：$e".toHint();
         return false;
       }
     } else {
@@ -454,6 +432,11 @@ class TopicLogic extends GetxController {
   // 导出选中项到 CSV 文件
   Future<void> exportSelectedItemsToCSV() async {
     try {
+      if (selectedRows.isEmpty) {
+        "请选择要导出的数据".toHint();
+        return;
+      }
+
       final directory = await FilePicker.platform.getDirectoryPath();
       if (directory == null) return;
 
@@ -564,6 +547,10 @@ class TopicLogic extends GetxController {
   void batchDelete(List<int> ids) {
     try {
       List<String> idsStr = ids.map((id) => id.toString()).toList();
+      if (idsStr.isEmpty) {
+        "请先选择要删除的试题".toHint();
+        return;
+      }
       TopicApi.topicDelete(idsStr.join(",")).then((value) {
         "批量删除成功!".toHint();
         selectedRows.clear();

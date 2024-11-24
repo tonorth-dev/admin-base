@@ -123,7 +123,10 @@ class TopicPage extends StatelessWidget {
               SizedBox(width: 26),
               SearchButtonWidget(
                 key: Key('search'),
-                onPressed: () => logic.find(logic.size.value, logic.page.value),
+                onPressed: () {
+                  logic.selectedRows.clear();
+                  logic.find(logic.size.value, logic.page.value);
+                },
               ),
               SizedBox(width: 10),
               ResetButtonWidget(
@@ -143,7 +146,7 @@ class TopicPage extends StatelessWidget {
                 : SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: SizedBox(
-                width: 1500,
+                width: 1700,
                 child: SfDataGrid(
                   source: TopicDataSource(logic: logic),
                   headerGridLinesVisibility: GridLinesVisibility.values[1],
@@ -160,7 +163,7 @@ class TopicPage extends StatelessWidget {
                         alignment: Alignment.center,
                         padding: const EdgeInsets.all(8.0),
                         child: Checkbox(
-                          value: logic.selectedRows.length == logic.list.length,
+                          value: (logic.selectedRows.length == logic.list.length && logic.selectedRows.isNotEmpty),
                           onChanged: (value) => logic.toggleSelectAll(),
                           fillColor: WidgetStateProperty.resolveWith<Color>((states) {
                             if (states.contains(WidgetState.selected)) {

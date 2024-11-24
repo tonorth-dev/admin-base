@@ -164,7 +164,6 @@ class _TopicAddFormState extends State<TopicAddForm> {
                     child: Row(
                       children: const [
                         Text('答案'),
-                        Text('*', style: TextStyle(color: Colors.red)),
                       ],
                     ),
                   ),
@@ -180,8 +179,6 @@ class _TopicAddFormState extends State<TopicAddForm> {
                       onTextChanged: (value) {
                         logic.topicAnswer.value = value;
                       },
-                      validator:
-                          FormBuilderValidators.required(errorText: '答案不能为空'),
                     ),
                   ),
                 ],

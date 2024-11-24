@@ -18,7 +18,6 @@ class HttpUtil {
         return handler.next(options); // 调用下一步
       },
       onResponse: (response, handler) {
-        print('Response [${response.statusCode}] => DATA: ${response.data}');
         return handler.next(response); // 调用下一步
       },
       onError: (DioError e, handler) {
