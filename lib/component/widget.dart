@@ -274,6 +274,9 @@ class CascadingDropdownField extends StatefulWidget {
   final Map<String, List<Map<String, dynamic>>> level2Items;
   final Map<String, List<Map<String, dynamic>>> level3Items;
   final Function(dynamic, dynamic, dynamic)? onChanged;
+  final dynamic selectedLevel1;
+  final dynamic selectedLevel2;
+  final dynamic selectedLevel3;
 
   const CascadingDropdownField({
     Key? key,
@@ -286,6 +289,9 @@ class CascadingDropdownField extends StatefulWidget {
     required this.level2Items,
     required this.level3Items,
     this.onChanged,
+    this.selectedLevel1,
+    this.selectedLevel2,
+    this.selectedLevel3,
   }) : super(key: key);
 
   @override
@@ -308,6 +314,23 @@ class CascadingDropdownFieldState extends State<CascadingDropdownField> {
   @override
   void initState() {
     super.initState();
+    if (widget.selectedLevel1 != null) {
+      selectedLevel1 = widget.selectedLevel1;
+      _level1Controller.text = _getNameById(widget.level1Items, selectedLevel1);
+    }
+    if (widget.selectedLevel2 != null && selectedLevel1 != null) {
+      selectedLevel2 = widget.selectedLevel2;
+      _level2Controller.text = _getNameById(widget.level2Items[selectedLevel1.toString()] ?? [], selectedLevel2);
+    }
+    if (widget.selectedLevel3 != null && selectedLevel2 != null) {
+      selectedLevel3 = widget.selectedLevel3;
+      _level3Controller.text = _getNameById(widget.level3Items[selectedLevel2.toString()] ?? [], selectedLevel3);
+    }
+  }
+
+  String _getNameById(List<Map<String, dynamic>> items, dynamic id) {
+    final item = items.firstWhere((element) => element['id'] == id, orElse: () => {});
+    return item['name'] ?? '';
   }
 
   void reset() {
@@ -396,80 +419,23 @@ class CascadingDropdownFieldState extends State<CascadingDropdownField> {
       height: widget.height,
       child: TypeAheadField<Map<String, dynamic>>(
         textFieldConfiguration: TextFieldConfiguration(
-          // builder: (context, controller, focusNode) => TextField(
           controller: controller,
           focusNode: focusNode,
           decoration: InputDecoration(
             labelText: hint,
             border: OutlineInputBorder(),
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            enabledBorder: OutlineInputBorder(
-              borderSide: const BorderSide(
-                color: Colors.grey,
-                width: 1,
-              ),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                color: focusNode.hasFocus ? const Color(0xFF25B7E8) : Colors.grey,
-                width: focusNode.hasFocus ? 1 : 0.5,
-              ),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            hintText: hint,
-            hintStyle: const TextStyle(
-              color: Color(0xFF423F3F),
-              fontSize: 14,
-              fontFamily: 'PingFang SC',
-              fontWeight: FontWeight.w400,
-              height: 1.2,
-            ),
-            fillColor: Colors.white,
-            filled: true,
-          ),
-          style: const TextStyle(
-            color: Color(0xFF423F3F),
-            fontSize: 14,
-            fontFamily: 'PingFang SC',
-            fontWeight: FontWeight.w400,
-            height: 1.2,
           ),
         ),
         suggestionsCallback: (pattern) {
-          if (pattern.isEmpty) {
-            // Display all items when only clicked, without filtering
-            return items;
-          } else {
-            // Filter items when user types
-            return items.where((item) => item['name'].toLowerCase().contains(pattern.toLowerCase())).toList();
-          }
+          if (pattern.isEmpty) return items;
+          return items.where((item) => item['name'].toLowerCase().contains(pattern.toLowerCase())).toList();
         },
         itemBuilder: (context, suggestion) {
-          return ListTile(
-            title: Text(
-              suggestion['name'],
-              style: const TextStyle(
-                color: Color(0xFF423F3F),
-                fontSize: 14,
-                fontFamily: 'PingFang SC',
-                fontWeight: FontWeight.w400,
-                height: 1.2,
-              ),
-            ),
-          );
+          return ListTile(title: Text(suggestion['name']));
         },
-        onSuggestionSelected: (suggestion) {
-          setState(() {
-            controller.text = suggestion['name']; // 更新控制器的文本
-            controller.selection = TextSelection.fromPosition(TextPosition(offset: controller.text.length)); // 设置选区到文本末尾
-          });
-          onSuggestionSelected(suggestion);
-        },
-        noItemsFoundBuilder: (context) => SizedBox(
-          height: 50,
-          child: Center(child: Text('No items found', style: const TextStyle(color: Color(0xFF423F3F)))),
-        ),
+        onSuggestionSelected: onSuggestionSelected,
+        noItemsFoundBuilder: (context) => Center(child: Text('No items found')),
       ),
     );
   }
@@ -485,6 +451,7 @@ class CascadingDropdownFieldState extends State<CascadingDropdownField> {
     super.dispose();
   }
 }
+
 
 class SearchBoxWidget extends StatefulWidget {
   final String hint;
@@ -504,48 +471,66 @@ class SearchBoxWidget extends StatefulWidget {
 
 class _SearchBoxWidgetState extends State<SearchBoxWidget> {
   late TextEditingController _controller;
+  late Worker _worker; // 用于监听 RxString 的变化
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.searchText.value);
-    widget.searchText.listen((value) {
-      _controller.text = value;
+
+    // Worker 只在 searchText 真正发生变化时更新 controller
+    _worker = ever(widget.searchText, (String value) {
+      if (_controller.text != value) {
+        _controller.text = value;
+        _controller.selection = TextSelection.collapsed(offset: value.length);
+      }
     });
   }
 
   @override
   void dispose() {
+    _worker.dispose();
     _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 34,
-      width: 120,
-      child: TextField(
-        key: const Key('search_box'),
-        controller: _controller,
-        decoration: InputDecoration(
-          hintText: widget.hint,
-          hintStyle: const TextStyle(
-            color: Color(0xFF999999),
-            fontSize: 12,
-            fontFamily: 'PingFang SC',
-            fontWeight: FontWeight.w400,
+    return MouseRegion(
+      onExit: (event) {
+        print("编辑完成");
+        widget.searchText.value = _controller.text;
+      },
+      child: SizedBox(
+        height: 34,
+        width: 120,
+        child: TextField(
+          key: const Key('search_box'),
+          controller: _controller,
+          decoration: InputDecoration(
+            hintText: widget.hint,
+            hintStyle: const TextStyle(
+              color: Color(0xFF999999),
+              fontSize: 12,
+              fontFamily: 'PingFang SC',
+              fontWeight: FontWeight.w400,
+            ),
+            prefixIcon: Icon(Icons.search),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(6),
+            ),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           ),
-          prefixIcon: Icon(Icons.search),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(6),
-          ),
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          onEditingComplete: () {
+            widget.searchText.value = _controller.text;
+          },
+          onSubmitted: (value) {
+            widget.onTextChanged(value);
+            widget.searchText.value = value;
+          },
         ),
-        onChanged: widget.onTextChanged,
-        onSubmitted: (value) => widget.onTextChanged(value),
       ),
     );
   }

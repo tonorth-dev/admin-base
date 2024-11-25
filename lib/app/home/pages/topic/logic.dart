@@ -65,6 +65,15 @@ class TopicLogic extends GetxController {
   final topicTag = "".obs;
   final topicStatus = 0.obs;
 
+  final uTopicTitle = ''.obs;
+  final uTopicSelectedQuestionCate = "".obs;
+  final uTopicSelectedQuestionLevel = "".obs;
+  final uTopicSelectedMajorId = "".obs;
+  final uTopicAnswer = "".obs;
+  final uTopicAuthor = "".obs;
+  final uTopicTag = "".obs;
+  final uTopicStatus = 0.obs;
+
   Future<void> fetchConfigs() async {
     try {
       var configData = await ConfigApi.configList();
@@ -373,9 +382,93 @@ class TopicLogic extends GetxController {
     }
   }
 
+  Future<bool> updateTopic() async {
+    // 生成题本的逻辑
+    final topicTitleSubmit = topicTitle.value;
+    final int? topicSelectedMajorIdSubmit =
+    int.tryParse(topicSelectedMajorId.value);
+    final topicSelectedQuestionCateSubmit = topicSelectedQuestionCate.value;
+    final topicSelectedQuestionLevelSubmit = topicSelectedQuestionLevel.value;
+    final topicAnswerSubmit = topicAnswer.value;
+    final topicAuthorSubmit = topicAuthor.value;
+    final topicTagSubmit = topicTag.value;
+    final topicStatusSubmit = topicStatus.value;
+
+    bool isValid = true;
+    String errorMessage = "";
+
+    if (topicTitleSubmit.isEmpty) {
+      isValid = false;
+      errorMessage += "问题提干不能为空\n";
+    }
+    if (topicSelectedMajorIdSubmit == null || topicSelectedMajorIdSubmit <= 0) {
+      isValid = false;
+      errorMessage += "请选择专业\n";
+    }
+    if (topicSelectedQuestionCateSubmit.isEmpty) {
+      isValid = false;
+      errorMessage += "请选择题型\n";
+    }
+    if (topicSelectedQuestionLevelSubmit.isEmpty) {
+      isValid = false;
+      errorMessage += "请选择难度\n";
+    }
+    if (topicAnswerSubmit.isEmpty && topicStatusSubmit == 2) {
+      isValid = false;
+      errorMessage += "完成状态下的问题，答案不能为空\n";
+    }
+    if (topicStatusSubmit == 0) {
+      isValid = false;
+      errorMessage += "请选择问题状态\n";
+    }
+
+    if (isValid) {
+      try {
+        Map<String, dynamic> params = {
+          "title": topicTitleSubmit,
+          "cate": topicSelectedQuestionCateSubmit,
+          "level": topicSelectedQuestionLevelSubmit,
+          "answer": topicAnswerSubmit,
+          "author": "杜立东",
+          "major_id": topicSelectedMajorIdSubmit,
+          "tag": topicTagSubmit,
+          "status": topicStatusSubmit,
+        };
+
+        dynamic result = await TopicApi.topicCreate(params);
+        if (result['id'] > 0) {
+          "创建试题成功".toHint();
+          return true;
+        } else {
+          "创建试题失败".toHint();
+          return false;
+        }
+      } catch (e) {
+        print('Error: $e');
+        "创建试题时发生错误：$e".toHint();
+        return false;
+      }
+    } else {
+      // 显示错误提示
+      errorMessage.toHint();
+      return false;
+    }
+  }
+
   void edit(Map<String, dynamic> topic) {
     currentEditTopic.value = RxMap<String, dynamic>(topic);
-    Get.dialog(EditTopicDialog());
+    print('edit topic: $topic');
+    Get.dialog(EditTopicDialog(
+        topicId: topic["id"],
+        initialTitle: topic["title"],
+        initialAnswer: topic["answer"],
+        initialQuestionCate: topic["cate"],
+        initialQuestionLevel: topic["level"],
+        initialMajorId: topic["major_id"].toString(),
+        initialAuthor: topic["author"],
+        initialTag: topic["tag"],
+        initialStatus: topic["status"])
+    );
   }
 
   void submitEdit() async {
