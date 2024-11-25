@@ -68,27 +68,19 @@ class TopicApi {
   }
 
   // 更新题目
-  static Future<dynamic> topicUpdate({
-    required String id,
-    required String title,
-    required String content,
-    required String category,
-    required int difficulty,
-    required List<String> options,
-    required String answer,
-  }) async {
+  static Future<dynamic> topicUpdate(int id, Map<String, dynamic> params) async {
     try {
-      Map<String, dynamic> params = {
-        'title': title,
-        'content': content,
-        'category': category,
-        'difficulty': difficulty,
-        'options': options,
-        'answer': answer,
-      };
+      // 必传字段校验
+      List<String> requiredFields = ['title', 'author', 'answer', 'cate', 'level', 'major_id', 'status'];
+      for (var field in requiredFields) {
+        if (!params.containsKey(field) || params[field] == null) {
+          throw ArgumentError('Missing required field: $field');
+        }
+      }
+
       return await HttpUtil.put("/admin/topic/topic/$id", params: params);
     } catch (e) {
-      print('Error in topicUpdate: $e');
+      print('Error in topicCreate: $e');
       rethrow; // 重新抛出异常以便调用者处理
     }
   }

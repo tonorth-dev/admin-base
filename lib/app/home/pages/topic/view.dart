@@ -148,7 +148,7 @@ class TopicPage extends StatelessWidget {
               child: SizedBox(
                 width: 1700,
                 child: SfDataGrid(
-                  source: TopicDataSource(logic: logic),
+                  source: TopicDataSource(logic: logic, context: context),
                   headerGridLinesVisibility: GridLinesVisibility.values[1],
                   gridLinesVisibility: GridLinesVisibility.values[1],
                   columnWidthMode: ColumnWidthMode.fill,
@@ -258,9 +258,10 @@ class TopicPage extends StatelessWidget {
 
 class TopicDataSource extends DataGridSource {
   final TopicLogic logic;
+  final BuildContext context; // 增加 BuildContext 成员变量
   List<DataGridRow> _rows = [];
 
-  TopicDataSource({required this.logic}) {
+  TopicDataSource({required this.logic, required this.context}) { // 构造函数中添加 context 参数
     _buildRows();
   }
 
@@ -314,11 +315,10 @@ class TopicDataSource extends DataGridSource {
           final value = cell.value.toString();
 
           if (columnName == 'title' || columnName == 'answer') {
-            // Use LayoutBuilder to get the actual width and determine if text exceeds
+            // LayoutBuilder 处理溢出和文本显示
             return Tooltip(
               message: "点击右侧复制或查看全文",
               verticalOffset: 25.0,
-              // 可以调整垂直偏移量
               showDuration: Duration(milliseconds: 200),
               decoration: BoxDecoration(
                 color: Colors.grey.shade800,
@@ -326,7 +326,7 @@ class TopicDataSource extends DataGridSource {
               ),
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final isOverflowing = value.length > 100; // 调整长度条件
+                  final isOverflowing = value.length > 100; // 判断是否溢出
                   return Row(
                     children: [
                       Expanded(
@@ -343,31 +343,19 @@ class TopicDataSource extends DataGridSource {
                       ),
                       isOverflowing
                           ? TextButton(
-                        style: ButtonStyle(
-                          textStyle: WidgetStateProperty.all(
-                              TextStyle(fontSize: 14)),
-                          foregroundColor: WidgetStateProperty.all(
-                              Color(0xFF25B7E8)),
-                        ),
                         onPressed: () {
                           CopyDialog.show(context, value);
                         },
                         child: Text("全文"),
                       )
                           : TextButton(
-                        style: ButtonStyle(
-                          textStyle: WidgetStateProperty.all(
-                              TextStyle(fontSize: 14)),
-                          foregroundColor: WidgetStateProperty.all(
-                              Color(0xFF25B7E8)),
-                        ),
                         onPressed: () async {
                           await Clipboard.setData(
                               ClipboardData(text: value));
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text("复制成功"),
-                              duration: Duration(seconds: 2), // 显示2秒钟
+                              duration: Duration(seconds: 2),
                             ),
                           );
                         },
@@ -393,7 +381,7 @@ class TopicDataSource extends DataGridSource {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextButton(
-              onPressed: () => logic.edit(item),
+              onPressed: () => logic.edit(context, item), // 使用传递的 context
               child: Text("编辑", style: TextStyle(color: Color(0xFFFD941D))),
             ),
             TextButton(

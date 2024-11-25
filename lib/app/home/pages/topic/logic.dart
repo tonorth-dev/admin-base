@@ -116,10 +116,13 @@ class TopicLogic extends GetxController {
     }
   }
 
+  // Maps for reverse lookup
+  Map<String, String> level3IdToLevel2Id = {};
+  Map<String, String> level2IdToLevel1Id = {};
+
   Future<void> fetchMajors() async {
     try {
-      var response =
-          await MajorApi.majorList(params: {'pageSize': 3000, 'page': 1});
+      var response = await MajorApi.majorList(params: {'pageSize': 3000, 'page': 1});
       if (response != null && response["total"] > 0) {
         var dataList = response["list"] as List<dynamic>;
 
@@ -157,23 +160,19 @@ class TopicLogic extends GetxController {
           }
 
           // Add second-level category if it doesn't exist under this first-level category
-          if (!subMajorMap[firstLevelId]!
-              .any((m) => m['name'] == secondLevelName)) {
-            subMajorMap[firstLevelId]!
-                .add({'id': secondLevelId, 'name': secondLevelName});
-            level2Items[firstLevelId]
-                ?.add({'id': secondLevelId, 'name': secondLevelName});
+          if (subMajorMap[firstLevelId]?.any((m) => m['name'] == secondLevelName) != true) {
+            subMajorMap[firstLevelId]!.add({'id': secondLevelId, 'name': secondLevelName});
+            level2Items[firstLevelId]?.add({'id': secondLevelId, 'name': secondLevelName});
             subSubMajorMap[secondLevelId] = [];
             level3Items[secondLevelId] = [];
+            level2IdToLevel1Id[secondLevelId] = firstLevelId; // Populate reverse lookup map
           }
 
           // Add third-level major if it doesn't exist under this second-level category
-          if (!subSubMajorMap[secondLevelId]!
-              .any((m) => m['name'] == thirdLevelName)) {
-            subSubMajorMap[secondLevelId]!
-                .add({'id': thirdLevelId, 'name': thirdLevelName});
-            level3Items[secondLevelId]
-                ?.add({'id': thirdLevelId, 'name': thirdLevelName});
+          if (subSubMajorMap[secondLevelId]?.any((m) => m['name'] == thirdLevelName) != true) {
+            subSubMajorMap[secondLevelId]!.add({'id': thirdLevelId, 'name': thirdLevelName});
+            level3Items[secondLevelId]?.add({'id': thirdLevelId, 'name': thirdLevelName});
+            level3IdToLevel2Id[thirdLevelId] = secondLevelId; // Populate reverse lookup map
           }
         }
 
@@ -184,12 +183,22 @@ class TopicLogic extends GetxController {
         print('level1Items: $level1Items');
         print('level2Items: $level2Items');
         print('level3Items: $level3Items');
+        print('level3IdToLevel2Id: $level3IdToLevel2Id');
+        print('level2IdToLevel1Id: $level2IdToLevel1Id');
       } else {
         "获取专业列表失败".toHint();
       }
     } catch (e) {
       "获取专业列表失败: $e".toHint();
     }
+  }
+
+  String getLevel2IdFromLevel3Id(String thirdLevelId) {
+    return level3IdToLevel2Id[thirdLevelId] ?? '';
+  }
+
+  String getLevel1IdFromLevel2Id(String secondLevelId) {
+    return level2IdToLevel1Id[secondLevelId] ?? '';
   }
 
   void find(int newSize, int newPage) {
@@ -309,6 +318,33 @@ class TopicLogic extends GetxController {
     );
   }
 
+  void edit(BuildContext context, Map<String, dynamic> topic) {
+    currentEditTopic.value = RxMap<String, dynamic>(topic);
+    var level2MajorId = getLevel2IdFromLevel3Id(topic["major_id"].toString());
+    var level3MajorId = getLevel1IdFromLevel2Id(level2MajorId);
+
+    DynamicInputDialog.show(
+      context: context,
+      title: '录入试题',
+      child: TopicEditForm(
+          topicId: topic["id"],
+          initialTitle: topic["title"],
+          initialAnswer: topic["answer"],
+          initialQuestionCate: topic["cate"],
+          initialQuestionLevel: topic["level"],
+          initialLevel1MajorId: level3MajorId,
+          initialLevel2MajorId: level2MajorId,
+          initialMajorId: topic["major_id"].toString(),
+          initialAuthor: topic["author"],
+          initialTag: topic["tag"],
+          initialStatus: topic["status"]
+      ),
+      onSubmit: (formData) {
+        print('提交的数据: $formData');
+      },
+    );
+  }
+
   Future<bool> saveTopic() async {
     // 生成题本的逻辑
     final topicTitleSubmit = topicTitle.value;
@@ -382,20 +418,25 @@ class TopicLogic extends GetxController {
     }
   }
 
-  Future<bool> updateTopic() async {
+  Future<bool> updateTopic(int topicId) async {
     // 生成题本的逻辑
-    final topicTitleSubmit = topicTitle.value;
+    final topicTitleSubmit = uTopicTitle.value;
     final int? topicSelectedMajorIdSubmit =
-    int.tryParse(topicSelectedMajorId.value);
-    final topicSelectedQuestionCateSubmit = topicSelectedQuestionCate.value;
-    final topicSelectedQuestionLevelSubmit = topicSelectedQuestionLevel.value;
-    final topicAnswerSubmit = topicAnswer.value;
-    final topicAuthorSubmit = topicAuthor.value;
-    final topicTagSubmit = topicTag.value;
-    final topicStatusSubmit = topicStatus.value;
+    int.tryParse(uTopicSelectedMajorId.value);
+    final topicSelectedQuestionCateSubmit = uTopicSelectedQuestionCate.value;
+    final topicSelectedQuestionLevelSubmit = uTopicSelectedQuestionLevel.value;
+    final topicAnswerSubmit = uTopicAnswer.value;
+    final topicAuthorSubmit = uTopicAuthor.value;
+    final topicTagSubmit = uTopicTag.value;
+    final topicStatusSubmit = uTopicStatus.value;
 
     bool isValid = true;
     String errorMessage = "";
+
+    if (topicId == 0) {
+      isValid = false;
+      errorMessage += "问题ID为0，请检查\n";
+    }
 
     if (topicTitleSubmit.isEmpty) {
       isValid = false;
@@ -435,61 +476,18 @@ class TopicLogic extends GetxController {
           "status": topicStatusSubmit,
         };
 
-        dynamic result = await TopicApi.topicCreate(params);
-        if (result['id'] > 0) {
-          "创建试题成功".toHint();
-          return true;
-        } else {
-          "创建试题失败".toHint();
-          return false;
-        }
+        dynamic result = await TopicApi.topicUpdate(topicId, params);
+        "更新试题成功".toHint();
+        return true;
       } catch (e) {
         print('Error: $e');
-        "创建试题时发生错误：$e".toHint();
+        "更新试题时发生错误：$e".toHint();
         return false;
       }
     } else {
       // 显示错误提示
       errorMessage.toHint();
       return false;
-    }
-  }
-
-  void edit(Map<String, dynamic> topic) {
-    currentEditTopic.value = RxMap<String, dynamic>(topic);
-    print('edit topic: $topic');
-    Get.dialog(EditTopicDialog(
-        topicId: topic["id"],
-        initialTitle: topic["title"],
-        initialAnswer: topic["answer"],
-        initialQuestionCate: topic["cate"],
-        initialQuestionLevel: topic["level"],
-        initialMajorId: topic["major_id"].toString(),
-        initialAuthor: topic["author"],
-        initialTag: topic["tag"],
-        initialStatus: topic["status"])
-    );
-  }
-
-  void submitEdit() async {
-    try {
-      loading.value = true;
-      await TopicApi.topicUpdate(
-        id: currentEditTopic.value['id'].toString(),
-        title: currentEditTopic.value['title'] ?? '',
-        content: currentEditTopic.value['content'] ?? '',
-        category: currentEditTopic.value['category'] ?? '',
-        difficulty: currentEditTopic.value['difficulty']?.toInt() ?? 0,
-        options: currentEditTopic.value['options']?.cast<String>() ?? [],
-        answer: currentEditTopic.value['answer'] ?? '',
-      );
-      find(size.value, page.value);
-      Get.back(); // 关闭对话框
-      "更新成功!".toHint();
-    } catch (e) {
-      "更新失败: $e".toHint();
-    } finally {
-      loading.value = false;
     }
   }
 

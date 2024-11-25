@@ -1080,11 +1080,13 @@ class SelectableListState extends State<SelectableList> {
 class SingleSelectForm extends StatefulWidget {
   final List<Map<String, dynamic>> items;
   final Function(Map<String, dynamic>) onSelected;
+  final int? defaultSelectedId; // 默认选中的 ID
 
   const SingleSelectForm({
     Key? key,
     required this.items,
     required this.onSelected,
+    this.defaultSelectedId, // 可选参数
   }) : super(key: key);
 
   @override
@@ -1092,24 +1094,30 @@ class SingleSelectForm extends StatefulWidget {
 }
 
 class _SingleSelectFormState extends State<SingleSelectForm> {
-  int selectedIndex = -1;
+  int? selectedId; // 当前选中的 ID
+
+  @override
+  void initState() {
+    super.initState();
+    // 根据默认选中的 ID 初始化
+    selectedId = widget.defaultSelectedId;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
-      children: widget.items.asMap().entries.map((entry) {
-        final index = entry.key;
-        final item = entry.value;
+      children: widget.items.map((item) {
+        final itemId = item['id'];
 
-        return Expanded( // 确保每个单选按钮在一行中占据合适的空间
+        return Expanded(
           child: RadioListTile<int>(
-            value: index,
-            groupValue: selectedIndex,
+            value: itemId,
+            groupValue: selectedId,
             onChanged: (int? value) {
               if (value != null) {
                 setState(() {
-                  selectedIndex = value;
+                  selectedId = value;
                   widget.onSelected(item);
                   print("选中值: ${item['name']}"); // 调试日志
                 });
@@ -1117,7 +1125,7 @@ class _SingleSelectFormState extends State<SingleSelectForm> {
             },
             title: Text(
               item['name'] ?? '',
-              style: TextStyle(fontSize: 14),
+              style: const TextStyle(fontSize: 14),
             ),
             dense: true, // 紧凑布局
           ),
@@ -1126,6 +1134,7 @@ class _SingleSelectFormState extends State<SingleSelectForm> {
     );
   }
 }
+
 
 
 

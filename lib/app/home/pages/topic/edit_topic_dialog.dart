@@ -5,23 +5,27 @@ import 'package:form_builder_validators/form_builder_validators.dart';
 import '../../../../component/widget.dart';
 import 'logic.dart';
 
-class EditTopicDialog extends StatefulWidget {
+class TopicEditForm extends StatefulWidget {
   final int topicId;
   final String initialTitle;
   final String initialAnswer;
   final String initialQuestionCate;
   final String initialQuestionLevel;
+  final String initialLevel1MajorId;
+  final String initialLevel2MajorId;
   final String initialMajorId;
   final String initialAuthor;
   final String initialTag;
   final int initialStatus;
 
-  EditTopicDialog({
+  TopicEditForm({
     required this.topicId,
     required this.initialTitle,
     required this.initialAnswer,
     required this.initialQuestionCate,
     required this.initialQuestionLevel,
+    required this.initialLevel1MajorId,
+    required this.initialLevel2MajorId,
     required this.initialMajorId,
     required this.initialAuthor,
     required this.initialTag,
@@ -29,24 +33,27 @@ class EditTopicDialog extends StatefulWidget {
   });
 
   @override
-  State<EditTopicDialog> createState() => _EditTopicDialogState();
+  State<TopicEditForm> createState() => _EditTopicDialogState();
 }
 
-class _EditTopicDialogState extends State<EditTopicDialog> {
+class _EditTopicDialogState extends State<TopicEditForm> {
   final logic = Get.find<TopicLogic>();
   final _formKey = GlobalKey<FormBuilderState>();
 
   Future<void> _submitForm() async {
     if (_formKey.currentState?.saveAndValidate() ?? false) {
-      final result = await logic.updateTopic();
+      final result = await logic.updateTopic(widget.topicId);
       if (result) {
         Navigator.pop(context);
+        logic.find(logic.size.value, logic.page.value); // todo 这里改成只刷新某条数据
       }
     }
   }
 
   @override
   void initState() {
+    print("initialStatus");
+    print(widget.initialStatus);
     super.initState();
     logic.uTopicTitle.value = widget.initialTitle;
     logic.uTopicAnswer.value = widget.initialAnswer;
@@ -77,21 +84,24 @@ class _EditTopicDialogState extends State<EditTopicDialog> {
                       width: 150,
                       child: Row(
                         children: const [
-                          Text('标题'),
+                          Text('题干'),
                           Text('*', style: TextStyle(color: Colors.red)),
                         ],
                       ),
                     ),
                     SizedBox(
                       width: 600,
-                      child: FormBuilderTextField(
-                        name: 'title',
-                        initialValue: widget.initialTitle,
-                        decoration: const InputDecoration(hintText: "输入标题"),
-                        validator: FormBuilderValidators.required(errorText: '标题不能为空'),
-                        onChanged: (value) {
-                          logic.uTopicTitle.value = value!;
+                      child: TextInputWidget(
+                        width: 240,
+                        height: 65,
+                        maxLines: 8,
+                        hint: "输入问题题干",
+                        text: widget.initialTitle.obs,
+                        onTextChanged: (value) {
+                          logic.uTopicTitle.value = value;
                         },
+                        validator:
+                        FormBuilderValidators.required(errorText: '题干不能为空'),
                       ),
                     ),
                   ],
@@ -178,9 +188,11 @@ class _EditTopicDialogState extends State<EditTopicDialog> {
                         level1Items: logic.level1Items,
                         level2Items: logic.level2Items,
                         level3Items: logic.level3Items,
-                        selectedLevel1: "0",
-                        selectedLevel2: "0",
-                        selectedLevel3: "1",
+                        selectedLevel1: logic
+                            .getLevel1IdFromLevel2Id(widget.initialMajorId),
+                        selectedLevel2: logic
+                            .getLevel2IdFromLevel3Id(widget.initialMajorId),
+                        selectedLevel3: widget.initialMajorId,
                         onChanged:
                             (dynamic level1, dynamic level2, dynamic level3) {
                           logic.topicSelectedMajorId.value = level3.toString();
@@ -203,14 +215,17 @@ class _EditTopicDialogState extends State<EditTopicDialog> {
                     ),
                     SizedBox(
                       width: 600,
-                      child: FormBuilderTextField(
-                        name: 'answer',
-                        initialValue: widget.initialAnswer,
-                        decoration: const InputDecoration(hintText: "输入答案"),
-                        maxLines: 8,
-                        onChanged: (value) {
-                          logic.uTopicAnswer.value = value!;
+                      child: TextInputWidget(
+                        width: 240,
+                        height: 300,
+                        maxLines: 40,
+                        hint: "输入问题答案",
+                        text: widget.initialAnswer.obs,
+                        onTextChanged: (value) {
+                          logic.uTopicAnswer.value = value;
                         },
+                        validator:
+                        FormBuilderValidators.required(errorText: '答案不能为空'),
                       ),
                     ),
                   ],
@@ -223,18 +238,22 @@ class _EditTopicDialogState extends State<EditTopicDialog> {
                       child: Row(
                         children: const [
                           Text('作者'),
+                          Text('*', style: TextStyle(color: Colors.red)),
                         ],
                       ),
                     ),
                     SizedBox(
                       width: 600,
-                      child: FormBuilderTextField(
-                        name: 'author',
-                        initialValue: widget.initialAuthor,
-                        decoration: const InputDecoration(hintText: "输入作者名称"),
-                        onChanged: (value) {
-                          logic.uTopicAuthor.value = value!;
+                      child: TextInputWidget(
+                        width: 240,
+                        maxLines: 1,
+                        hint: "输入作者名称",
+                        text: widget.initialAuthor.obs,
+                        onTextChanged: (value) {
+                          logic.uTopicAuthor.value = value;
                         },
+                        validator:
+                        FormBuilderValidators.required(errorText: '作者不能为空'),
                       ),
                     ),
                   ],
@@ -248,12 +267,13 @@ class _EditTopicDialogState extends State<EditTopicDialog> {
                     ),
                     SizedBox(
                       width: 600,
-                      child: FormBuilderTextField(
-                        name: 'tag',
-                        initialValue: widget.initialTag,
-                        decoration: const InputDecoration(hintText: "输入标签"),
-                        onChanged: (value) {
-                          logic.uTopicTag.value = value!;
+                      child: TextInputWidget(
+                        width: 240,
+                        maxLines: 1,
+                        hint: "可以给问题打一个标签",
+                        text: widget.initialTag.obs,
+                        onTextChanged: (value) {
+                          logic.uTopicTag.value = value;
                         },
                       ),
                     ),
@@ -272,16 +292,16 @@ class _EditTopicDialogState extends State<EditTopicDialog> {
                       ),
                     ),
                     SizedBox(
-                      width: 600,
-                      child: FormBuilderRadioGroup(
-                        name: 'status',
-                        initialValue: widget.initialStatus,
-                        options: [
-                          FormBuilderFieldOption(value: 1, child: const Text('草稿')),
-                          FormBuilderFieldOption(value: 2, child: const Text('完成')),
-                        ],
-                        onChanged: (value) {
-                          logic.uTopicStatus.value = value!;
+                      width: 240,
+                      child: SingleSelectForm(
+                        key: Key("status_select"),
+                        defaultSelectedId:widget.initialStatus,
+                        items: RxList<Map<String, dynamic>>([
+                          {'id': 1, 'name': '草稿'},
+                          {'id': 2, 'name': '完成'},
+                        ]),
+                        onSelected: (item) => {
+                          logic.uTopicStatus.value = item['id']
                         },
                       ),
                     ),
@@ -293,7 +313,8 @@ class _EditTopicDialogState extends State<EditTopicDialog> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      style: TextButton.styleFrom(foregroundColor: Colors.grey[700]),
+                      style: TextButton.styleFrom(
+                          foregroundColor: Colors.grey[700]),
                       child: const Text('取消'),
                     ),
                     const SizedBox(width: 10),
@@ -302,7 +323,8 @@ class _EditTopicDialogState extends State<EditTopicDialog> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF25B7E8),
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                       child: const Text('保存'),
                     ),
