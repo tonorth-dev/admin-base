@@ -1135,6 +1135,46 @@ class _SingleSelectFormState extends State<SingleSelectForm> {
   }
 }
 
+class HoverTextButton extends StatefulWidget {
+  final String text;
+  final Function() onTap;
+
+  HoverTextButton({required this.text, required this.onTap});
+
+  @override
+  _HoverTextButtonState createState() => _HoverTextButtonState();
+}
+
+class _HoverTextButtonState extends State<HoverTextButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: InkWell(
+        onTap: widget.onTap,
+        child: Container(
+          padding: const EdgeInsets.all(4.0),
+          decoration: BoxDecoration(
+            color: _isHovered ? Colors.grey[200] : Colors.transparent,
+            borderRadius: BorderRadius.circular(10.0), // 可以根据需要调整圆角
+          ),
+          child: Text(
+            widget.text,
+            style: TextStyle(
+              color: _isHovered ? Colors.red : Color(0xFFFD941D),
+              fontSize: 14,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 
 
 

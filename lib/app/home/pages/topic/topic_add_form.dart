@@ -118,7 +118,6 @@ class _TopicAddFormState extends State<TopicAddForm> {
                       onChanged: (dynamic newValue) {
                         logic.topicSelectedQuestionLevel.value =
                             newValue.toString();
-                        logic.applyFilters();
                       },
                     ),
                   ),

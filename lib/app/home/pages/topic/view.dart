@@ -88,7 +88,8 @@ class TopicPage extends StatelessWidget {
                   future: logic.fetchMajors(), // 调用 fetchMajors 方法
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator()); // 加载中显示进度条
+                      return Center(
+                          child: CircularProgressIndicator()); // 加载中显示进度条
                     } else if (snapshot.hasError) {
                       return Text('加载失败: ${snapshot.error}');
                     } else {
@@ -102,7 +103,8 @@ class TopicPage extends StatelessWidget {
                         level1Items: logic.level1Items,
                         level2Items: logic.level2Items,
                         level3Items: logic.level3Items,
-                        onChanged: (dynamic level1, dynamic level2, dynamic level3) {
+                        onChanged:
+                            (dynamic level1, dynamic level2, dynamic level3) {
                           logic.selectedMajorId.value = level3.toString();
                           // 这里可以处理选择的 id
                         },
@@ -144,82 +146,94 @@ class TopicPage extends StatelessWidget {
             child: Obx(() => logic.loading.value
                 ? const Center(child: CircularProgressIndicator())
                 : SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: SizedBox(
-                width: 1700,
-                child: SfDataGrid(
-                  source: TopicDataSource(logic: logic, context: context),
-                  headerGridLinesVisibility: GridLinesVisibility.values[1],
-                  gridLinesVisibility: GridLinesVisibility.values[1],
-                  columnWidthMode: ColumnWidthMode.fill,
-                  headerRowHeight: 50,
-                  rowHeight: 60,
-                  columns: [
-                    GridColumn(
-                      columnName: 'Select',
-                      width: 100,
-                      label: Container(
-                        color: Color(0xFFF3F4F8),
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.all(8.0),
-                        child: Checkbox(
-                          value: (logic.selectedRows.length == logic.list.length && logic.selectedRows.isNotEmpty),
-                          onChanged: (value) => logic.toggleSelectAll(),
-                          fillColor: WidgetStateProperty.resolveWith<Color>((states) {
-                            if (states.contains(WidgetState.selected)) {
-                              return Color(0xFFD43030); // Red background when checked
-                            }
-                            return Colors.white; // Optional color for unchecked state
-                          }),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                        ),
+                    scrollDirection: Axis.horizontal,
+                    child: SizedBox(
+                      width: 1700,
+                      child: SfDataGrid(
+                        source: TopicDataSource(logic: logic, context: context),
+                        headerGridLinesVisibility:
+                            GridLinesVisibility.values[1],
+                        gridLinesVisibility: GridLinesVisibility.values[1],
+                        columnWidthMode: ColumnWidthMode.fill,
+                        headerRowHeight: 50,
+                        rowHeight: 60,
+                        columns: [
+                          GridColumn(
+                            columnName: 'Select',
+                            width: 100,
+                            label: Container(
+                              color: Color(0xFFF3F4F8),
+                              alignment: Alignment.center,
+                              padding: const EdgeInsets.all(8.0),
+                              child: Checkbox(
+                                value: (logic.selectedRows.length ==
+                                        logic.list.length &&
+                                    logic.selectedRows.isNotEmpty),
+                                onChanged: (value) => logic.toggleSelectAll(),
+                                fillColor:
+                                    WidgetStateProperty.resolveWith<Color>(
+                                        (states) {
+                                  if (states.contains(WidgetState.selected)) {
+                                    return Color(
+                                        0xFFD43030); // Red background when checked
+                                  }
+                                  return Colors
+                                      .white; // Optional color for unchecked state
+                                }),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4)),
+                              ),
+                            ),
+                          ),
+                          ...logic.columns.map((column) => GridColumn(
+                                columnName: column.key,
+                                width: _getColumnWidth(column.key),
+                                label: Container(
+                                  color: Color(0xFFF3F4F8),
+                                  alignment: Alignment.center,
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    column.title,
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey[800]),
+                                  ),
+                                ),
+                              )),
+                          GridColumn(
+                            columnName: 'Actions',
+                            width: 140,
+                            label: Container(
+                              color: Color(0xFFF3F4F8),
+                              alignment: Alignment.center,
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                '操作',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 15),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    ...logic.columns.map((column) => GridColumn(
-                      columnName: column.key,
-                      width: _getColumnWidth(column.key),
-                      label: Container(
-                        color: Color(0xFFF3F4F8),
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          column.title,
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[800]),
-                        ),
-                      ),
-                    )),
-                    GridColumn(
-                      columnName: 'Actions',
-                      width: 140,
-                      label: Container(
-                        color: Color(0xFFF3F4F8),
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          '操作',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                        ),
-                      ),
+                  )),
+          ),
+          Obx(() => Padding(
+                padding: EdgeInsets.only(right: 50),
+                child: Column(
+                  children: [
+                    PaginationPage(
+                      uniqueId: 'topic_pagination',
+                      total: logic.total.value,
+                      changed: (int newSize, int newPage) {
+                        logic.find(newSize, newPage);
+                      },
                     ),
                   ],
                 ),
-              ),
-            )),
-          ),
-          Obx(() => Padding(
-            padding: EdgeInsets.only(right: 50),
-            child: Column(
-              children: [
-                PaginationPage(
-                  uniqueId: 'topic_pagination',
-                  total: logic.total.value,
-                  changed: (int newSize, int newPage) {
-                    logic.find(newSize, newPage);
-                  },
-                ),
-              ],
-            ),
-          )),
+              )),
           ThemeUtil.height(height: 30),
         ],
       ),
@@ -261,25 +275,26 @@ class TopicDataSource extends DataGridSource {
   final BuildContext context; // 增加 BuildContext 成员变量
   List<DataGridRow> _rows = [];
 
-  TopicDataSource({required this.logic, required this.context}) { // 构造函数中添加 context 参数
+  TopicDataSource({required this.logic, required this.context}) {
+    // 构造函数中添加 context 参数
     _buildRows();
   }
 
   void _buildRows() {
     _rows = logic.list
         .map((item) => DataGridRow(
-      cells: [
-        DataGridCell(
-          columnName: 'Select',
-          value: logic.selectedRows.contains(item['id']),
-        ),
-        ...logic.columns.map((column) => DataGridCell(
-          columnName: column.key,
-          value: item[column.key],
-        )),
-        DataGridCell(columnName: 'Actions', value: item),
-      ],
-    ))
+              cells: [
+                DataGridCell(
+                  columnName: 'Select',
+                  value: logic.selectedRows.contains(item['id']),
+                ),
+                ...logic.columns.map((column) => DataGridCell(
+                      columnName: column.key,
+                      value: item[column.key],
+                    )),
+                DataGridCell(columnName: 'Actions', value: item),
+              ],
+            ))
         .toList();
   }
 
@@ -343,24 +358,24 @@ class TopicDataSource extends DataGridSource {
                       ),
                       isOverflowing
                           ? TextButton(
-                        onPressed: () {
-                          CopyDialog.show(context, value);
-                        },
-                        child: Text("全文"),
-                      )
+                              onPressed: () {
+                                CopyDialog.show(context, value);
+                              },
+                              child: Text("全文"),
+                            )
                           : TextButton(
-                        onPressed: () async {
-                          await Clipboard.setData(
-                              ClipboardData(text: value));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text("复制成功"),
-                              duration: Duration(seconds: 2),
+                              onPressed: () async {
+                                await Clipboard.setData(
+                                    ClipboardData(text: value));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text("复制成功"),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                              child: Text("复制"),
                             ),
-                          );
-                        },
-                        child: Text("复制"),
-                      ),
                     ],
                   );
                 },
@@ -377,19 +392,42 @@ class TopicDataSource extends DataGridSource {
             );
           }
         }),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextButton(
-              onPressed: () => logic.edit(context, item), // 使用传递的 context
-              child: Text("编辑", style: TextStyle(color: Color(0xFFFD941D))),
-            ),
-            TextButton(
-              onPressed: () => logic.delete(item, rowIndex),
-              child: Text("删除", style: TextStyle(color: Color(0xFFFD941D))),
-            ),
-          ],
-        ),
+        if (item['status'] == 4)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center, // 将按钮左对齐
+            children: [
+              HoverTextButton(
+                text: "审核通过",
+                onTap: () => logic.audit(item['id'], 2),
+              ),
+              SizedBox(width: 5),
+              HoverTextButton(
+                text: "审核拒绝",
+                onTap: () => logic.audit(item['id'], 1),
+              ),// 控制按钮之间的间距
+            ],
+          ),
+        if (item['status'] != 4)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center, // 将按钮左对齐
+            children: [
+              HoverTextButton(
+                text: "编辑",
+                onTap: () => logic.edit(context, item),
+              ),
+              SizedBox(width: 5),
+              HoverTextButton(
+                text: "删除",
+                onTap: () => logic.delete(item, rowIndex),
+              ),
+              SizedBox(width: 5), // 控制按钮之间的间距
+              if (item['status'] == 1) // 假设 status 字段表示数据状态
+                HoverTextButton(
+                  text: "邀请",
+                  onTap: () => logic.generateAndOpenLink(context, item),
+                )
+            ],
+          )
       ],
     );
   }

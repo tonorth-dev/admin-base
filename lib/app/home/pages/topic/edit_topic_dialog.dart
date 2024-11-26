@@ -159,7 +159,6 @@ class _EditTopicDialogState extends State<TopicEditForm> {
                         onChanged: (dynamic newValue) {
                           logic.topicSelectedQuestionLevel.value =
                               newValue.toString();
-                          logic.applyFilters();
                         },
                       ),
                     ),

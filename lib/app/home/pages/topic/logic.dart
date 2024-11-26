@@ -14,6 +14,7 @@ import 'package:admin_flutter/component/form/enum.dart';
 import 'package:admin_flutter/component/form/form_data.dart';
 import 'package:admin_flutter/component/dialog.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../api/config_api.dart';
 import '../../../../api/major_api.dart';
 import '../../../../component/pagination/logic.dart';
@@ -500,6 +501,25 @@ class TopicLogic extends GetxController {
       });
     } catch (e) {
       "删除失败: $e".toHint();
+    }
+  }
+
+  Future<void> audit(int topicId, int status) async {
+    try {
+      await TopicApi.auditTopic(topicId, status);
+      "审核完成".toHint();
+      find(size.value, page.value);
+    } catch (e) {
+      "审核失败: $e".toHint();
+    }
+  }
+
+  void generateAndOpenLink(BuildContext context, Map<String, dynamic> item) async {
+    final url = Uri.parse('http://localhost:8888/static/h5/?topicId=${item['id']}');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('无法打开链接')));
     }
   }
 

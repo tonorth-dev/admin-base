@@ -78,7 +78,7 @@ class TopicApi {
         }
       }
 
-      return await HttpUtil.put("/admin/topic/topic/$id", params: params);
+      return await HttpUtil.put("/admin/topic/topic/$id?invite=1", params: params);
     } catch (e) {
       print('Error in topicCreate: $e');
       rethrow; // 重新抛出异常以便调用者处理
@@ -168,4 +168,13 @@ class TopicApi {
       rethrow; // 重新抛出异常以便调用者处理
     }
   }
+
+  static Future<dynamic> auditTopic(int topicId, int status) async {
+    try {
+      return await  HttpUtil.put('/admin/topic/topic/$topicId/audit_ret/$status');
+    } catch (e) {
+      throw Exception('审核请求失败: $e');
+    }
+  }
+
 }
