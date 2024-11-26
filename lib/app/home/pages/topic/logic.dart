@@ -38,6 +38,8 @@ class TopicLogic extends GetxController {
       GlobalKey<DropdownFieldState>();
   final GlobalKey<DropdownFieldState> levelDropdownKey =
       GlobalKey<DropdownFieldState>();
+  final GlobalKey<DropdownFieldState> statusDropdownKey =
+      GlobalKey<DropdownFieldState>();
 
   // 当前编辑的题目数据
   var currentEditTopic = RxMap<String, dynamic>({}).obs;
@@ -45,8 +47,15 @@ class TopicLogic extends GetxController {
 
   Rx<String?> selectedQuestionCate = '全部题型'.obs;
   Rx<String?> selectedQuestionLevel = '全部难度'.obs;
+  Rx<int?> selectedQuestionStatus = 0.obs;
   RxList<Map<String, dynamic>> questionCate = <Map<String, dynamic>>[].obs;
   RxList<Map<String, dynamic>> questionLevel = <Map<String, dynamic>>[].obs;
+  RxList<Map<String, dynamic>> questionStatus = <Map<String, dynamic>>[
+    {'id': 0, 'name': '全部'},
+    {'id': 1, 'name': '草稿'},
+    {'id': 2, 'name': '生效中'},
+    {'id': 4, 'name': '审核中'},
+  ].obs;
 
   // 专业列表数据
   List<Map<String, dynamic>> majorList = [];
@@ -123,7 +132,8 @@ class TopicLogic extends GetxController {
 
   Future<void> fetchMajors() async {
     try {
-      var response = await MajorApi.majorList(params: {'pageSize': 3000, 'page': 1});
+      var response =
+          await MajorApi.majorList(params: {'pageSize': 3000, 'page': 1});
       if (response != null && response["total"] > 0) {
         var dataList = response["list"] as List<dynamic>;
 
@@ -161,23 +171,34 @@ class TopicLogic extends GetxController {
           }
 
           // Add second-level category if it doesn't exist under this first-level category
-          if (subMajorMap[firstLevelId]?.any((m) => m['name'] == secondLevelName) != true) {
-            subMajorMap[firstLevelId]!.add({'id': secondLevelId, 'name': secondLevelName});
-            level2Items[firstLevelId]?.add({'id': secondLevelId, 'name': secondLevelName});
+          if (subMajorMap[firstLevelId]
+                  ?.any((m) => m['name'] == secondLevelName) !=
+              true) {
+            subMajorMap[firstLevelId]!
+                .add({'id': secondLevelId, 'name': secondLevelName});
+            level2Items[firstLevelId]
+                ?.add({'id': secondLevelId, 'name': secondLevelName});
             subSubMajorMap[secondLevelId] = [];
             level3Items[secondLevelId] = [];
-            level2IdToLevel1Id[secondLevelId] = firstLevelId; // Populate reverse lookup map
+            level2IdToLevel1Id[secondLevelId] =
+                firstLevelId; // Populate reverse lookup map
           }
 
           // Add third-level major if it doesn't exist under this second-level category
-          if (subSubMajorMap[secondLevelId]?.any((m) => m['name'] == thirdLevelName) != true) {
-            subSubMajorMap[secondLevelId]!.add({'id': thirdLevelId, 'name': thirdLevelName});
-            level3Items[secondLevelId]?.add({'id': thirdLevelId, 'name': thirdLevelName});
-            level3IdToLevel2Id[thirdLevelId] = secondLevelId; // Populate reverse lookup map
+          if (subSubMajorMap[secondLevelId]
+                  ?.any((m) => m['name'] == thirdLevelName) !=
+              true) {
+            subSubMajorMap[secondLevelId]!
+                .add({'id': thirdLevelId, 'name': thirdLevelName});
+            level3Items[secondLevelId]
+                ?.add({'id': thirdLevelId, 'name': thirdLevelName});
+            level3IdToLevel2Id[thirdLevelId] =
+                secondLevelId; // Populate reverse lookup map
           }
         }
 
         // Debug output
+        print("questionLevel:$questionLevel");
         print('majorList: $majorList');
         print('subMajorMap: $subMajorMap');
         print('subSubMajorMap: $subSubMajorMap');
@@ -215,6 +236,7 @@ class TopicLogic extends GetxController {
         "keyword": searchText.value.toString() ?? "",
         "cate": getSelectedCateId() ?? "",
         "level": getSelectedLevelId() ?? "",
+        "status": selectedQuestionStatus.value.toString(),
         "major_id": (selectedMajorId.value?.toString() ?? ""),
       }).then((value) async {
         if (value != null && value["list"] != null) {
@@ -338,8 +360,7 @@ class TopicLogic extends GetxController {
           initialMajorId: topic["major_id"].toString(),
           initialAuthor: topic["author"],
           initialTag: topic["tag"],
-          initialStatus: topic["status"]
-      ),
+          initialStatus: topic["status"]),
       onSubmit: (formData) {
         print('提交的数据: $formData');
       },
@@ -423,7 +444,7 @@ class TopicLogic extends GetxController {
     // 生成题本的逻辑
     final topicTitleSubmit = uTopicTitle.value;
     final int? topicSelectedMajorIdSubmit =
-    int.tryParse(uTopicSelectedMajorId.value);
+        int.tryParse(uTopicSelectedMajorId.value);
     final topicSelectedQuestionCateSubmit = uTopicSelectedQuestionCate.value;
     final topicSelectedQuestionLevelSubmit = uTopicSelectedQuestionLevel.value;
     final topicAnswerSubmit = uTopicAnswer.value;
@@ -514,12 +535,15 @@ class TopicLogic extends GetxController {
     }
   }
 
-  void generateAndOpenLink(BuildContext context, Map<String, dynamic> item) async {
-    final url = Uri.parse('http://localhost:8888/static/h5/?topicId=${item['id']}');
+  void generateAndOpenLink(
+      BuildContext context, Map<String, dynamic> item) async {
+    final url =
+        Uri.parse('http://localhost:8888/static/h5/?topicId=${item['id']}');
     if (await canLaunchUrl(url)) {
       await launchUrl(url);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('无法打开链接')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('无法打开链接')));
     }
   }
 
@@ -631,12 +655,12 @@ class TopicLogic extends GetxController {
           }
 
           // 解析 CSV 内容
-          List<List<dynamic>> rows = const CsvToListConverter().convert(content);
+          List<List<dynamic>> rows =
+              const CsvToListConverter().convert(content);
           rows.removeAt(0); // 移除表头
 
           // 调用 API 执行批量导入
-          await TopicApi.topicBatchImport(File(file.path!))
-              .then((value) {
+          await TopicApi.topicBatchImport(File(file.path!)).then((value) {
             "导入成功!".toHint();
             refresh();
           }).catchError((error) {
@@ -652,8 +676,6 @@ class TopicLogic extends GetxController {
       "导入失败: $e".toHint();
     }
   }
-
-
 
   void batchDelete(List<int> ids) {
     try {
@@ -708,6 +730,7 @@ class TopicLogic extends GetxController {
     return selectedQuestionLevel.value?.toString() ?? "";
   }
 
+
   void applyFilters() {
     // 这里可以添加应用过滤逻辑
     // print('Selected Major: ${selectedMajor.value}');
@@ -719,6 +742,7 @@ class TopicLogic extends GetxController {
     majorDropdownKey.currentState?.reset();
     cateDropdownKey.currentState?.reset();
     levelDropdownKey.currentState?.reset();
+    statusDropdownKey.currentState?.reset();
     searchText.value = '';
     selectedRows.clear();
 

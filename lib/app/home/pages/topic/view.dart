@@ -63,22 +63,35 @@ class TopicPage extends StatelessWidget {
                 items: logic.questionCate.toList(),
                 hint: '选择题型',
                 label: true,
-                width: 120,
+                width: 110,
                 height: 34,
                 onChanged: (dynamic newValue) {
                   logic.selectedQuestionCate.value = newValue.toString();
                 },
               ),
-              SizedBox(width: 12),
+              SizedBox(width: 8),
               DropdownField(
                 key: logic.levelDropdownKey,
                 items: logic.questionLevel.toList(),
                 hint: '选择难度',
                 label: true,
-                width: 120,
+                width: 110,
                 height: 34,
                 onChanged: (dynamic newValue) {
                   logic.selectedQuestionLevel.value = newValue.toString();
+                  logic.applyFilters();
+                },
+              ),
+              SizedBox(width: 8),
+              DropdownField(
+                key: logic.statusDropdownKey,
+                items: logic.questionStatus.toList(),
+                hint: '选择状态',
+                label: true,
+                width: 110,
+                height: 34,
+                onChanged: (dynamic newValue) {
+                  logic.selectedQuestionStatus.value = newValue.toInt();
                   logic.applyFilters();
                 },
               ),
@@ -95,7 +108,7 @@ class TopicPage extends StatelessWidget {
                     } else {
                       return CascadingDropdownField(
                         key: logic.majorDropdownKey,
-                        width: 160,
+                        width: 110,
                         height: 34,
                         hint1: '专业类目一',
                         hint2: '专业类目二',
@@ -122,7 +135,7 @@ class TopicPage extends StatelessWidget {
                 },
                 searchText: logic.searchText,
               ),
-              SizedBox(width: 26),
+              SizedBox(width: 10),
               SearchButtonWidget(
                 key: Key('search'),
                 onPressed: () {
@@ -130,7 +143,7 @@ class TopicPage extends StatelessWidget {
                   logic.find(logic.size.value, logic.page.value);
                 },
               ),
-              SizedBox(width: 10),
+              SizedBox(width: 8),
               ResetButtonWidget(
                 key: Key('reset'),
                 onPressed: () {

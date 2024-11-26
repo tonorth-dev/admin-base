@@ -21,6 +21,7 @@ class TopicApi {
         'keyword': handleNullOrEmpty(params['keyword']),
         'cate': handleNullOrEmpty(params['cate']),
         'level': handleNullOrEmpty(params['level']),
+        'status': handleNullOrEmpty(params['status']),
         'major_id': handleNullOrEmpty(params['major_id']),
       };
 
