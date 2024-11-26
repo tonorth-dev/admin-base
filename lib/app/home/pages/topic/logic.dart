@@ -370,8 +370,7 @@ class TopicLogic extends GetxController {
   Future<bool> saveTopic() async {
     // 生成题本的逻辑
     final topicTitleSubmit = topicTitle.value;
-    final int? topicSelectedMajorIdSubmit =
-        int.tryParse(topicSelectedMajorId.value);
+    final int topicSelectedMajorIdSubmit = topicSelectedMajorId.value.toInt();
     final topicSelectedQuestionCateSubmit = topicSelectedQuestionCate.value;
     final topicSelectedQuestionLevelSubmit = topicSelectedQuestionLevel.value;
     final topicAnswerSubmit = topicAnswer.value;
@@ -386,7 +385,7 @@ class TopicLogic extends GetxController {
       isValid = false;
       errorMessage += "问题提干不能为空\n";
     }
-    if (topicSelectedMajorIdSubmit == null || topicSelectedMajorIdSubmit <= 0) {
+    if (topicSelectedMajorIdSubmit == 0 || topicSelectedMajorIdSubmit <= 0) {
       isValid = false;
       errorMessage += "请选择专业\n";
     }
@@ -443,8 +442,7 @@ class TopicLogic extends GetxController {
   Future<bool> updateTopic(int topicId) async {
     // 生成题本的逻辑
     final topicTitleSubmit = uTopicTitle.value;
-    final int? topicSelectedMajorIdSubmit =
-        int.tryParse(uTopicSelectedMajorId.value);
+    final topicSelectedMajorIdSubmit = uTopicSelectedMajorId.value.toInt();
     final topicSelectedQuestionCateSubmit = uTopicSelectedQuestionCate.value;
     final topicSelectedQuestionLevelSubmit = uTopicSelectedQuestionLevel.value;
     final topicAnswerSubmit = uTopicAnswer.value;
@@ -464,7 +462,7 @@ class TopicLogic extends GetxController {
       isValid = false;
       errorMessage += "问题提干不能为空\n";
     }
-    if (topicSelectedMajorIdSubmit == null || topicSelectedMajorIdSubmit <= 0) {
+    if (topicSelectedMajorIdSubmit <= 0) {
       isValid = false;
       errorMessage += "请选择专业\n";
     }

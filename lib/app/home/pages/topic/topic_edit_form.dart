@@ -56,7 +56,6 @@ class _EditTopicDialogState extends State<TopicEditForm> {
     print(widget.initialStatus);
     super.initState();
     logic.uTopicTitle.value = widget.initialTitle;
-    logic.uTopicAnswer.value = widget.initialAnswer;
     logic.uTopicSelectedQuestionCate.value = widget.initialQuestionCate;
     logic.uTopicSelectedQuestionLevel.value = widget.initialQuestionLevel;
     logic.uTopicSelectedMajorId.value = widget.initialMajorId;
@@ -188,13 +187,15 @@ class _EditTopicDialogState extends State<TopicEditForm> {
                         level2Items: logic.level2Items,
                         level3Items: logic.level3Items,
                         selectedLevel1: logic
-                            .getLevel1IdFromLevel2Id(widget.initialMajorId),
+                            .getLevel1IdFromLevel2Id(logic
+                            .getLevel2IdFromLevel3Id(widget.initialMajorId)),
                         selectedLevel2: logic
                             .getLevel2IdFromLevel3Id(widget.initialMajorId),
                         selectedLevel3: widget.initialMajorId,
                         onChanged:
                             (dynamic level1, dynamic level2, dynamic level3) {
-                          logic.topicSelectedMajorId.value = level3.toString();
+                          print("level1: $level1, level2: $level2, level3: $level3");
+                          logic.uTopicSelectedMajorId.value = level3.toString();
                           // 这里可以处理选择的 id
                         },
                       ),
