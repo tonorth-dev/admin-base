@@ -22,7 +22,7 @@ import '../../../../component/table/table_data.dart';
 import '../../../../component/widget.dart';
 import '../../config/logic.dart';
 import 'topic_add_form.dart';
-import 'edit_topic_dialog.dart';
+import 'topic_edit_form.dart';
 
 class TopicLogic extends GetxController {
   var list = <Map<String, dynamic>>[].obs;

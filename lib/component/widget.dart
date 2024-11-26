@@ -124,7 +124,8 @@ class DropdownField extends StatefulWidget {
   DropdownFieldState createState() => DropdownFieldState();
 }
 
-class DropdownFieldState extends State<DropdownField> with WidgetsBindingObserver {
+class DropdownFieldState extends State<DropdownField>
+    with WidgetsBindingObserver {
   final FocusNode _focusNode = FocusNode();
   dynamic selectedValue; // 修改为 dynamic 类型
   bool _isSelected = false;
@@ -232,7 +233,8 @@ class DropdownFieldState extends State<DropdownField> with WidgetsBindingObserve
                   decoration: InputDecoration(
                     labelText: widget.label == true ? widget.hint : null,
                     border: OutlineInputBorder(),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     enabledBorder: OutlineInputBorder(
                       borderSide: const BorderSide(
                         color: Colors.grey,
@@ -242,13 +244,19 @@ class DropdownFieldState extends State<DropdownField> with WidgetsBindingObserve
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: _focusNode.hasFocus ? const Color(0xFF25B7E8) : Colors.grey,
+                        color: _focusNode.hasFocus
+                            ? const Color(0xFF25B7E8)
+                            : Colors.grey,
                         width: _focusNode.hasFocus ? 1 : 0.5,
                       ),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    focusColor: _focusNode.hasFocus ? const Color(0xFF25B7E8) : Colors.transparent,
-                    hoverColor: isHovered ? const Color(0xFF25B7E8) : Colors.transparent,
+                    focusColor: _focusNode.hasFocus
+                        ? const Color(0xFF25B7E8)
+                        : Colors.transparent,
+                    hoverColor: isHovered
+                        ? const Color(0xFF25B7E8)
+                        : Colors.transparent,
                     fillColor: _isSelected ? Colors.white : Colors.transparent,
                     filled: true,
                   ),
@@ -320,16 +328,19 @@ class CascadingDropdownFieldState extends State<CascadingDropdownField> {
     }
     if (widget.selectedLevel2 != null && selectedLevel1 != null) {
       selectedLevel2 = widget.selectedLevel2;
-      _level2Controller.text = _getNameById(widget.level2Items[selectedLevel1.toString()] ?? [], selectedLevel2);
+      _level2Controller.text = _getNameById(
+          widget.level2Items[selectedLevel1.toString()] ?? [], selectedLevel2);
     }
     if (widget.selectedLevel3 != null && selectedLevel2 != null) {
       selectedLevel3 = widget.selectedLevel3;
-      _level3Controller.text = _getNameById(widget.level3Items[selectedLevel2.toString()] ?? [], selectedLevel3);
+      _level3Controller.text = _getNameById(
+          widget.level3Items[selectedLevel2.toString()] ?? [], selectedLevel3);
     }
   }
 
   String _getNameById(List<Map<String, dynamic>> items, dynamic id) {
-    final item = items.firstWhere((element) => element['id'] == id, orElse: () => {});
+    final item =
+        items.firstWhere((element) => element['id'] == id, orElse: () => {});
     return item['name'] ?? '';
   }
 
@@ -392,7 +403,9 @@ class CascadingDropdownFieldState extends State<CascadingDropdownField> {
           controller: _level2Controller,
           focusNode: _level2FocusNode,
           hint: widget.hint2,
-          items: selectedLevel1 != null ? widget.level2Items[selectedLevel1.toString()] ?? [] : [],
+          items: selectedLevel1 != null
+              ? widget.level2Items[selectedLevel1.toString()] ?? []
+              : [],
           onSuggestionSelected: _onLevel2Changed,
         ),
         SizedBox(width: 8),
@@ -400,7 +413,9 @@ class CascadingDropdownFieldState extends State<CascadingDropdownField> {
           controller: _level3Controller,
           focusNode: _level3FocusNode,
           hint: widget.hint3,
-          items: selectedLevel2 != null ? widget.level3Items[selectedLevel2.toString()] ?? [] : [],
+          items: selectedLevel2 != null
+              ? widget.level3Items[selectedLevel2.toString()] ?? []
+              : [],
           onSuggestionSelected: _onLevel3Changed,
         ),
       ],
@@ -424,12 +439,16 @@ class CascadingDropdownFieldState extends State<CascadingDropdownField> {
           decoration: InputDecoration(
             labelText: hint,
             border: OutlineInputBorder(),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           ),
         ),
         suggestionsCallback: (pattern) {
           if (pattern.isEmpty) return items;
-          return items.where((item) => item['name'].toLowerCase().contains(pattern.toLowerCase())).toList();
+          return items
+              .where((item) =>
+                  item['name'].toLowerCase().contains(pattern.toLowerCase()))
+              .toList();
         },
         itemBuilder: (context, suggestion) {
           return ListTile(title: Text(suggestion['name']));
@@ -451,7 +470,6 @@ class CascadingDropdownFieldState extends State<CascadingDropdownField> {
     super.dispose();
   }
 }
-
 
 class SearchBoxWidget extends StatefulWidget {
   final String hint;
@@ -521,7 +539,8 @@ class _SearchBoxWidgetState extends State<SearchBoxWidget> {
             ),
             filled: true,
             fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           ),
           onEditingComplete: () {
             widget.searchText.value = _controller.text;
@@ -602,12 +621,13 @@ class ResetButtonWidget extends StatelessWidget {
   }
 }
 
-
 class SearchAndButtonWidget extends StatelessWidget {
   final String hint;
   final VoidCallback onSearch;
 
-  const SearchAndButtonWidget({Key? key, required this.onSearch, required this.hint}) : super(key: key);
+  const SearchAndButtonWidget(
+      {Key? key, required this.onSearch, required this.hint})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -626,7 +646,8 @@ class SearchAndButtonWidget extends StatelessWidget {
             child: TextField(
               key: const Key('search_box'),
               decoration: InputDecoration(
-                hintText: hint, hintStyle: const TextStyle(
+                hintText: hint,
+                hintStyle: const TextStyle(
                   color: Color(0xFF999999),
                   fontSize: 12,
                   fontFamily: 'PingFang SC',
@@ -638,7 +659,8 @@ class SearchAndButtonWidget extends StatelessWidget {
                 ),
                 filled: true,
                 fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               ),
               onSubmitted: (value) => onSearch(),
             ),
@@ -651,7 +673,7 @@ class SearchAndButtonWidget extends StatelessWidget {
               color: Color(0xFFD43030),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
-                side: BorderSide(width: 1, color:Colors.grey),
+                side: BorderSide(width: 1, color: Colors.grey),
               ),
             ),
             child: TextButton(
@@ -675,9 +697,9 @@ class SearchAndButtonWidget extends StatelessWidget {
 }
 
 class TextInputWidget extends StatefulWidget {
-  final String hint;
-  final ValueChanged<String> onTextChanged;
-  final RxString text;
+  final String hint; // 提示文本
+  final ValueChanged<String> onTextChanged; // 输入变化时的回调
+  final RxString text; // 用于绑定和监听的文本
   final double width; // 动态宽度
   final double height; // 动态高度
   final int maxLines; // 最大行数
@@ -705,11 +727,6 @@ class _TextInputWidgetState extends State<TextInputWidget> {
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.text.value);
-    widget.text.listen((value) {
-      if (_controller.text != value) {
-        _controller.text = value;
-      }
-    });
   }
 
   @override
@@ -721,42 +738,57 @@ class _TextInputWidgetState extends State<TextInputWidget> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: widget.height,
+      height: widget.height, // 动态高度
       width: widget.width, // 动态宽度
-      child: TextFormField(
-        key: const Key('text_input_box'),
-        controller: _controller,
-        decoration: InputDecoration(
-          hintText: widget.hint,
-          hintStyle: const TextStyle(
-            color: Color(0xFF999999),
-            fontSize: 12,
-            fontFamily: 'PingFang SC',
-            fontWeight: FontWeight.w400,
+      child: Obx(() {
+        // 同步 RxString 和 TextEditingController 的内容
+        if (_controller.text != widget.text.value) {
+          _controller.text = widget.text.value;
+          _controller.selection = TextSelection.collapsed(offset: _controller.text.length);
+        }
+
+        return TextFormField(
+          key: const Key('text_input_box'), // 唯一Key
+          controller: _controller,
+          decoration: InputDecoration(
+            hintText: widget.hint, // 提示文本
+            hintStyle: const TextStyle(
+              color: Color(0xFF999999),
+              fontSize: 12,
+              fontFamily: 'PingFang SC',
+              fontWeight: FontWeight.w400,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(3), // 圆角
+              borderSide: const BorderSide(color: Colors.grey, width: 1.0),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(3),
+              borderSide: const BorderSide(color: Colors.grey, width: 1.0), // 非聚焦边框
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(3),
+              borderSide: const BorderSide(color: Colors.grey, width: 1.0), // 聚焦边框
+            ),
+            filled: true,
+            fillColor: Colors.white, // 背景填充色
+            contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(3), // 圆角
-            borderSide: const BorderSide(color: Colors.grey, width: 1.0),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(3),
-            borderSide: const BorderSide(color: Colors.grey, width: 1.0), // 失焦状态下的边框
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(3),
-            borderSide: const BorderSide(color: Colors.grey, width: 1.0), // 聚焦状态下的边框
-          ),
-          filled: true,
-          fillColor: Colors.white, // 背景填充色
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        ),
-        onChanged: widget.onTextChanged, // 输入时回调
-        maxLines: widget.maxLines, // 设置最大行数
-        validator: widget.validator, // 使用验证器
-      ),
+          onChanged: (value) {
+            if (widget.text.value != value) {
+              widget.text.value = value; // 更新 RxString
+              widget.onTextChanged(value); // 输入变化时回调
+            }
+          },
+          maxLines: widget.maxLines, // 设置最大行数
+          validator: widget.validator, // 使用验证器
+        );
+      }),
     );
   }
 }
+
 
 class NumberInputWidget extends StatefulWidget {
   final String hint;
@@ -788,7 +820,8 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.selectedValue.value.toString());
+    _controller =
+        TextEditingController(text: widget.selectedValue.value.toString());
     _focusNode = FocusNode();
 
     // 监听输入框内容变化，同步到 RxInt 和回调
@@ -828,7 +861,8 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
         });
       } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
         setState(() {
-          widget.selectedValue.value = (value - 1).clamp(0, double.infinity).toInt(); // 按下键减少 1，不小于 0
+          widget.selectedValue.value =
+              (value - 1).clamp(0, double.infinity).toInt(); // 按下键减少 1，不小于 0
         });
       }
       _controller.text = widget.selectedValue.value.toString();
@@ -840,7 +874,8 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
   }
 
   void _showNumberPicker() {
-    final RenderBox renderBox = _inputKey.currentContext!.findRenderObject() as RenderBox;
+    final RenderBox renderBox =
+        _inputKey.currentContext!.findRenderObject() as RenderBox;
     final Offset offset = renderBox.localToGlobal(Offset.zero);
     final Size size = renderBox.size;
 
@@ -877,8 +912,10 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
                         _removeOverlay(); // 选中后关闭下拉列表
                       },
                       child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                        child: Text(value.toString(), style: TextStyle(fontSize: 14)),
+                        padding:
+                            EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                        child: Text(value.toString(),
+                            style: TextStyle(fontSize: 14)),
                       ),
                     );
                   },
@@ -948,7 +985,6 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
   }
 }
 
-
 class SelectableList extends StatefulWidget {
   final Key key;
   final RxList<Map<String, dynamic>> items;
@@ -982,17 +1018,22 @@ class SelectableListState extends State<SelectableList> {
           itemBuilder: (context, index) {
             final item = widget.items[index];
             return Card(
-              margin: EdgeInsets.symmetric(horizontal: 8, vertical: 2), // 减小卡片间距
+              margin: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              // 减小卡片间距
               elevation: 2,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(2.0), // 增大圆角
               ),
-              color: selectedIndex == index ? Colors.blueGrey[200] : Colors.white,
+              color:
+                  selectedIndex == index ? Colors.blueGrey[200] : Colors.white,
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4), // 减小内容内边距
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                // 减小内容内边距
                 child: ListTile(
-                  enableFeedback: false, // 禁用点击动效
-                  dense: true, // 使 ListTile 更紧凑
+                  enableFeedback: false,
+                  // 禁用点击动效
+                  dense: true,
+                  // 使 ListTile 更紧凑
                   onTap: () {
                     setState(() {
                       selectedIndex = index;
@@ -1008,7 +1049,8 @@ class SelectableListState extends State<SelectableList> {
                         _deleteItem(index);
                       }
                     },
-                    itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                    itemBuilder: (BuildContext context) =>
+                        <PopupMenuEntry<String>>[
                       PopupMenuItem<String>(
                         value: "Delete",
                         child: Text("删除"),
@@ -1029,7 +1071,8 @@ class SelectableListState extends State<SelectableList> {
       context: context,
       builder: (context) {
         final item = widget.items[index];
-        TextEditingController _controller = TextEditingController(text: item['name']);
+        TextEditingController _controller =
+            TextEditingController(text: item['name']);
         return AlertDialog(
           title: Text("编辑项目"),
           content: TextField(
@@ -1070,9 +1113,11 @@ class SelectableListState extends State<SelectableList> {
           selectedIndex = -1; // 如果删除的是当前选中的项，重置选中状态
         }
       });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("删除成功")));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("删除成功")));
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("删除失败: $error")));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("删除失败: $error")));
     }
   }
 }
@@ -1174,17 +1219,3 @@ class _HoverTextButtonState extends State<HoverTextButton> {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

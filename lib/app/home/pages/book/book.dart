@@ -301,7 +301,8 @@ class _BookPageState extends State<BookPage> {
                     }
                   },
                   onSelected: (Map<String, dynamic> item) {
-                    print("Item with ID ${item['id']} and name ${item['name']} is selected");
+                    print("Item with ID ${item['id']} and $item is selected");
+                    widget.logic.fillTemplate(item);
                   },
                 ),
               ),
@@ -352,9 +353,9 @@ class _BookPageState extends State<BookPage> {
                         width: 240,
                         height: 34,
                         hint: "输入题本名称",
-                        text: widget.logic.bookName,
+                        text: widget.logic.bookName, // 直接传递 RxString
                         onTextChanged: (value) {
-                          widget.logic.bookName.value = value;
+                          widget.logic.bookName.value = value; // 更新逻辑
                         },
                       ),
                     ],
@@ -413,7 +414,7 @@ class _BookPageState extends State<BookPage> {
                                   "${item['name']}：",
                                   style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
                                 ),
-                                NumberInputWidget(
+                            NumberInputWidget(
                                   key: Key(item['id']),
                                   width: 90,
                                   height: 34,
@@ -460,6 +461,7 @@ class _BookPageState extends State<BookPage> {
                           widget.logic.bookSelectedQuestionLevel.value = newValue.toString();
                           widget.logic.applyFilters();
                         },
+                        value: widget.logic.bookSelectedQuestionLevel.value,
                       ),
                     ],
                   ),
@@ -479,11 +481,11 @@ class _BookPageState extends State<BookPage> {
                         width: 90,
                         height: 34,
                         hint: "0",
-                        selectedValue: 0.obs,
+                        selectedValue: widget.logic.bookQuestionCount.value.obs,
                         onValueChanged: (value) {
                           widget.logic.bookQuestionCount.value = value.toInt();
                         },
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -499,7 +501,6 @@ class _BookPageState extends State<BookPage> {
                     await widget.logic.fetchTemplates();
                     print('测试');
                     refresh();
-
                   },
                   child: Text("保存模板"),
                 ),

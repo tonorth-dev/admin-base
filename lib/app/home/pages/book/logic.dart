@@ -585,6 +585,28 @@ class BookLogic extends GetxController {
     }
   }
 
+  void fillTemplate(Map<String, dynamic> item) {
+    // 填充数据到表单
+    bookName.value = item['name'];
+    bookSelectedMajorId.value = item['major_id'].toString();
+    bookSelectedQuestionLevel.value = item['level_name'];
+    bookQuestionCount.value = item['unit_number'];
+
+    // 更新题型数量
+    for (var comp in item['component']) {
+      final key = comp['key'];
+      questionCate.value = questionCate.value.map((e) {
+        if (e['id'] == key) {
+          return {
+            ...e,
+            'value': comp['number'],
+          };
+        }
+        return e;
+      }).toList();
+    }
+  }
+
   void deleteTemplate(Map<String, dynamic> d) async {
     try {
       await TemplateApi.templateDelete(d["id"]);
