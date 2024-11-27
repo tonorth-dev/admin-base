@@ -87,6 +87,7 @@ class _TopicAddFormState extends State<TopicAddForm> {
                       label: true,
                       width: 120,
                       height: 34,
+                      selectedValue: logic.topicSelectedQuestionCate,
                       onChanged: (dynamic newValue) {
                         logic.topicSelectedQuestionCate.value =
                             newValue.toString();
@@ -115,6 +116,7 @@ class _TopicAddFormState extends State<TopicAddForm> {
                       label: true,
                       width: 120,
                       height: 34,
+                      selectedValue: logic.topicSelectedQuestionLevel,
                       onChanged: (dynamic newValue) {
                         logic.topicSelectedQuestionLevel.value =
                             newValue.toString();

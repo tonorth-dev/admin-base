@@ -93,6 +93,7 @@ class _BookPageState extends State<BookPage> {
                 hint: '选择难度',
                 width: 120,
                 height: 34,
+                selectedValue: widget.logic.selectedQuestionLevel,
                 onChanged: (dynamic newValue) {
                   widget.logic.selectedQuestionLevel.value =
                       newValue.toString();
@@ -505,7 +506,7 @@ class _BookPageState extends State<BookPage> {
                           widget.logic.bookSelectedQuestionLevel.value = newValue.toString();
                           widget.logic.applyFilters();
                         },
-                        // value: widget.logic.bookSelectedQuestionLevel.value,
+                        selectedValue: widget.logic.bookSelectedQuestionLevel,
                       ),
                     ],
                   ),
@@ -542,16 +543,17 @@ class _BookPageState extends State<BookPage> {
               children: [
                 ElevatedButton(
                   onPressed: () async {
-                    await widget.logic.saveTemplate();
-                    await widget.logic.fetchTemplates();
-                    refresh();
+                    final result = await widget.logic.saveTemplate();
+                    if(result) {
+                      await widget.logic.fetchTemplates();
+                      refresh();
+                    }
                   },
                   child: Text("保存模板"),
                 ),
                 ElevatedButton(
                   onPressed: () async {
                     await widget.logic.saveBook();
-                    refresh();
                   },
                   child: Text("生成题本"),
                 ),

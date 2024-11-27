@@ -43,8 +43,8 @@ class BookLogic extends GetxController {
   var currentEditBook = RxMap<String, dynamic>({}).obs;
   RxList<int> selectedRows = <int>[].obs;
 
-  Rx<String?> selectedQuestionCate = '全部题型'.obs;
-  Rx<String?> selectedQuestionLevel = '全部难度'.obs;
+  ValueNotifier<String?> selectedQuestionCate = ValueNotifier<String?>(null);
+  ValueNotifier<String?> selectedQuestionLevel = ValueNotifier<String?>(null);
   RxList<Map<String, dynamic>> questionCate = <Map<String, dynamic>>[].obs;
   RxList<Map<String, dynamic>> questionLevel = <Map<String, dynamic>>[].obs;
   RxList<Map<String, dynamic>> templateList = <Map<String, dynamic>>[].obs;
@@ -62,7 +62,7 @@ class BookLogic extends GetxController {
   final bookQuestionCount = 0.obs;
   final bookSelectedMajorId = "0".obs;
   final bookSelectedQuestionCate = "".obs;
-  final bookSelectedQuestionLevel = "".obs;
+  ValueNotifier<String?> bookSelectedQuestionLevel = ValueNotifier<String?>(null);
   final Map<String, RxInt> cateSelectedValues = {};
 
   Future<void> fetchConfigs() async {
@@ -492,7 +492,7 @@ class BookLogic extends GetxController {
     //   isValid = false;
     //   errorMessage += "请选择题型\n";
     // }
-    if (bookSelectedQuestionLevelSubmit.isEmpty) {
+    if (bookSelectedQuestionLevelSubmit == null || bookSelectedQuestionLevelSubmit.isEmpty) {
       isValid = false;
       errorMessage += "请选择难度\n";
     }
@@ -544,7 +544,7 @@ class BookLogic extends GetxController {
     }
   }
 
-  Future<void> saveTemplate() async {
+  Future<bool> saveTemplate() async {
     // 生成题本的逻辑
     final bookNameSubmit = bookName.value;
     final int bookSelectedMajorIdSubmit = bookSelectedMajorId.value.toInt();
@@ -562,7 +562,7 @@ class BookLogic extends GetxController {
       isValid = false;
       errorMessage += "请选择专业\n";
     }
-    if (bookSelectedQuestionLevelSubmit.isEmpty) {
+    if (bookSelectedQuestionLevelSubmit == null || bookSelectedQuestionLevelSubmit.isEmpty) {
       isValid = false;
       errorMessage += "请选择难度\n";
     }
@@ -606,14 +606,19 @@ class BookLogic extends GetxController {
         dynamic result = await TemplateApi.templateCreate(params);
         templateSaved.value = true;
         "保存模板成功".toHint();
+        return true; // 操作成功
       } catch (e) {
         print('Error: $e');
+        "保存模板失败: $e".toHint();
+        return false; // 操作失败
       }
     } else {
       // 显示错误提示
       errorMessage.toHint();
+      return false; // 操作失败
     }
   }
+
 
   void fillTemplate(Map<String, dynamic> item) {
     // 填充数据到表单
@@ -626,7 +631,7 @@ class BookLogic extends GetxController {
     majorSelectedLevel3.value = item["major_id"].toString();
     bookSelectedMajorId.value = item["major_id"].toString();
 
-    bookSelectedQuestionLevel.value = "simple";
+    bookSelectedQuestionLevel.value = item['level'];
     bookQuestionCount.value = item['unit_number'];
 
     // 更新题型数量

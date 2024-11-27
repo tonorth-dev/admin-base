@@ -9,8 +9,8 @@ class TopicEditForm extends StatefulWidget {
   final int topicId;
   final String initialTitle;
   final String initialAnswer;
-  final String initialQuestionCate;
-  final String initialQuestionLevel;
+  ValueNotifier<String?> initialQuestionCate;
+  ValueNotifier<String?> initialQuestionLevel;
   final String initialLevel1MajorId;
   final String initialLevel2MajorId;
   final String initialMajorId;
@@ -56,8 +56,8 @@ class _EditTopicDialogState extends State<TopicEditForm> {
     print(widget.initialStatus);
     super.initState();
     logic.uTopicTitle.value = widget.initialTitle;
-    logic.uTopicSelectedQuestionCate.value = widget.initialQuestionCate;
-    logic.uTopicSelectedQuestionLevel.value = widget.initialQuestionLevel;
+    logic.uTopicSelectedQuestionCate.value = widget.initialQuestionCate as String;
+    logic.uTopicSelectedQuestionLevel.value = widget.initialQuestionLevel as String;
     logic.uTopicSelectedMajorId.value = widget.initialMajorId;
     logic.uTopicAnswer.value = widget.initialAnswer;
     logic.uTopicAuthor.value = widget.initialAuthor;
@@ -125,7 +125,7 @@ class _EditTopicDialogState extends State<TopicEditForm> {
                         label: true,
                         width: 120,
                         height: 34,
-                        value: widget.initialQuestionCate,
+                        selectedValue: widget.initialQuestionCate,
                         onChanged: (dynamic newValue) {
                           logic.topicSelectedQuestionCate.value =
                               newValue.toString();
@@ -154,7 +154,7 @@ class _EditTopicDialogState extends State<TopicEditForm> {
                         label: true,
                         width: 120,
                         height: 34,
-                        value: widget.initialQuestionLevel,
+                        selectedValue: widget.initialQuestionLevel,
                         onChanged: (dynamic newValue) {
                           logic.topicSelectedQuestionLevel.value =
                               newValue.toString();

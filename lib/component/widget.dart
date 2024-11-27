@@ -1,10 +1,8 @@
 import 'dart:ui';
 
-import 'package:admin_flutter/ex/ex_hint.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_material_pickers/helpers/show_number_picker.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:flutter/services.dart';
@@ -107,8 +105,8 @@ class DropdownField extends StatefulWidget {
   final String hint;
   final bool? label;
   final List<Map<String, dynamic>> items; // 修改为 Map 列表
-  final dynamic value; // 修改为 dynamic 类型
-  final Function(dynamic)? onChanged; // 修改为 dynamic 类型
+  final ValueNotifier<String?> selectedValue; // 使用 ValueNotifier 来管理选中的值
+  final void Function(String?)? onChanged; // 修改为 String? 类型
 
   const DropdownField({
     Key? key,
@@ -116,8 +114,8 @@ class DropdownField extends StatefulWidget {
     required this.height,
     required this.hint,
     required this.items,
+    required this.selectedValue, // 必须传入一个 ValueNotifier
     this.label,
-    this.value,
     this.onChanged,
   }) : super(key: key);
 
@@ -127,63 +125,39 @@ class DropdownField extends StatefulWidget {
 
 class DropdownFieldState extends State<DropdownField> with WidgetsBindingObserver {
   final FocusNode _focusNode = FocusNode();
-  dynamic selectedValue; // 修改为 dynamic 类型
-  bool _isSelected = false;
   final ValueNotifier<bool> _isHovered = ValueNotifier<bool>(false);
 
   @override
   void initState() {
     super.initState();
     _focusNode.addListener(_onFocusChange);
-    WidgetsBinding.instance.addObserver(this);
-    selectedValue = widget.value;
-  }
-
-  @override
-  void didUpdateWidget(DropdownField oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.value != widget.value) {
-      setState(() {
-        selectedValue = widget.value;
-        _isSelected = selectedValue != null;
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _focusNode.removeListener(_onFocusChange);
-    WidgetsBinding.instance.removeObserver(this);
-    _focusNode.dispose();
-    _isHovered.dispose();
-    super.dispose();
+    widget.selectedValue.addListener(_updateSelectedValue); // 监听 selectedValue 的变化
   }
 
   void _onFocusChange() {
     if (!_focusNode.hasFocus) {
       _isHovered.value = false;
-      _isSelected = false;
-      selectedValue = null;
     }
     setState(() {});
   }
 
+  void _updateSelectedValue() {
+    // 当 selectedValue 变化时更新 UI
+    setState(() {});
+  }
+
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      if (!_focusNode.hasFocus) {
-        setState(() {
-          selectedValue = null;
-          _isSelected = false;
-        });
-      }
-    }
+  void dispose() {
+    _focusNode.removeListener(_onFocusChange);
+    _focusNode.dispose();
+    _isHovered.dispose();
+    widget.selectedValue.removeListener(_updateSelectedValue); // 移除监听
+    super.dispose();
   }
 
   void reset() {
     setState(() {
-      selectedValue = null;
-      _isSelected = false;
+      widget.selectedValue.value = null;
     });
     widget.onChanged?.call(null);
   }
@@ -194,86 +168,75 @@ class DropdownFieldState extends State<DropdownField> with WidgetsBindingObserve
       onTap: () {
         FocusScope.of(context).unfocus();
       },
-      child: FocusScope(
-        node: FocusScopeNode(),
-        child: MouseRegion(
-          onEnter: (_) => _isHovered.value = true,
-          onExit: (_) => _isHovered.value = false,
-          child: ValueListenableBuilder<bool>(
-            valueListenable: _isHovered,
-            builder: (context, isHovered, _) {
-              // 确保 selectedValue 存在于 items 中
-              final hasSelectedValue = widget.items.any((item) => item['id'] == selectedValue);
-              final effectiveValue = hasSelectedValue ? selectedValue : null;
+      child: MouseRegion(
+        onEnter: (_) => _isHovered.value = true,
+        onExit: (_) => _isHovered.value = false,
+        child: ValueListenableBuilder<bool>(
+          valueListenable: _isHovered,
+          builder: (context, isHovered, _) {
+            // 确保 selectedValue 存在于 items 中
+            final hasSelectedValue = widget.items.any((item) => item['id'] == widget.selectedValue.value);
+            final effectiveValue = hasSelectedValue ? widget.selectedValue.value : null;
 
-              return SizedBox(
-                width: widget.width,
-                height: widget.height,
-                child: DropdownButtonFormField<dynamic>(
-                  focusNode: _focusNode,
-                  value: effectiveValue, // 使用 effectiveValue 而不是直接使用 selectedValue
-                  hint: effectiveValue == null ? Text(widget.hint) : null,
-                  onChanged: (dynamic newValue) {
-                    setState(() {
-                      selectedValue = newValue;
-                      _isSelected = newValue != null;
-                    });
-                    if (widget.onChanged != null) {
-                      widget.onChanged!(newValue);
-                    }
-                  },
-                  items: widget.items.map((item) {
-                    return DropdownMenuItem<dynamic>(
-                      value: item['id'], // 选择的值是 id
-                      child: Text(
-                        item['name'], // 显示的值是 name
-                        style: const TextStyle(
-                          color: Color(0xFF423F3F),
-                          fontSize: 14,
-                          fontFamily: 'PingFang SC',
-                          fontWeight: FontWeight.w400,
-                          height: 1.2,
-                        ),
+            return SizedBox(
+              width: widget.width,
+              height: widget.height,
+              child: DropdownButtonFormField<String>(
+                focusNode: _focusNode,
+                value: effectiveValue, // 使用 effectiveValue 而不是直接使用 selectedValue
+                hint: effectiveValue == null ? Text(widget.hint) : null,
+                onChanged: (String? newValue) {
+                  widget.selectedValue.value = newValue; // 更新 selectedValue
+                  if (widget.onChanged != null) {
+                    widget.onChanged!(newValue);
+                  }
+                },
+                items: widget.items.map((item) {
+                  return DropdownMenuItem<String>(
+                    value: item['id'],
+                    child: Text(
+                      item['name'], // 显示的值是 name
+                      style: const TextStyle(
+                        color: Color(0xFF423F3F),
+                        fontSize: 14,
+                        fontFamily: 'PingFang SC',
+                        fontWeight: FontWeight.w400,
+                        height: 1.2,
                       ),
-                    );
-                  }).toList(),
-                  style: const TextStyle(
-                    color: Color(0xFF423F3F),
-                    fontSize: 14,
-                    fontFamily: 'PingFang SC',
-                    fontWeight: FontWeight.w400,
-                    height: 1.2,
-                  ),
-                  dropdownColor: Colors.white,
-                  decoration: InputDecoration(
-                    labelText: widget.label == true ? widget.hint : null,
-                    border: OutlineInputBorder(),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(
-                        color: Colors.grey,
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(4),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: _focusNode.hasFocus ? const Color(0xFF25B7E8) : Colors.grey,
-                        width: _focusNode.hasFocus ? 1 : 0.5,
-                      ),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    focusColor: _focusNode.hasFocus ? const Color(0xFF25B7E8) : Colors.transparent,
-                    hoverColor: isHovered ? const Color(0xFF25B7E8) : Colors.transparent,
-                    fillColor: _isSelected ? Colors.white : Colors.transparent,
-                    filled: true,
-                  ),
-                  icon: const Icon(Icons.arrow_drop_down_outlined),
-                  borderRadius: BorderRadius.circular(4),
+                  );
+                }).toList(),
+                style: const TextStyle(
+                  color: Color(0xFF423F3F),
+                  fontSize: 14,
+                  fontFamily: 'PingFang SC',
+                  fontWeight: FontWeight.w400,
+                  height: 1.2,
                 ),
-              );
-            },
-          ),
+                dropdownColor: Colors.white,
+                decoration: InputDecoration(
+                  labelText: widget.label == true ? widget.hint : null,
+                  border: OutlineInputBorder(),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.grey, width: 1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: _focusNode.hasFocus ? const Color(0xFF25B7E8) : Colors.grey,
+                      width: _focusNode.hasFocus ? 1 : 0.5,
+                    ),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  hoverColor: isHovered ? const Color(0xFF25B7E8) : Colors.transparent,
+                  filled: true,
+                ),
+                icon: const Icon(Icons.arrow_drop_down_outlined),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -1025,45 +988,47 @@ class SelectableListState extends State<SelectableList> {
           itemCount: widget.items.length,
           itemBuilder: (context, index) {
             final item = widget.items[index];
-            return Card(
-              margin: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              // 减小卡片间距
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(2.0), // 增大圆角
-              ),
-              color:
-                  selectedIndex == index ? Colors.blueGrey[200] : Colors.white,
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                // 减小内容内边距
-                child: ListTile(
-                  enableFeedback: false,
-                  // 禁用点击动效
-                  dense: true,
-                  // 使 ListTile 更紧凑
-                  onTap: () {
-                    setState(() {
-                      selectedIndex = index;
-                      widget.onSelected(item); // 调用 onSelected 回调并传递 item
-                    });
-                  },
-                  title: Text(item['name'] ?? ''),
-                  trailing: PopupMenuButton<String>(
-                    onSelected: (String value) {
-                      if (value == "Edit") {
-                        _editItem(index);
-                      } else if (value == "Delete") {
-                        _deleteItem(index);
-                      }
-                    },
-                    itemBuilder: (BuildContext context) =>
-                        <PopupMenuEntry<String>>[
-                      PopupMenuItem<String>(
-                        value: "Delete",
-                        child: Text("删除"),
-                      ),
-                    ],
+            return InkWell( // 使用 InkWell 包裹整个 Card
+              onTap: () {
+                setState(() {
+                  selectedIndex = index;
+                  widget.onSelected(item); // 调用 onSelected 回调并传递 item
+                });
+                refresh(); // 强制刷新列表
+              },
+              child: Card(
+                margin: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4.0), // 增大圆角
+                ),
+                color: selectedIndex == index ? Colors.blueGrey[200] : Colors.white,
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  child: ListTile(
+                    enableFeedback: false, // 禁用点击动效
+                    dense: true, // 使 ListTile 更紧凑
+                    title: Text(item['name'] ?? ''),
+                    trailing: PopupMenuButton<String>(
+                      onSelected: (String value) {
+                        if (value == "Edit") {
+                          _editItem(index);
+                        } else if (value == "Delete") {
+                          _confirmDelete(index);
+                        }
+                      },
+                      itemBuilder: (BuildContext context) =>
+                      <PopupMenuEntry<String>>[
+                        PopupMenuItem<String>(
+                          value: "Edit",
+                          child: Text("编辑"),
+                        ),
+                        PopupMenuItem<String>(
+                          value: "Delete",
+                          child: Text("删除"),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -1080,7 +1045,7 @@ class SelectableListState extends State<SelectableList> {
       builder: (context) {
         final item = widget.items[index];
         TextEditingController _controller =
-            TextEditingController(text: item['name']);
+        TextEditingController(text: item['name']);
         return AlertDialog(
           title: Text("编辑项目"),
           content: TextField(
@@ -1100,6 +1065,7 @@ class SelectableListState extends State<SelectableList> {
                   widget.items[index]['name'] = _controller.text;
                 });
                 Navigator.of(context).pop();
+                refresh(); // 编辑完成后刷新列表
               },
               child: Text("保存"),
             ),
@@ -1127,6 +1093,33 @@ class SelectableListState extends State<SelectableList> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text("删除失败: $error")));
     }
+  }
+
+  void _confirmDelete(int index) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("确认删除"),
+          content: Text("确定要删除这个项目吗？"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("取消"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deleteItem(index);
+              },
+              child: Text("删除"),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 

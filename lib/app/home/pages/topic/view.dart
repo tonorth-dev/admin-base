@@ -65,6 +65,7 @@ class TopicPage extends StatelessWidget {
                 label: true,
                 width: 110,
                 height: 34,
+                selectedValue: logic.selectedQuestionCate,
                 onChanged: (dynamic newValue) {
                   logic.selectedQuestionCate.value = newValue.toString();
                 },
@@ -77,6 +78,7 @@ class TopicPage extends StatelessWidget {
                 label: true,
                 width: 110,
                 height: 34,
+                selectedValue: logic.selectedQuestionLevel,
                 onChanged: (dynamic newValue) {
                   logic.selectedQuestionLevel.value = newValue.toString();
                   logic.applyFilters();
@@ -90,8 +92,9 @@ class TopicPage extends StatelessWidget {
                 label: true,
                 width: 110,
                 height: 34,
+                selectedValue: logic.selectedQuestionStatus,
                 onChanged: (dynamic newValue) {
-                  logic.selectedQuestionStatus.value = newValue.toInt();
+                  logic.selectedQuestionStatus.value = newValue;
                   logic.applyFilters();
                 },
               ),

@@ -45,16 +45,16 @@ class TopicLogic extends GetxController {
   var currentEditTopic = RxMap<String, dynamic>({}).obs;
   RxList<int> selectedRows = <int>[].obs;
 
-  Rx<String?> selectedQuestionCate = '全部题型'.obs;
-  Rx<String?> selectedQuestionLevel = '全部难度'.obs;
-  Rx<int?> selectedQuestionStatus = 0.obs;
+  ValueNotifier<String?> selectedQuestionCate = ValueNotifier<String?>(null);
+  ValueNotifier<String?> selectedQuestionLevel = ValueNotifier<String?>(null);
+  ValueNotifier<String?> selectedQuestionStatus = ValueNotifier<String?>(null);
   RxList<Map<String, dynamic>> questionCate = <Map<String, dynamic>>[].obs;
   RxList<Map<String, dynamic>> questionLevel = <Map<String, dynamic>>[].obs;
   RxList<Map<String, dynamic>> questionStatus = <Map<String, dynamic>>[
-    {'id': 0, 'name': '全部'},
-    {'id': 1, 'name': '草稿'},
-    {'id': 2, 'name': '生效中'},
-    {'id': 4, 'name': '审核中'},
+    {'id': '0', 'name': '全部'},
+    {'id': '1', 'name': '草稿'},
+    {'id': '2', 'name': '生效中'},
+    {'id': '4', 'name': '审核中'},
   ].obs;
 
   final ValueNotifier<dynamic> selectedLevel1 = ValueNotifier(null);
@@ -71,8 +71,8 @@ class TopicLogic extends GetxController {
   Rx<String> selectedMajorId = "0".obs;
 
   final topicTitle = ''.obs;
-  final topicSelectedQuestionCate = "".obs;
-  final topicSelectedQuestionLevel = "".obs;
+  ValueNotifier<String?> topicSelectedQuestionCate = ValueNotifier<String?>(null);
+  ValueNotifier<String?> topicSelectedQuestionLevel = ValueNotifier<String?>(null);
   final topicSelectedMajorId = "".obs;
   final topicAnswer = "".obs;
   final topicAuthor = "".obs;
@@ -393,11 +393,11 @@ class TopicLogic extends GetxController {
       isValid = false;
       errorMessage += "请选择专业\n";
     }
-    if (topicSelectedQuestionCateSubmit.isEmpty) {
+    if (topicSelectedQuestionCateSubmit == null || topicSelectedQuestionCateSubmit.isEmpty) {
       isValid = false;
       errorMessage += "请选择题型\n";
     }
-    if (topicSelectedQuestionLevelSubmit.isEmpty) {
+    if (topicSelectedQuestionLevelSubmit == null || topicSelectedQuestionLevelSubmit.isEmpty) {
       isValid = false;
       errorMessage += "请选择难度\n";
     }
