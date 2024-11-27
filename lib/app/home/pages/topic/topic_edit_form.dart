@@ -100,7 +100,7 @@ class _EditTopicDialogState extends State<TopicEditForm> {
                           logic.uTopicTitle.value = value;
                         },
                         validator:
-                        FormBuilderValidators.required(errorText: '题干不能为空'),
+                            FormBuilderValidators.required(errorText: '题干不能为空'),
                       ),
                     ),
                   ],
@@ -186,15 +186,17 @@ class _EditTopicDialogState extends State<TopicEditForm> {
                         level1Items: logic.level1Items,
                         level2Items: logic.level2Items,
                         level3Items: logic.level3Items,
-                        selectedLevel1: logic
-                            .getLevel1IdFromLevel2Id(logic
+                        selectedLevel1: ValueNotifier(
+                            logic.getLevel1IdFromLevel2Id(
+                                logic.getLevel2IdFromLevel3Id(
+                                    widget.initialMajorId))),
+                        selectedLevel2: ValueNotifier(logic
                             .getLevel2IdFromLevel3Id(widget.initialMajorId)),
-                        selectedLevel2: logic
-                            .getLevel2IdFromLevel3Id(widget.initialMajorId),
-                        selectedLevel3: widget.initialMajorId,
+                        selectedLevel3: ValueNotifier(widget.initialMajorId),
                         onChanged:
                             (dynamic level1, dynamic level2, dynamic level3) {
-                          print("level1: $level1, level2: $level2, level3: $level3");
+                          print(
+                              "level1: $level1, level2: $level2, level3: $level3");
                           logic.uTopicSelectedMajorId.value = level3.toString();
                           // 这里可以处理选择的 id
                         },
@@ -225,7 +227,7 @@ class _EditTopicDialogState extends State<TopicEditForm> {
                           logic.uTopicAnswer.value = value;
                         },
                         validator:
-                        FormBuilderValidators.required(errorText: '答案不能为空'),
+                            FormBuilderValidators.required(errorText: '答案不能为空'),
                       ),
                     ),
                   ],
@@ -253,7 +255,7 @@ class _EditTopicDialogState extends State<TopicEditForm> {
                           logic.uTopicAuthor.value = value;
                         },
                         validator:
-                        FormBuilderValidators.required(errorText: '作者不能为空'),
+                            FormBuilderValidators.required(errorText: '作者不能为空'),
                       ),
                     ),
                   ],
@@ -295,14 +297,13 @@ class _EditTopicDialogState extends State<TopicEditForm> {
                       width: 240,
                       child: SingleSelectForm(
                         key: Key("status_select"),
-                        defaultSelectedId:widget.initialStatus,
+                        defaultSelectedId: widget.initialStatus,
                         items: RxList<Map<String, dynamic>>([
                           {'id': 1, 'name': '草稿'},
                           {'id': 2, 'name': '完成'},
                         ]),
-                        onSelected: (item) => {
-                          logic.uTopicStatus.value = item['id']
-                        },
+                        onSelected: (item) =>
+                            {logic.uTopicStatus.value = item['id']},
                       ),
                     ),
                   ],

@@ -26,6 +26,10 @@ class BookLogic extends GetxController {
   final searchText = ''.obs;
   var templateSaved = false.obs;
 
+  final ValueNotifier<dynamic> majorSelectedLevel1 = ValueNotifier(null);
+  final ValueNotifier<dynamic> majorSelectedLevel2 = ValueNotifier(null);
+  final ValueNotifier<dynamic> majorSelectedLevel3 = ValueNotifier(null);
+
   final GlobalKey<CascadingDropdownFieldState> majorDropdownKey =
       GlobalKey<CascadingDropdownFieldState>();
   final GlobalKey<DropdownFieldState> cateDropdownKey =
@@ -59,6 +63,7 @@ class BookLogic extends GetxController {
   final bookSelectedMajorId = "0".obs;
   final bookSelectedQuestionCate = "".obs;
   final bookSelectedQuestionLevel = "".obs;
+  final Map<String, RxInt> cateSelectedValues = {};
 
   Future<void> fetchConfigs() async {
     try {
@@ -89,6 +94,7 @@ class BookLogic extends GetxController {
             questionLevelItem.containsKey("attr") &&
             questionLevelItem["attr"].containsKey("levels")) {
           questionLevel = RxList.from(questionLevelItem["attr"]["levels"]);
+          print("debug Question Level: $questionLevel");
         } else {
           print("配置数据中未找到 'question_cate' 或其 'cates' 属性");
           questionLevel = RxList<Map<String, dynamic>>(); // 作为默认值，防止未初始化
@@ -111,7 +117,11 @@ class BookLogic extends GetxController {
         final templateItem = templates["list"] as List<dynamic>;
 
         templateList = RxList.from(templateItem);
-        print("debug templateList: $templateList");
+
+        for (var item in questionCate) {
+          cateSelectedValues[item['id']] = 0.obs;
+        }
+        print("debug selectedValues: $cateSelectedValues");
       }
     } catch (e) {
       print('debug templateList 初始化 templates 失败: $e');
@@ -119,10 +129,14 @@ class BookLogic extends GetxController {
     }
   }
 
+  // Maps for reverse lookup
+  Map<String, String> level3IdToLevel2Id = {};
+  Map<String, String> level2IdToLevel1Id = {};
+
   Future<void> fetchMajors() async {
     try {
       var response =
-          await MajorApi.majorList(params: {'pageSize': 3000, 'page': 1});
+      await MajorApi.majorList(params: {'pageSize': 3000, 'page': 1});
       if (response != null && response["total"] > 0) {
         var dataList = response["list"] as List<dynamic>;
 
@@ -160,39 +174,56 @@ class BookLogic extends GetxController {
           }
 
           // Add second-level category if it doesn't exist under this first-level category
-          if (!subMajorMap[firstLevelId]!
-              .any((m) => m['name'] == secondLevelName)) {
+          if (subMajorMap[firstLevelId]
+              ?.any((m) => m['name'] == secondLevelName) !=
+              true) {
             subMajorMap[firstLevelId]!
                 .add({'id': secondLevelId, 'name': secondLevelName});
             level2Items[firstLevelId]
                 ?.add({'id': secondLevelId, 'name': secondLevelName});
             subSubMajorMap[secondLevelId] = [];
             level3Items[secondLevelId] = [];
+            level2IdToLevel1Id[secondLevelId] =
+                firstLevelId; // Populate reverse lookup map
           }
 
           // Add third-level major if it doesn't exist under this second-level category
-          if (!subSubMajorMap[secondLevelId]!
-              .any((m) => m['name'] == thirdLevelName)) {
+          if (subSubMajorMap[secondLevelId]
+              ?.any((m) => m['name'] == thirdLevelName) !=
+              true) {
             subSubMajorMap[secondLevelId]!
                 .add({'id': thirdLevelId, 'name': thirdLevelName});
             level3Items[secondLevelId]
                 ?.add({'id': thirdLevelId, 'name': thirdLevelName});
+            level3IdToLevel2Id[thirdLevelId] =
+                secondLevelId; // Populate reverse lookup map
           }
         }
 
         // Debug output
+        print("questionLevel:$questionLevel");
         print('majorList: $majorList');
         print('subMajorMap: $subMajorMap');
         print('subSubMajorMap: $subSubMajorMap');
         print('level1Items: $level1Items');
         print('level2Items: $level2Items');
         print('level3Items: $level3Items');
+        print('level3IdToLevel2Id: $level3IdToLevel2Id');
+        print('level2IdToLevel1Id: $level2IdToLevel1Id');
       } else {
         "获取专业列表失败".toHint();
       }
     } catch (e) {
       "获取专业列表失败: $e".toHint();
     }
+  }
+
+  String getLevel2IdFromLevel3Id(String thirdLevelId) {
+    return level3IdToLevel2Id[thirdLevelId] ?? '';
+  }
+
+  String getLevel1IdFromLevel2Id(String secondLevelId) {
+    return level2IdToLevel1Id[secondLevelId] ?? '';
   }
 
   void find(int newSize, int newPage) {
@@ -253,10 +284,10 @@ class BookLogic extends GetxController {
   ];
 
   @override
-  void onInit() {
-    fetchMajors(); // Fetch and populate major data on initialization
-    fetchConfigs();
-    fetchTemplates();
+  Future<void> onInit() async {
+    await fetchMajors(); // Fetch and populate major data on initialization
+    await fetchConfigs();
+    await fetchTemplates();
     ever(
       questionCate,
       (value) {
@@ -517,7 +548,6 @@ class BookLogic extends GetxController {
     // 生成题本的逻辑
     final bookNameSubmit = bookName.value;
     final int bookSelectedMajorIdSubmit = bookSelectedMajorId.value.toInt();
-    final bookSelectedQuestionCateSubmit = bookSelectedQuestionCate.value;
     final bookSelectedQuestionLevelSubmit = bookSelectedQuestionLevel.value;
     final bookQuestionCountSubmit = bookQuestionCount.value;
 
@@ -588,23 +618,25 @@ class BookLogic extends GetxController {
   void fillTemplate(Map<String, dynamic> item) {
     // 填充数据到表单
     bookName.value = item['name'];
-    bookSelectedMajorId.value = item['major_id'].toString();
-    bookSelectedQuestionLevel.value = item['level_name'];
+    var level2MajorId = getLevel2IdFromLevel3Id(item["major_id"].toString());
+    var level1MajorId = getLevel1IdFromLevel2Id(level2MajorId);
+
+    majorSelectedLevel1.value = level1MajorId;
+    majorSelectedLevel2.value = level2MajorId;
+    majorSelectedLevel3.value = item["major_id"].toString();
+    bookSelectedMajorId.value = item["major_id"].toString();
+
+    bookSelectedQuestionLevel.value = "simple";
     bookQuestionCount.value = item['unit_number'];
 
     // 更新题型数量
     for (var comp in item['component']) {
       final key = comp['key'];
-      questionCate.value = questionCate.value.map((e) {
-        if (e['id'] == key) {
-          return {
-            ...e,
-            'value': comp['number'],
-          };
-        }
-        return e;
-      }).toList();
+      final number = comp['number'] ?? 0;
+      cateSelectedValues[key]?.value = number;
     }
+    print("debug bookSelectedQuestionLevel.value");
+    print(bookSelectedQuestionLevel.value);
   }
 
   void deleteTemplate(Map<String, dynamic> d) async {

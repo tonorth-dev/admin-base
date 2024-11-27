@@ -116,6 +116,9 @@ class TopicPage extends StatelessWidget {
                         level1Items: logic.level1Items,
                         level2Items: logic.level2Items,
                         level3Items: logic.level3Items,
+                        selectedLevel1: ValueNotifier(null),
+                        selectedLevel2: ValueNotifier(null),
+                        selectedLevel3: ValueNotifier(null),
                         onChanged:
                             (dynamic level1, dynamic level2, dynamic level3) {
                           logic.selectedMajorId.value = level3.toString();

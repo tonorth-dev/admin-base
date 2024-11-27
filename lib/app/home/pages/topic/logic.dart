@@ -57,6 +57,10 @@ class TopicLogic extends GetxController {
     {'id': 4, 'name': '审核中'},
   ].obs;
 
+  final ValueNotifier<dynamic> selectedLevel1 = ValueNotifier(null);
+  final ValueNotifier<dynamic> selectedLevel2 = ValueNotifier(null);
+  final ValueNotifier<dynamic> selectedLevel3 = ValueNotifier(null);
+
   // 专业列表数据
   List<Map<String, dynamic>> majorList = [];
   Map<String, List<Map<String, dynamic>>> subMajorMap = {};

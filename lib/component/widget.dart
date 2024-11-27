@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:admin_flutter/ex/ex_hint.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_material_pickers/helpers/show_number_picker.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
@@ -124,8 +125,7 @@ class DropdownField extends StatefulWidget {
   DropdownFieldState createState() => DropdownFieldState();
 }
 
-class DropdownFieldState extends State<DropdownField>
-    with WidgetsBindingObserver {
+class DropdownFieldState extends State<DropdownField> with WidgetsBindingObserver {
   final FocusNode _focusNode = FocusNode();
   dynamic selectedValue; // 修改为 dynamic 类型
   bool _isSelected = false;
@@ -137,6 +137,17 @@ class DropdownFieldState extends State<DropdownField>
     _focusNode.addListener(_onFocusChange);
     WidgetsBinding.instance.addObserver(this);
     selectedValue = widget.value;
+  }
+
+  @override
+  void didUpdateWidget(DropdownField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value) {
+      setState(() {
+        selectedValue = widget.value;
+        _isSelected = selectedValue != null;
+      });
+    }
   }
 
   @override
@@ -191,13 +202,17 @@ class DropdownFieldState extends State<DropdownField>
           child: ValueListenableBuilder<bool>(
             valueListenable: _isHovered,
             builder: (context, isHovered, _) {
+              // 确保 selectedValue 存在于 items 中
+              final hasSelectedValue = widget.items.any((item) => item['id'] == selectedValue);
+              final effectiveValue = hasSelectedValue ? selectedValue : null;
+
               return SizedBox(
                 width: widget.width,
                 height: widget.height,
                 child: DropdownButtonFormField<dynamic>(
                   focusNode: _focusNode,
-                  value: selectedValue,
-                  hint: selectedValue == null ? Text(widget.hint) : null,
+                  value: effectiveValue, // 使用 effectiveValue 而不是直接使用 selectedValue
+                  hint: effectiveValue == null ? Text(widget.hint) : null,
                   onChanged: (dynamic newValue) {
                     setState(() {
                       selectedValue = newValue;
@@ -233,8 +248,7 @@ class DropdownFieldState extends State<DropdownField>
                   decoration: InputDecoration(
                     labelText: widget.label == true ? widget.hint : null,
                     border: OutlineInputBorder(),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     enabledBorder: OutlineInputBorder(
                       borderSide: const BorderSide(
                         color: Colors.grey,
@@ -244,19 +258,13 @@ class DropdownFieldState extends State<DropdownField>
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: _focusNode.hasFocus
-                            ? const Color(0xFF25B7E8)
-                            : Colors.grey,
+                        color: _focusNode.hasFocus ? const Color(0xFF25B7E8) : Colors.grey,
                         width: _focusNode.hasFocus ? 1 : 0.5,
                       ),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    focusColor: _focusNode.hasFocus
-                        ? const Color(0xFF25B7E8)
-                        : Colors.transparent,
-                    hoverColor: isHovered
-                        ? const Color(0xFF25B7E8)
-                        : Colors.transparent,
+                    focusColor: _focusNode.hasFocus ? const Color(0xFF25B7E8) : Colors.transparent,
+                    hoverColor: isHovered ? const Color(0xFF25B7E8) : Colors.transparent,
                     fillColor: _isSelected ? Colors.white : Colors.transparent,
                     filled: true,
                   ),
@@ -273,33 +281,33 @@ class DropdownFieldState extends State<DropdownField>
 }
 
 class CascadingDropdownField extends StatefulWidget {
-  final double width;
-  final double height;
-  final String hint1;
-  final String hint2;
-  final String hint3;
   final List<Map<String, dynamic>> level1Items;
   final Map<String, List<Map<String, dynamic>>> level2Items;
   final Map<String, List<Map<String, dynamic>>> level3Items;
-  final Function(dynamic, dynamic, dynamic)? onChanged;
-  final dynamic selectedLevel1;
-  final dynamic selectedLevel2;
-  final dynamic selectedLevel3;
+  final String hint1;
+  final String hint2;
+  final String hint3;
+  final double width;
+  final double height;
+  final ValueNotifier<dynamic> selectedLevel1;
+  final ValueNotifier<dynamic> selectedLevel2;
+  final ValueNotifier<dynamic> selectedLevel3;
+  final void Function(dynamic, dynamic, dynamic)? onChanged;
 
   const CascadingDropdownField({
     Key? key,
-    required this.width,
-    required this.height,
-    this.hint1 = '',
-    this.hint2 = '',
-    this.hint3 = '',
     required this.level1Items,
     required this.level2Items,
     required this.level3Items,
+    required this.hint1,
+    required this.hint2,
+    required this.hint3,
+    this.width = 160,
+    this.height = 34,
+    required this.selectedLevel1,
+    required this.selectedLevel2,
+    required this.selectedLevel3,
     this.onChanged,
-    this.selectedLevel1,
-    this.selectedLevel2,
-    this.selectedLevel3,
   }) : super(key: key);
 
   @override
@@ -307,83 +315,78 @@ class CascadingDropdownField extends StatefulWidget {
 }
 
 class CascadingDropdownFieldState extends State<CascadingDropdownField> {
-  dynamic selectedLevel1;
-  dynamic selectedLevel2;
-  dynamic selectedLevel3;
+  late TextEditingController _level1Controller;
+  late TextEditingController _level2Controller;
+  late TextEditingController _level3Controller;
 
-  final TextEditingController _level1Controller = TextEditingController();
-  final TextEditingController _level2Controller = TextEditingController();
-  final TextEditingController _level3Controller = TextEditingController();
-
-  final FocusNode _level1FocusNode = FocusNode();
-  final FocusNode _level2FocusNode = FocusNode();
-  final FocusNode _level3FocusNode = FocusNode();
+  late FocusNode _level1FocusNode;
+  late FocusNode _level2FocusNode;
+  late FocusNode _level3FocusNode;
 
   @override
   void initState() {
     super.initState();
-    if (widget.selectedLevel1 != null) {
-      selectedLevel1 = widget.selectedLevel1;
-      _level1Controller.text = _getNameById(widget.level1Items, selectedLevel1);
-    }
-    if (widget.selectedLevel2 != null && selectedLevel1 != null) {
-      selectedLevel2 = widget.selectedLevel2;
+    _level1Controller = TextEditingController();
+    _level2Controller = TextEditingController();
+    _level3Controller = TextEditingController();
+
+    _level1FocusNode = FocusNode();
+    _level2FocusNode = FocusNode();
+    _level3FocusNode = FocusNode();
+
+    _updateControllers();
+    widget.selectedLevel1.addListener(_updateControllers);
+    widget.selectedLevel2.addListener(_updateControllers);
+    widget.selectedLevel3.addListener(_updateControllers);
+  }
+
+  void _updateControllers() {
+    setState(() {
+      _level1Controller.text = _getNameById(widget.level1Items, widget.selectedLevel1.value);
       _level2Controller.text = _getNameById(
-          widget.level2Items[selectedLevel1.toString()] ?? [], selectedLevel2);
-    }
-    if (widget.selectedLevel3 != null && selectedLevel2 != null) {
-      selectedLevel3 = widget.selectedLevel3;
+          widget.level2Items[widget.selectedLevel1.value.toString()] ?? [], widget.selectedLevel2.value);
       _level3Controller.text = _getNameById(
-          widget.level3Items[selectedLevel2.toString()] ?? [], selectedLevel3);
-    }
+          widget.level3Items[widget.selectedLevel2.value.toString()] ?? [], widget.selectedLevel3.value);
+    });
   }
 
   String _getNameById(List<Map<String, dynamic>> items, dynamic id) {
-    final item =
-        items.firstWhere((element) => element['id'] == id, orElse: () => {});
+    final item = items.firstWhere((element) => element['id'] == id, orElse: () => {});
     return item['name'] ?? '';
   }
 
   void reset() {
-    setState(() {
-      selectedLevel1 = null;
-      selectedLevel2 = null;
-      selectedLevel3 = null;
-      _level1Controller.clear();
-      _level2Controller.clear();
-      _level3Controller.clear();
-    });
+    widget.selectedLevel1.value = null;
+    widget.selectedLevel2.value = null;
+    widget.selectedLevel3.value = null;
+    _level1Controller.clear();
+    _level2Controller.clear();
+    _level3Controller.clear();
     widget.onChanged?.call(null, null, null);
   }
 
   void _onLevel1Changed(Map<String, dynamic> newValue) {
-    setState(() {
-      selectedLevel1 = newValue['id'];
-      _level1Controller.text = newValue['name'];
-      selectedLevel2 = null;
-      selectedLevel3 = null;
-      _level2Controller.clear();
-      _level3Controller.clear();
-    });
-    widget.onChanged?.call(selectedLevel1, selectedLevel2, selectedLevel3);
+    widget.selectedLevel1.value = newValue['id'];
+    _level1Controller.text = newValue['name'];
+    widget.selectedLevel2.value = null;
+    widget.selectedLevel3.value = null;
+    _level2Controller.clear();
+    _level3Controller.clear();
+    widget.onChanged?.call(widget.selectedLevel1.value, widget.selectedLevel2.value, widget.selectedLevel3.value);
   }
 
   void _onLevel2Changed(Map<String, dynamic> newValue) {
-    setState(() {
-      selectedLevel2 = newValue['id'];
-      _level2Controller.text = newValue['name'];
-      selectedLevel3 = null;
-      _level3Controller.clear();
-    });
-    widget.onChanged?.call(selectedLevel1, selectedLevel2, selectedLevel3);
+    widget.selectedLevel2.value = newValue['id'];
+    _level2Controller.text = newValue['name'];
+    widget.selectedLevel3.value = null;
+    _level3Controller.clear();
+    widget.onChanged?.call(widget.selectedLevel1.value, widget.selectedLevel2.value, widget.selectedLevel3.value);
   }
 
   void _onLevel3Changed(Map<String, dynamic> newValue) {
-    setState(() {
-      selectedLevel3 = newValue['id'];
-      _level3Controller.text = newValue['name'];
-    });
-    widget.onChanged?.call(selectedLevel1, selectedLevel2, selectedLevel3);
+    widget.selectedLevel3.value = newValue['id'];
+    _level3Controller.text = newValue['name'];
+    widget.onChanged?.call(widget.selectedLevel1.value, widget.selectedLevel2.value, widget.selectedLevel3.value);
   }
 
   @override
@@ -403,8 +406,8 @@ class CascadingDropdownFieldState extends State<CascadingDropdownField> {
           controller: _level2Controller,
           focusNode: _level2FocusNode,
           hint: widget.hint2,
-          items: selectedLevel1 != null
-              ? widget.level2Items[selectedLevel1.toString()] ?? []
+          items: widget.selectedLevel1.value != null
+              ? widget.level2Items[widget.selectedLevel1.value.toString()] ?? []
               : [],
           onSuggestionSelected: _onLevel2Changed,
         ),
@@ -413,8 +416,8 @@ class CascadingDropdownFieldState extends State<CascadingDropdownField> {
           controller: _level3Controller,
           focusNode: _level3FocusNode,
           hint: widget.hint3,
-          items: selectedLevel2 != null
-              ? widget.level3Items[selectedLevel2.toString()] ?? []
+          items: widget.selectedLevel2.value != null
+              ? widget.level3Items[widget.selectedLevel2.value.toString()] ?? []
               : [],
           onSuggestionSelected: _onLevel3Changed,
         ),
@@ -439,15 +442,13 @@ class CascadingDropdownFieldState extends State<CascadingDropdownField> {
           decoration: InputDecoration(
             labelText: hint,
             border: OutlineInputBorder(),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           ),
         ),
         suggestionsCallback: (pattern) {
           if (pattern.isEmpty) return items;
           return items
-              .where((item) =>
-                  item['name'].toLowerCase().contains(pattern.toLowerCase()))
+              .where((item) => item['name'].toLowerCase().contains(pattern.toLowerCase()))
               .toList();
         },
         itemBuilder: (context, suggestion) {
@@ -467,6 +468,9 @@ class CascadingDropdownFieldState extends State<CascadingDropdownField> {
     _level1FocusNode.dispose();
     _level2FocusNode.dispose();
     _level3FocusNode.dispose();
+    widget.selectedLevel1.removeListener(_updateControllers);
+    widget.selectedLevel2.removeListener(_updateControllers);
+    widget.selectedLevel3.removeListener(_updateControllers);
     super.dispose();
   }
 }
@@ -789,7 +793,6 @@ class _TextInputWidgetState extends State<TextInputWidget> {
   }
 }
 
-
 class NumberInputWidget extends StatefulWidget {
   final String hint;
   final RxInt selectedValue;
@@ -820,9 +823,18 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
   @override
   void initState() {
     super.initState();
-    _controller =
-        TextEditingController(text: widget.selectedValue.value.toString());
+    _controller = TextEditingController(text: widget.selectedValue.value.toString());
     _focusNode = FocusNode();
+
+    // 监听 selectedValue 的变化
+    widget.selectedValue.listen((value) {
+      if (_controller.text != value.toString()) {
+        _controller.text = value.toString();
+        _controller.selection = TextSelection.fromPosition(
+          TextPosition(offset: _controller.text.length),
+        );
+      }
+    });
 
     // 监听输入框内容变化，同步到 RxInt 和回调
     _controller.addListener(() {
@@ -861,8 +873,7 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
         });
       } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
         setState(() {
-          widget.selectedValue.value =
-              (value - 1).clamp(0, double.infinity).toInt(); // 按下键减少 1，不小于 0
+          widget.selectedValue.value = (value - 1).clamp(0, double.infinity).toInt(); // 按下键减少 1，不小于 0
         });
       }
       _controller.text = widget.selectedValue.value.toString();
@@ -874,8 +885,7 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
   }
 
   void _showNumberPicker() {
-    final RenderBox renderBox =
-        _inputKey.currentContext!.findRenderObject() as RenderBox;
+    final RenderBox renderBox = _inputKey.currentContext!.findRenderObject() as RenderBox;
     final Offset offset = renderBox.localToGlobal(Offset.zero);
     final Size size = renderBox.size;
 
@@ -898,9 +908,9 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
                 elevation: 8.0,
                 child: ListView.builder(
                   shrinkWrap: true,
-                  itemCount: 10, // 默认显示20个选项
+                  itemCount: 20, // 显示20个选项
                   itemBuilder: (context, index) {
-                    final value = index * 1; // 例如每5个数一个选项
+                    final value = index * 5; // 例如每5个数一个选项
                     return InkWell(
                       onTap: () {
                         widget.selectedValue.value = value;
@@ -912,10 +922,8 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
                         _removeOverlay(); // 选中后关闭下拉列表
                       },
                       child: Container(
-                        padding:
-                            EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                        child: Text(value.toString(),
-                            style: TextStyle(fontSize: 14)),
+                        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                        child: Text(value.toString(), style: TextStyle(fontSize: 14)),
                       ),
                     );
                   },

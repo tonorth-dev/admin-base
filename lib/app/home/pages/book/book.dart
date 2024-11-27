@@ -80,7 +80,8 @@ class _BookPageState extends State<BookPage> {
               ),
               SizedBox(width: 30),
               CustomButton(
-                onPressed: () => widget.logic.batchDelete(widget.logic.selectedRows),
+                onPressed: () =>
+                    widget.logic.batchDelete(widget.logic.selectedRows),
                 text: '批量删除',
                 width: 90,
                 height: 32,
@@ -93,7 +94,8 @@ class _BookPageState extends State<BookPage> {
                 width: 120,
                 height: 34,
                 onChanged: (dynamic newValue) {
-                  widget.logic.selectedQuestionLevel.value = newValue.toString();
+                  widget.logic.selectedQuestionLevel.value =
+                      newValue.toString();
                   widget.logic.applyFilters();
                 },
               ),
@@ -117,8 +119,13 @@ class _BookPageState extends State<BookPage> {
                         level1Items: widget.logic.level1Items,
                         level2Items: widget.logic.level2Items,
                         level3Items: widget.logic.level3Items,
-                        onChanged: (dynamic level1, dynamic level2, dynamic level3) {
-                          widget.logic.selectedMajorId.value = level3.toString();
+                        selectedLevel1:  ValueNotifier(null),
+                        selectedLevel2:  ValueNotifier(null),
+                        selectedLevel3:  ValueNotifier(null),
+                        onChanged:
+                            (dynamic level1, dynamic level2, dynamic level3) {
+                          widget.logic.selectedMajorId.value =
+                              level3.toString();
                         },
                       );
                     }
@@ -137,14 +144,16 @@ class _BookPageState extends State<BookPage> {
               SizedBox(width: 26),
               SearchButtonWidget(
                 key: Key('search'),
-                onPressed: () => widget.logic.find(widget.logic.size.value, widget.logic.page.value),
+                onPressed: () => widget.logic
+                    .find(widget.logic.size.value, widget.logic.page.value),
               ),
               SizedBox(width: 10),
               ResetButtonWidget(
                 key: Key('reset'),
                 onPressed: () {
                   widget.logic.reset();
-                  widget.logic.find(widget.logic.size.value, widget.logic.page.value);
+                  widget.logic
+                      .find(widget.logic.size.value, widget.logic.page.value);
                 },
               ),
             ],
@@ -155,82 +164,93 @@ class _BookPageState extends State<BookPage> {
             child: Obx(() => widget.logic.loading.value
                 ? const Center(child: CircularProgressIndicator())
                 : SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: SizedBox(
-                width: 1500,
-                child: SfDataGrid(
-                  source: BookDataSource(logic: widget.logic, context: context),
-                  headerGridLinesVisibility: GridLinesVisibility.values[1],
-                  gridLinesVisibility: GridLinesVisibility.values[1],
-                  columnWidthMode: ColumnWidthMode.fill,
-                  headerRowHeight: 50,
-                  rowHeight: 100,
-                  columns: [
-                    GridColumn(
-                      columnName: 'Select',
-                      width: 100,
-                      label: Container(
-                        color: Color(0xFFF3F4F8),
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.all(8.0),
-                        child: Checkbox(
-                          value: widget.logic.selectedRows.length == widget.logic.list.length,
-                          onChanged: (value) => widget.logic.toggleSelectAll(),
-                          fillColor: WidgetStateProperty.resolveWith<Color>((states) {
-                            if (states.contains(WidgetState.selected)) {
-                              return Color(0xFFD43030);
-                            }
-                            return Colors.white;
-                          }),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                        ),
+                    scrollDirection: Axis.horizontal,
+                    child: SizedBox(
+                      width: 1500,
+                      child: SfDataGrid(
+                        source: BookDataSource(
+                            logic: widget.logic, context: context),
+                        headerGridLinesVisibility:
+                            GridLinesVisibility.values[1],
+                        gridLinesVisibility: GridLinesVisibility.values[1],
+                        columnWidthMode: ColumnWidthMode.fill,
+                        headerRowHeight: 50,
+                        rowHeight: 100,
+                        columns: [
+                          GridColumn(
+                            columnName: 'Select',
+                            width: 100,
+                            label: Container(
+                              color: Color(0xFFF3F4F8),
+                              alignment: Alignment.center,
+                              padding: const EdgeInsets.all(8.0),
+                              child: Checkbox(
+                                value: widget.logic.selectedRows.length ==
+                                    widget.logic.list.length,
+                                onChanged: (value) =>
+                                    widget.logic.toggleSelectAll(),
+                                fillColor:
+                                    WidgetStateProperty.resolveWith<Color>(
+                                        (states) {
+                                  if (states.contains(WidgetState.selected)) {
+                                    return Color(0xFFD43030);
+                                  }
+                                  return Colors.white;
+                                }),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4)),
+                              ),
+                            ),
+                          ),
+                          ...widget.logic.columns.map((column) => GridColumn(
+                                columnName: column.key,
+                                width: _getColumnWidth(column.key),
+                                label: Container(
+                                  color: Color(0xFFF3F4F8),
+                                  alignment: Alignment.center,
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    column.title,
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey[800]),
+                                  ),
+                                ),
+                              )),
+                          GridColumn(
+                            columnName: 'Actions',
+                            width: 140,
+                            label: Container(
+                              color: Color(0xFFF3F4F8),
+                              alignment: Alignment.center,
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                '操作',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 15),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    ...widget.logic.columns.map((column) => GridColumn(
-                      columnName: column.key,
-                      width: _getColumnWidth(column.key),
-                      label: Container(
-                        color: Color(0xFFF3F4F8),
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          column.title,
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[800]),
-                        ),
-                      ),
-                    )),
-                    GridColumn(
-                      columnName: 'Actions',
-                      width: 140,
-                      label: Container(
-                        color: Color(0xFFF3F4F8),
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          '操作',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                        ),
-                      ),
+                  )),
+          ),
+          Obx(() => Padding(
+                padding: EdgeInsets.only(right: 50),
+                child: Column(
+                  children: [
+                    PaginationPage(
+                      uniqueId: 'book_pagination',
+                      total: widget.logic.total.value,
+                      changed: (int newSize, int newPage) {
+                        widget.logic.find(newSize, newPage);
+                      },
                     ),
                   ],
                 ),
-              ),
-            )),
-          ),
-          Obx(() => Padding(
-            padding: EdgeInsets.only(right: 50),
-            child: Column(
-              children: [
-                PaginationPage(
-                  uniqueId: 'book_pagination',
-                  total: widget.logic.total.value,
-                  changed: (int newSize, int newPage) {
-                    widget.logic.find(newSize, newPage);
-                  },
-                ),
-              ],
-            ),
-          )),
+              )),
           ThemeUtil.height(height: 30),
         ],
       ),
@@ -262,7 +282,8 @@ class _BookPageState extends State<BookPage> {
     }
   }
 
-  Widget _buildInteractiveCardLeft(String title, double? width, double? height) {
+  Widget _buildInteractiveCardLeft(
+      String title, double? width, double? height) {
     return Container(
       width: width,
       height: height,
@@ -283,7 +304,10 @@ class _BookPageState extends State<BookPage> {
           children: [
             Text(
               title,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue[800]),
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue[800]),
             ),
             SizedBox(height: 16),
             Expanded(
@@ -313,7 +337,8 @@ class _BookPageState extends State<BookPage> {
     );
   }
 
-  Widget _buildInteractiveCardRight(String title, double? width, double? height) {
+  Widget _buildInteractiveCardRight(
+      String title, double? width, double? height) {
     return Container(
       width: width,
       height: height,
@@ -334,7 +359,10 @@ class _BookPageState extends State<BookPage> {
           children: [
             Text(
               title,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue[800]),
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue[800]),
             ),
             SizedBox(height: 16),
             Row(
@@ -346,14 +374,16 @@ class _BookPageState extends State<BookPage> {
                     children: [
                       Text(
                         "题本名称：",
-                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.black),
                       ),
                       SizedBox(height: 8),
                       TextInputWidget(
                         width: 240,
                         height: 34,
                         hint: "输入题本名称",
-                        text: widget.logic.bookName, // 直接传递 RxString
+                        text: widget.logic.bookName,
+                        // 直接传递 RxString
                         onTextChanged: (value) {
                           widget.logic.bookName.value = value; // 更新逻辑
                         },
@@ -369,7 +399,8 @@ class _BookPageState extends State<BookPage> {
                     children: [
                       Text(
                         "选择专业：",
-                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.black),
                       ),
                       SizedBox(height: 8),
                       CascadingDropdownField(
@@ -381,7 +412,11 @@ class _BookPageState extends State<BookPage> {
                         level1Items: widget.logic.level1Items,
                         level2Items: widget.logic.level2Items,
                         level3Items: widget.logic.level3Items,
-                        onChanged: (dynamic level1, dynamic level2, dynamic level3) {
+                        selectedLevel1: widget.logic.majorSelectedLevel1,
+                        selectedLevel2: widget.logic.majorSelectedLevel2,
+                        selectedLevel3: widget.logic.majorSelectedLevel3,
+                        onChanged:
+                            (dynamic level1, dynamic level2, dynamic level3) {
                           widget.logic.bookSelectedMajorId.value = level3.toString();
                         },
                       ),
@@ -402,27 +437,35 @@ class _BookPageState extends State<BookPage> {
                     children: [
                       Text(
                         "题型数量：",
-                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.black),
                       ),
                       Row(
                         children: widget.logic.questionCate.map((item) {
+                          final selectValue = widget.logic.cateSelectedValues[item["id"]]!;
+                          print(item["id"]);
+                          print(selectValue);
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8.0),
                             child: Row(
                               children: [
                                 Text(
                                   "${item['name']}：",
-                                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black),
                                 ),
-                            NumberInputWidget(
-                                  key: Key(item['id']),
-                                  width: 90,
+                                NumberInputWidget(
+                                  key: UniqueKey(),
+                                  hint: '',
+                                  selectedValue: selectValue,
+                                  width: 80,
                                   height: 34,
-                                  hint: "${item['value']}",
-                                  selectedValue: 0.obs,
                                   onValueChanged: (value) {
                                     final key = item['id'];
-                                    widget.logic.questionCate.value = widget.logic.questionCate.value.map((e) {
+                                    widget.logic.questionCate.value = widget
+                                        .logic.questionCate.value
+                                        .map((e) {
                                       if (e['id'] == key) {
                                         return {
                                           ...e,
@@ -449,7 +492,8 @@ class _BookPageState extends State<BookPage> {
                     children: [
                       Text(
                         "选择难度：",
-                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.black),
                       ),
                       SizedBox(height: 8),
                       DropdownField(
@@ -461,7 +505,7 @@ class _BookPageState extends State<BookPage> {
                           widget.logic.bookSelectedQuestionLevel.value = newValue.toString();
                           widget.logic.applyFilters();
                         },
-                        value: widget.logic.bookSelectedQuestionLevel.value,
+                        // value: widget.logic.bookSelectedQuestionLevel.value,
                       ),
                     ],
                   ),
@@ -473,7 +517,8 @@ class _BookPageState extends State<BookPage> {
                     children: [
                       Text(
                         "生成套数：",
-                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.black),
                       ),
                       SizedBox(height: 8),
                       NumberInputWidget(
@@ -481,7 +526,7 @@ class _BookPageState extends State<BookPage> {
                         width: 90,
                         height: 34,
                         hint: "0",
-                        selectedValue: widget.logic.bookQuestionCount.value.obs,
+                        selectedValue: widget.logic.bookQuestionCount,
                         onValueChanged: (value) {
                           widget.logic.bookQuestionCount.value = value.toInt();
                         },
@@ -499,7 +544,6 @@ class _BookPageState extends State<BookPage> {
                   onPressed: () async {
                     await widget.logic.saveTemplate();
                     await widget.logic.fetchTemplates();
-                    print('测试');
                     refresh();
                   },
                   child: Text("保存模板"),
@@ -532,24 +576,24 @@ class BookDataSource extends DataGridSource {
   void _buildRows() {
     _rows = logic.list
         .map((item) => DataGridRow(
-      cells: [
-        DataGridCell(
-          columnName: 'Select',
-          value: logic.selectedRows.contains(item['id']),
-        ),
-        ...logic.columns.map((column) {
-          var value = item[column.key];
-          if (column.key == 'component_desc' && value is List) {
-            value = value.join("\n");
-          }
-          return DataGridCell(
-            columnName: column.key,
-            value: value,
-          );
-        }),
-        DataGridCell(columnName: 'Actions', value: item),
-      ],
-    ))
+              cells: [
+                DataGridCell(
+                  columnName: 'Select',
+                  value: logic.selectedRows.contains(item['id']),
+                ),
+                ...logic.columns.map((column) {
+                  var value = item[column.key];
+                  if (column.key == 'component_desc' && value is List) {
+                    value = value.join("\n");
+                  }
+                  return DataGridCell(
+                    columnName: column.key,
+                    value: value,
+                  );
+                }),
+                DataGridCell(columnName: 'Actions', value: item),
+              ],
+            ))
         .toList();
   }
 
@@ -575,7 +619,8 @@ class BookDataSource extends DataGridSource {
                   ? Color(0xFFD43030)
                   : Colors.white;
             }),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
           ),
         ),
         ...row.getCells().skip(1).take(row.getCells().length - 2).map((cell) {
@@ -609,31 +654,36 @@ class BookDataSource extends DataGridSource {
                       ),
                       isOverflowing
                           ? TextButton(
-                        style: ButtonStyle(
-                          textStyle: WidgetStateProperty.all(TextStyle(fontSize: 14)),
-                          foregroundColor: WidgetStateProperty.all(Color(0xFF25B7E8)),
-                        ),
-                        onPressed: () {
-                          CopyDialog.show(context, value);
-                        },
-                        child: Text("全文"),
-                      )
+                              style: ButtonStyle(
+                                textStyle: WidgetStateProperty.all(
+                                    TextStyle(fontSize: 14)),
+                                foregroundColor:
+                                    WidgetStateProperty.all(Color(0xFF25B7E8)),
+                              ),
+                              onPressed: () {
+                                CopyDialog.show(context, value);
+                              },
+                              child: Text("全文"),
+                            )
                           : TextButton(
-                        style: ButtonStyle(
-                          textStyle: WidgetStateProperty.all(TextStyle(fontSize: 14)),
-                          foregroundColor: WidgetStateProperty.all(Color(0xFF25B7E8)),
-                        ),
-                        onPressed: () async {
-                          await Clipboard.setData(ClipboardData(text: value));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text("复制成功"),
-                              duration: Duration(seconds: 2),
+                              style: ButtonStyle(
+                                textStyle: WidgetStateProperty.all(
+                                    TextStyle(fontSize: 14)),
+                                foregroundColor:
+                                    WidgetStateProperty.all(Color(0xFF25B7E8)),
+                              ),
+                              onPressed: () async {
+                                await Clipboard.setData(
+                                    ClipboardData(text: value));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text("复制成功"),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                              child: Text("复制"),
                             ),
-                          );
-                        },
-                        child: Text("复制"),
-                      ),
                     ],
                   );
                 },
@@ -662,7 +712,8 @@ class BookDataSource extends DataGridSource {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => QuestionDetailPage(id: item['id']), // 替换为实际的 ID
+                    builder: (context) =>
+                        QuestionDetailPage(id: item['id']), // 替换为实际的 ID
                   ),
                 );
               },
