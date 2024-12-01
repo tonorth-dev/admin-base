@@ -68,12 +68,12 @@ class MajorTableView extends StatelessWidget {
                     borderSide: BorderSide(color: Colors.teal, width: 2),
                   ),
                 ),
-                onSubmitted: (value) => logic.search(value),
+                onSubmitted: (value) => logic.find(logic.size.value,logic.page.value),
               ),
             ),
             ThemeUtil.width(),
             ElevatedButton(
-              onPressed: () => logic.search(""),
+              onPressed: () => logic.find(logic.size.value,logic.page.value),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.teal,
                 foregroundColor: Colors.white,
@@ -146,7 +146,7 @@ class MajorTableView extends StatelessWidget {
           return PaginationPage(
             uniqueId: 'bind2_pagination',
             total: logic.total.value,
-            changed: (size, page) => logic.find(size, page, ''),
+            changed: (size, page) => logic.find(logic.size.value,logic.page.value),
           );
         })
       ],

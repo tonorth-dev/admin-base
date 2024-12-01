@@ -38,7 +38,7 @@ class SidebarLogic extends GetxController {
 
   static List<SidebarTree> treeList = [
     SidebarTree(
-      name: "岗位管理",
+      name: "岗位信息",
       icon: Icons.expand,
       children: jobList,
     ),
@@ -80,7 +80,7 @@ class SidebarLogic extends GetxController {
     InstitutionPage.newThis(),
     ClassPage.newThis(),
     StudentPage.newThis(),
-    BindPage.newThis(),
+    // BindPage.newThis(),
   ];
 
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:admin_flutter/component/pagination/view.dart';
@@ -7,6 +8,9 @@ import 'package:admin_flutter/app/home/sidebar/logic.dart';
 import 'package:admin_flutter/app/home/pages/job/logic.dart';
 import 'package:admin_flutter/app/home/pages/major/logic.dart';
 import 'package:admin_flutter/theme/theme_util.dart';
+
+import '../../../../component/dialog.dart';
+import '../../../../component/widget.dart';
 
 class CorresPage extends StatelessWidget {
   final jobLogic = Get.put(JobLogic());
@@ -68,12 +72,12 @@ class JobTableView extends StatelessWidget {
                     borderSide: BorderSide(color: Colors.teal, width: 2),
                   ),
                 ),
-                onSubmitted: (value) => logic.search(value),
+                // onSubmitted: (value) => logic.search(value),
               ),
             ),
             ThemeUtil.width(),
             ElevatedButton(
-              onPressed: () => logic.search(""),
+              onPressed: () => logic.find(1, 10),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.teal,
                 foregroundColor: Colors.white,
@@ -261,17 +265,17 @@ class MajorTableView extends StatelessWidget {
                   prefixIcon: Icon(Icons.search),
                   border: OutlineInputBorder(),
                 ),
-                onSubmitted: (value) => logic.search(value),
+                onSubmitted: (value) => logic.find(logic.size.value, logic.page.value),
               ),
             ),
             ThemeUtil.width(),
             ElevatedButton(
-              onPressed: () => logic.search(""),
+              onPressed: () => logic.find(logic.size.value, logic.page.value),
               child: const Text("搜索"),
             ),
             const Spacer(),
             FilledButton(
-              onPressed: logic.saveSelectionLocally, // 新增按钮用于保存关系
+              onPressed:() => logic.find(logic.size.value, logic.page.value),
               child: const Text("保存关系"),
             ),
             ThemeUtil.width(width: 30),
@@ -355,7 +359,7 @@ class MajorTableView extends StatelessWidget {
           return PaginationPage(
             uniqueId: 'corres_pagination',
             total: logic.total.value,
-            changed: (size, page) => logic.find(size, page, ''),
+            changed: (size, page) => logic.find(logic.size.value, logic.page.value),
           );
         })
       ],
@@ -407,58 +411,131 @@ class MajorDataSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
+    final isSelected = row.getCells().first.value as bool;
     final rowIndex = _rows.indexOf(row);
-    final isSelected = logic.selectedRowIndex.value == rowIndex;
+    final item = row.getCells().last.value;
 
     return DataGridRowAdapter(
-      color: isSelected ? Colors.blue[100] : (rowIndex.isEven ? Colors.blueGrey[50] : Colors.white),
+      color: rowIndex.isEven ? Color(0x50F1FDFC) : Colors.white,
       cells: [
-        Checkbox(
-          value: logic.selectedRows.contains(row.getCells()[1].value),
-          onChanged: (value) => logic.toggleSelect(rowIndex),
-        ),
-        ...row.getCells().skip(1).take(row.getCells().length - 2).map(
-              (cell) => Container(
-            padding: EdgeInsets.symmetric(vertical: 8),
-            alignment: cell.columnName == 'id' ? Alignment.center : Alignment.centerLeft,
-            child: Text(
-              cell.value?.toString() ?? '',
-              style: const TextStyle(
-                color: Colors.black87,
-                fontWeight: FontWeight.w500,
-              ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: Checkbox(
+            value: isSelected,
+            onChanged: (value) => logic.toggleSelect(item['id']),
+            fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+              return states.contains(WidgetState.selected)
+                  ? Color(0xFFD43030)
+                  : Colors.white;
+            }),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
             ),
           ),
         ),
-        Obx(() {
-          final isRowSelected = logic.selectedRowIndex.value == rowIndex;
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Text(
-                isRowSelected ? '确认关联' : '关联岗位',
-                style: TextStyle(
-                  color: isRowSelected ? Colors.deepOrange : Colors.blue,
-                  fontWeight: FontWeight.bold,
-                ),
+        ...row.getCells().skip(1).take(row.getCells().length - 2).map((cell) {
+          final columnName = cell.columnName;
+          final value = cell.value.toString();
+
+          if (columnName == 'title' || columnName == 'answer') {
+            // LayoutBuilder 处理溢出和文本显示
+            return Tooltip(
+              message: "点击右侧复制或查看全文",
+              verticalOffset: 25.0,
+              showDuration: Duration(milliseconds: 200),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade800,
+                borderRadius: BorderRadius.circular(4.0),
               ),
-              IconButton(
-                icon: Icon(
-                  isRowSelected ? Icons.check : Icons.double_arrow,
-                  color: isRowSelected ? Colors.deepOrange : Colors.blueGrey,
-                ),
-                onPressed: () {
-                  if (isRowSelected) {
-                    logic.confirmAssociation(row.getCells().last.value);
-                  } else {
-                    logic.selectRow(rowIndex);
-                  }
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isOverflowing = value.length > 100; // 判断是否溢出
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          alignment: Alignment.centerLeft,
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            value,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ),
+                      ),
+                      isOverflowing
+                          ? TextButton(
+                        onPressed: () {
+                          CopyDialog.show(context, value);
+                        },
+                        child: Text("全文"),
+                      )
+                          : TextButton(
+                        onPressed: () async {
+                          await Clipboard.setData(
+                              ClipboardData(text: value));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("复制成功"),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        child: Text("复制"),
+                      ),
+                    ],
+                  );
                 },
               ),
-              const SizedBox(width: 8),
-            ],
-          );
+            );
+          } else {
+            return Container(
+              alignment: Alignment.center,
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                value,
+                style: TextStyle(fontSize: 14),
+              ),
+            );
+          }
         }),
+        if (item['status'] == 4)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center, // 将按钮左对齐
+            children: [
+              HoverTextButton(
+                text: "审核通过",
+                onTap: () => logic.audit(item['id'], 2),
+              ),
+              SizedBox(width: 5),
+              HoverTextButton(
+                text: "审核拒绝",
+                onTap: () => logic.audit(item['id'], 1),
+              ), // 控制按钮之间的间距
+            ],
+          ),
+        if (item['status'] != 4)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center, // 将按钮左对齐
+            children: [
+              HoverTextButton(
+                text: "编辑",
+                onTap: () => logic.delete(item, rowIndex),
+              ),
+              SizedBox(width: 5),
+              HoverTextButton(
+                text: "删除",
+                onTap: () => logic.delete(item, rowIndex),
+              ),
+              SizedBox(width: 5), // 控制按钮之间的间距
+              if (item['status'] == 1) // 假设 status 字段表示数据状态
+                HoverTextButton(
+                  text: "邀请",
+                  onTap: () => logic.delete(item, rowIndex),
+                )
+            ],
+          )
       ],
     );
   }

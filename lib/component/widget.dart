@@ -201,7 +201,7 @@ class DropdownFieldState extends State<DropdownField> with WidgetsBindingObserve
                         fontSize: 14,
                         fontFamily: 'PingFang SC',
                         fontWeight: FontWeight.w400,
-                        height: 1.2,
+                        height: 1,
                       ),
                     ),
                   );
@@ -211,7 +211,7 @@ class DropdownFieldState extends State<DropdownField> with WidgetsBindingObserve
                   fontSize: 14,
                   fontFamily: 'PingFang SC',
                   fontWeight: FontWeight.w400,
-                  height: 1.2,
+                  height: 1,
                 ),
                 dropdownColor: Colors.white,
                 decoration: InputDecoration(
@@ -689,6 +689,7 @@ class TextInputWidget extends StatefulWidget {
 
 class _TextInputWidgetState extends State<TextInputWidget> {
   late TextEditingController _controller;
+  String? _errorText; // 用于存储错误信息
 
   @override
   void initState() {
@@ -700,6 +701,13 @@ class _TextInputWidgetState extends State<TextInputWidget> {
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  // 手动触发验证
+  void validate() {
+    setState(() {
+      _errorText = widget.validator?.call(_controller.text); // 更新错误信息
+    });
   }
 
   @override
@@ -739,22 +747,37 @@ class _TextInputWidgetState extends State<TextInputWidget> {
             ),
             filled: true,
             fillColor: Colors.white, // 背景填充色
-            contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            suffix: _errorText != null && _errorText!.isNotEmpty
+                ? Padding(
+              padding: const EdgeInsets.only(left: 8.0), // 左侧间距
+              child: Text(
+                _errorText!,
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontSize: 12,
+                ),
+              ),
+            )
+                : null,
           ),
           onChanged: (value) {
+            setState(() {
+              _errorText = widget.validator?.call(value); // 更新错误信息
+            });
+
             if (widget.text.value != value) {
               widget.text.value = value; // 更新 RxString
               widget.onTextChanged(value); // 输入变化时回调
             }
           },
           maxLines: widget.maxLines, // 设置最大行数
-          validator: widget.validator, // 使用验证器
         );
       }),
     );
   }
 }
+
 
 class NumberInputWidget extends StatefulWidget {
   final String hint;
