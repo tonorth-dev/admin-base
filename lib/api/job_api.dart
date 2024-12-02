@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:admin_flutter/common/http_util.dart';
 import 'package:dio/dio.dart';
 import 'package:path/path.dart';
@@ -80,7 +79,6 @@ class JobApi {
   static Future<dynamic> jobUpdate(int id, Map<String, dynamic> params) async {
     try {
       // 必传字段校验
-      // 必传字段校验
       List<String> requiredFields = [
         'code',
         'name',
@@ -90,7 +88,6 @@ class JobApi {
         'company_name',
         'enrollment_num',
         'enrollment_ratio',
-        'major_id',
       ];
       for (var field in requiredFields) {
         if (!params.containsKey(field) || params[field] == null) {
@@ -130,18 +127,7 @@ class JobApi {
       });
 
       // 调用上传接口
-      Response response = await Dio().post(
-        "http://127.0.0.1:8888/admin/job/job/batch-import",
-        data: formData,
-        options: Options(
-          headers: {
-            'User-Agent': 'Apifox/1.0.0 (https://apifox.com)',
-          },
-          contentType: 'multipart/form-data',
-        ),
-      );
-
-      return response.data; // 返回接口响应
+      return await HttpUtil.uploadFile("/admin/job/job/batch-import", formData, showMsg: false);
     } catch (e) {
       print('调用导入接口时发生错误: $e');
       rethrow; // 重新抛出异常以便调用者处理

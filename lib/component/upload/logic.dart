@@ -40,6 +40,6 @@ class UploadLogic extends GetxController {
   }
 
   static Future<dynamic> fileUpload(Uint8List fromBytes, String name) async {
-    return await HttpUtil.upload("/file/upload", fromBytes, name);
+    return await HttpUtil.uploadByte("/file/upload", fromBytes, name);
   }
 }

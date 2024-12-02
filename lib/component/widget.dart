@@ -442,12 +442,18 @@ class SearchBoxWidget extends StatefulWidget {
   final String hint;
   final ValueChanged<String> onTextChanged;
   final RxString searchText;
+  final String buttonText; // 按钮文字
+  final double width; // 搜索框宽度
+  final double height; // 搜索框高度
 
   const SearchBoxWidget({
     Key? key,
     required this.hint,
     required this.onTextChanged,
     required this.searchText,
+    this.buttonText = "查询", // 默认按钮文字
+    this.width = 200, // 默认宽度
+    this.height = 34, // 默认高度
   }) : super(key: key);
 
   @override
@@ -483,40 +489,43 @@ class _SearchBoxWidgetState extends State<SearchBoxWidget> {
   Widget build(BuildContext context) {
     return MouseRegion(
       onExit: (event) {
-        print("编辑完成");
         widget.searchText.value = _controller.text;
       },
-      child: SizedBox(
-        height: 34,
-        width: 120,
-        child: TextField(
-          key: const Key('search_box'),
-          controller: _controller,
-          decoration: InputDecoration(
-            hintText: widget.hint,
-            hintStyle: const TextStyle(
-              color: Color(0xFF999999),
-              fontSize: 12,
-              fontFamily: 'PingFang SC',
-              fontWeight: FontWeight.w400,
-            ),
-            prefixIcon: Icon(Icons.search),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
-            ),
-            filled: true,
-            fillColor: Colors.white,
-            contentPadding:
+      child: Row(
+        children: [
+          SizedBox(
+            height: widget.height,
+            width: widget.width,
+            child: TextField(
+              key: const Key('search_box'),
+              controller: _controller,
+              decoration: InputDecoration(
+                hintText: widget.hint,
+                hintStyle: const TextStyle(
+                  color: Color(0xFF999999),
+                  fontSize: 12,
+                  fontFamily: 'PingFang SC',
+                  fontWeight: FontWeight.w400,
+                ),
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          ),
-          onEditingComplete: () {
-            widget.searchText.value = _controller.text;
-          },
-          onSubmitted: (value) {
-            widget.onTextChanged(value);
-            widget.searchText.value = value;
-          },
-        ),
+              ),
+              onEditingComplete: () {
+                widget.searchText.value = _controller.text;
+              },
+              onSubmitted: (value) {
+                widget.onTextChanged(value);
+                widget.searchText.value = value;
+              },
+            ),
+          )
+        ],
       ),
     );
   }

@@ -217,7 +217,7 @@ class _JobAddFormState extends State<JobAddForm> {
                     width: 150,
                     child: Row(
                       children: const [
-                        Text('公司代码'),
+                        Text('单位序号'),
                         Text('*', style: TextStyle(color: Colors.red)),
                       ],
                     ),
@@ -228,13 +228,13 @@ class _JobAddFormState extends State<JobAddForm> {
                       width: 240,
                       height: 34,
                       maxLines: 8,
-                      hint: "输入公司代码",
+                      hint: "输入单位序号",
                       text: logic.companyCode,
                       onTextChanged: (value) {
                         logic.companyCode.value = value;
                       },
                       validator:
-                      FormBuilderValidators.required(errorText: '公司代码不能为空'),
+                      FormBuilderValidators.required(errorText: '单位序号不能为空'),
                     ),
                   ),
                 ],
@@ -246,7 +246,7 @@ class _JobAddFormState extends State<JobAddForm> {
                     width: 150,
                     child: Row(
                       children: const [
-                        Text('公司名称'),
+                        Text('单位名称'),
                         Text('*', style: TextStyle(color: Colors.red)),
                       ],
                     ),
@@ -257,13 +257,13 @@ class _JobAddFormState extends State<JobAddForm> {
                       width: 240,
                       height: 34,
                       maxLines: 8,
-                      hint: "输入公司名称",
+                      hint: "输入单位名称",
                       text: logic.companyName,
                       onTextChanged: (value) {
                         logic.companyName.value = value;
                       },
                       validator:
-                      FormBuilderValidators.required(errorText: '公司名称不能为空'),
+                      FormBuilderValidators.required(errorText: '单位名称不能为空'),
                     ),
                   ),
                 ],
@@ -406,7 +406,7 @@ class _JobAddFormState extends State<JobAddForm> {
                                   width: 530,
                                   child: TextInputWidget(
                                     width: 240,
-                                    height: 34,
+                                    height: 80,
                                     maxLines: 8,
                                     hint: "输入所学专业",
                                     text: logic.conditionMajor,

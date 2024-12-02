@@ -201,6 +201,7 @@ class JobLogic extends GetxController {
     size.value = newSize;
     page.value = newPage;
     list.clear();
+    selectedRows.clear();
     loading.value = true;
     // 打印调用堆栈
     try {
@@ -211,11 +212,11 @@ class JobLogic extends GetxController {
         "cate": getSelectedCateId() ?? "",
         "level": getSelectedLevelId() ?? "",
         "status": selectedQuestionStatus.value.toString(),
-        "major_id": (selectedMajorId.value?.toString() ?? ""),
+        "major_id": (selectedMajorId.value.toString() ?? ""),
       }).then((value) async {
         if (value != null && value["list"] != null) {
           total.value = value["total"] ?? 0;
-          list.addAll((value["list"] as List<dynamic>).toListMap());
+          list.assignAll((value["list"] as List<dynamic>).toListMap());
           await Future.delayed(const Duration(milliseconds: 300));
           loading.value = false;
         } else {
@@ -311,28 +312,33 @@ class JobLogic extends GetxController {
 
   void edit(BuildContext context, Map<String, dynamic> job) {
     currentEditJob.value = RxMap<String, dynamic>(job);
-    var level2MajorId = getLevel2IdFromLevel3Id(job["major_id"].toString());
-    var level3MajorId = getLevel1IdFromLevel2Id(level2MajorId);
 
-    // DynamicInputDialog.show(
-    //   context: context,
-    //   title: '录入试题',
-    //   child: JobEditForm(
-    //       jobId: job["id"],
-    //       initialTitle: job["title"],
-    //       initialAnswer: job["answer"],
-    //       initialQuestionCate: job["cate"],
-    //       initialQuestionLevel: job["level"],
-    //       initialLevel1MajorId: level3MajorId,
-    //       initialLevel2MajorId: level2MajorId,
-    //       initialMajorId: job["major_id"].toString(),
-    //       initialAuthor: job["author"],
-    //       initialTag: job["tag"],
-    //       initialStatus: job["status"]),
-    //   onSubmit: (formData) {
-    //     print('提交的数据: $formData');
-    //   },
-    // );
+    DynamicInputDialog.show(
+      context: context,
+      title: '录入试题',
+      child: JobEditForm(
+        jobId: job["id"],
+        initialJobCode: job["code"],
+        initialJobName: job["name"],
+        initialJobDesc: job["desc"],
+        initialJobCate: job["cate"],
+        initialEnrollmentNum: job["enrollment_num"],
+        initialEnrollmentRatio: job["enrollment_ratio"],
+        initialCompanyCode: job["company_code"],
+        initialCompanyName: job["company_name"],
+        initialConditionSource: job["condition"]["source"],
+        initialConditionQualification: job["condition"]["qualification"],
+        initialConditionDegree: job["condition"]["degree"],
+        initialConditionMajor: job["condition"]["major"],
+        initialConditionExam: job["condition"]["exam"],
+        initialConditionOther: job["condition"]["other"],
+        initialJobCity: job["city"],
+        initialJobPhone: job["phone"],
+      ),
+      onSubmit: (formData) {
+        print('提交的数据: $formData');
+      },
+    );
   }
 
   Future<bool> saveJob() async {
@@ -454,7 +460,7 @@ class JobLogic extends GetxController {
   }
 
 
-  Future<bool> createJob() async {
+  Future<bool> updateJob(int jobId) async {
     // 生成职位的逻辑
     final jobCodeSubmit = uJobCode.value;
     final jobNameSubmit = uJobName.value;
@@ -504,38 +510,37 @@ class JobLogic extends GetxController {
       isValid = false;
       errorMessage += "请选择招聘人数\n";
     }
-    if (enrollmentRatioSubmit.isEmpty) {
-      isValid = false;
-      errorMessage += "请选择录取比例\n";
-    }
 
     if (isValid) {
       try {
         Map<String, dynamic> params = {
-          "job_code": jobCodeSubmit,
-          "job_name": jobNameSubmit,
-          "job_cate": jobCateSubmit,
-          "job_desc": jobDescSubmit,
+          "code": jobCodeSubmit,
+          "name": jobNameSubmit,
+          "desc": jobDescSubmit,
+          "cate": jobCateSubmit,
           "company_code": companyCodeSubmit,
           "company_name": companyNameSubmit,
           "enrollment_num": enrollmentNumSubmit,
           "enrollment_ratio": enrollmentRatioSubmit,
-          "condition_source": conditionSourceSubmit,
-          "condition_qualification": conditionQualificationSubmit,
-          "condition_degree": conditionDegreeSubmit,
-          "condition_major": conditionMajorSubmit,
-          "condition_exam": conditionExamSubmit,
-          "condition_other": conditionOtherSubmit,
-          "job_city": jobCitySubmit,
-          "job_phone": jobPhoneSubmit,
+          "condition": {
+            "source": conditionSourceSubmit,
+            "qualification": conditionQualificationSubmit,
+            "degree": conditionDegreeSubmit,
+            "major": conditionMajorSubmit,
+            "exam": conditionExamSubmit,
+            "other": conditionOtherSubmit,
+          },
+          "city": jobCitySubmit,
+          "phone": jobPhoneSubmit,
         };
 
-        dynamic result = await JobApi.jobCreate(params);
-        "创建职位成功".toHint();
+        print("提交的数据：$params");
+        dynamic result = await JobApi.jobUpdate(jobId, params);
+        "更新职位成功".toHint();
         return true;
       } catch (e) {
         print('Error: $e');
-        "创建职位时发生错误：$e".toHint();
+        "更新职位时发生错误：$e".toHint();
         return false;
       }
     } else {
@@ -545,18 +550,6 @@ class JobLogic extends GetxController {
     }
   }
 
-
-  void delete(Map<String, dynamic> d, int index) {
-    try {
-      JobApi.jobDelete(d["id"].toString()).then((value) {
-        list.removeAt(index);
-      }).catchError((error) {
-        "删除失败: $error".toHint();
-      });
-    } catch (e) {
-      "删除失败: $e".toHint();
-    }
-  }
 
   Future<void> audit(int jobId, int status) async {
     try {
@@ -667,36 +660,28 @@ class JobLogic extends GetxController {
   void importFromCSV() async {
     try {
       FilePickerResult? result = await FilePicker.platform
-          .pickFiles(type: FileType.custom, allowedExtensions: ['csv']);
+          .pickFiles(type: FileType.custom, allowedExtensions: ['xlsx', 'xls']);
       if (result != null) {
         PlatformFile file = result.files.first;
-        String content;
+        String? filePath = file.path;
 
-        // 使用文件路径读取内容
-        if (file.path != null) {
-          content = await File(file.path!).readAsString(encoding: utf8);
+        if (filePath != null) {
+          // 创建 File 对象
+          File excelFile = File(filePath);
 
-          // 检查文件内容是否为空
-          if (content.isEmpty) {
+          // 检查文件是否为空
+          int fileSize = await excelFile.length();
+          if (fileSize == 0) {
             "文件内容为空".toHint();
             return;
           }
 
-          // 检查 BOM 并移除
-          if (content.startsWith('\uFEFF')) {
-            content = content.substring(1);
-          }
-
-          // 解析 CSV 内容
-          List<List<dynamic>> rows =
-              const CsvToListConverter().convert(content);
-          rows.removeAt(0); // 移除表头
-
           // 调用 API 执行批量导入
-          await JobApi.jobBatchImport(File(file.path!)).then((value) {
+          await JobApi.jobBatchImport(excelFile).then((value) {
             "导入成功!".toHint();
             refresh();
           }).catchError((error) {
+            print("导入失败: $error");
             "导入失败: $error".toHint();
           });
         } else {
@@ -706,7 +691,20 @@ class JobLogic extends GetxController {
         "没有选择文件".toHint();
       }
     } catch (e) {
+      print("导入失败: $e");
       "导入失败: $e".toHint();
+    }
+  }
+
+  void delete(Map<String, dynamic> d, int index) {
+    try {
+      JobApi.jobDelete(d["id"].toString()).then((value) {
+        list.removeAt(index);
+      }).catchError((error) {
+        "删除失败: $error".toHint();
+      });
+    } catch (e) {
+      "删除失败: $e".toHint();
     }
   }
 
@@ -773,9 +771,6 @@ class JobLogic extends GetxController {
 
   void reset() {
     majorDropdownKey.currentState?.reset();
-    cateDropdownKey.currentState?.reset();
-    levelDropdownKey.currentState?.reset();
-    statusDropdownKey.currentState?.reset();
     searchText.value = '';
     selectedRows.clear();
 

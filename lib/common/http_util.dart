@@ -14,7 +14,8 @@ class HttpUtil {
   ))
     ..interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
-        print('Request [${options.method}] => PATH: ${options.path}, DATA: ${options.data}');
+        print(
+            'Request [${options.method}] => PATH: ${options.path}, DATA: ${options.data}');
         return handler.next(options); // 调用下一步
       },
       onResponse: (response, handler) {
@@ -67,8 +68,9 @@ class HttpUtil {
   }
 
   /// 上传文件处理
-  static Future<dynamic> upload(String url, Uint8List file, String name,
-      {bool showMsg = true, Function(int count, int total)? onSendProgress}) async {
+  static Future<dynamic> uploadByte(String url, Uint8List file, String name,
+      {bool showMsg = true,
+      Function(int count, int total)? onSendProgress}) async {
     var map = await header();
     var formData = FormData.fromMap({
       "file": MultipartFile.fromBytes(file, filename: name),
@@ -78,6 +80,21 @@ class HttpUtil {
         options: Options(headers: map),
         onSendProgress: onSendProgress);
     return verify(response.data, showMsg);
+  }
+
+  static Future<dynamic> uploadFile(String url, FormData formData,
+      {bool showMsg = true,
+      Function(int count, int total)? onSendProgress}) async {
+    var map = await header(); // 假设 header() 是一个返回请求头的方法
+
+    Response response = await dio.post(
+      url,
+      data: formData,
+      options: Options(headers: map),
+      onSendProgress: onSendProgress,
+    );
+
+    return verify(response.data, showMsg); // 假设 verify() 是一个验证响应的方法
   }
 
   /// 验证结果

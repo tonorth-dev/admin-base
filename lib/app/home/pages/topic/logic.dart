@@ -245,7 +245,7 @@ class TopicLogic extends GetxController {
       }).then((value) async {
         if (value != null && value["list"] != null) {
           total.value = value["total"] ?? 0;
-          list.addAll((value["list"] as List<dynamic>).toListMap());
+          list.assignAll((value["list"] as List<dynamic>).toListMap());
           await Future.delayed(const Duration(milliseconds: 300));
           loading.value = false;
         } else {
