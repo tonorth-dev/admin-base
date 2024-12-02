@@ -31,7 +31,31 @@ class JobPage extends StatelessWidget {
               ),
               SizedBox(width: 8), // 添加一些间距
               CustomButton(
-                onPressed: () => logic.batchDelete(logic.selectedRows),
+                onPressed: () async {
+                  final shouldDelete = await showDialog<bool>(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: Text("确认删除"),
+                        content: Text("你确定要删除这项吗？"),
+                        actions: [
+                          TextButton(
+                            child: Text("取消"),
+                            onPressed: () => Navigator.of(context).pop(false),
+                          ),
+                          TextButton(
+                            child: Text("确定"),
+                            onPressed: () => Navigator.of(context).pop(true),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
+                  if (shouldDelete == true) {
+                    logic.batchDelete(logic.selectedRows);
+                  }
+                },
                 text: '批量删除',
                 width: 90, // 自定义宽度
                 height: 32, // 自定义高度
@@ -53,7 +77,7 @@ class JobPage extends StatelessWidget {
               SizedBox(width: 8), // 添加一些间距
               CustomButton(
                 onPressed: logic.importFromCSV,
-                text: '从CSV导入',
+                text: '从Excel导入',
                 width: 110, // 自定义宽度
                 height: 32, // 自定义高度
               ),
@@ -94,7 +118,7 @@ class JobPage extends StatelessWidget {
               ),
               SearchBoxWidget(
                 key: Key('keywords'),
-                hint: '题干、答案、标签',
+                hint: '岗位代码、岗位名称、单位序号、单位名称',
                 onTextChanged: (String value) {
                   logic.searchText.value = value;
                   logic.applyFilters();
@@ -135,7 +159,7 @@ class JobPage extends StatelessWidget {
                         gridLinesVisibility: GridLinesVisibility.values[1],
                         columnWidthMode: ColumnWidthMode.fill,
                         headerRowHeight: 50,
-                        rowHeight: 180,
+                        rowHeight: 60,
                         columns: [
                           GridColumn(
                             columnName: 'Select',
@@ -336,7 +360,8 @@ class JobDataSource extends DataGridSource {
                     text: TextSpan(text: value, style: TextStyle(fontSize: 14)),
                     maxLines: 2,
                     textDirection: TextDirection.ltr,
-                  )..layout(maxWidth: constraints.maxWidth - 10); // 减去Padding的宽度
+                  )..layout(
+                      maxWidth: constraints.maxWidth - 10); // 减去Padding的宽度
 
                   final isOverflowing = textPainter.didExceedMaxLines;
                   return Row(
@@ -347,7 +372,7 @@ class JobDataSource extends DataGridSource {
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
                             value,
-                            maxLines: 2,
+                            maxLines: 4,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(fontSize: 14),
                           ),
@@ -355,23 +380,24 @@ class JobDataSource extends DataGridSource {
                       ),
                       isOverflowing
                           ? TextButton(
-                        onPressed: () {
-                          CopyDialog.show(context, value);
-                        },
-                        child: Text("全文"),
-                      )
+                              onPressed: () {
+                                CopyDialog.show(context, value);
+                              },
+                              child: Text("全文"),
+                            )
                           : TextButton(
-                        onPressed: () async {
-                          await Clipboard.setData(ClipboardData(text: value));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text("复制成功"),
-                              duration: Duration(seconds: 2),
+                              onPressed: () async {
+                                await Clipboard.setData(
+                                    ClipboardData(text: value));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text("复制成功"),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                              child: Text("复制"),
                             ),
-                          );
-                        },
-                        child: Text("复制"),
-                      ),
                     ],
                   );
                 },
@@ -403,21 +429,45 @@ class JobDataSource extends DataGridSource {
               ), // 控制按钮之间的间距
             ],
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center, // 将按钮左对齐
-            children: [
-              HoverTextButton(
-                text: "编辑",
-                onTap: () => logic.edit(context, item),
-              ),
-              SizedBox(width: 5),
-              HoverTextButton(
-                text: "删除",
-                onTap: () => logic.delete(item, rowIndex),
-              ),
-              SizedBox(width: 5), // 控制按钮之间的间距
-            ],
-          )
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center, // 将按钮左对齐
+          children: [
+            HoverTextButton(
+              text: "编辑",
+              onTap: () => logic.edit(context, item),
+            ),
+            SizedBox(width: 5),
+            HoverTextButton(
+              text: "删除",
+              onTap: () async {
+                final shouldDelete = await showDialog<bool>(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: Text("确认删除"),
+                      content: Text("你确定要删除这项吗？"),
+                      actions: [
+                        TextButton(
+                          child: Text("取消"),
+                          onPressed: () => Navigator.of(context).pop(false),
+                        ),
+                        TextButton(
+                          child: Text("确定"),
+                          onPressed: () => Navigator.of(context).pop(true),
+                        ),
+                      ],
+                    );
+                  },
+                );
+
+                if (shouldDelete == true) {
+                  logic.delete(item, rowIndex);
+                }
+              },
+            ),
+            SizedBox(width: 5), // 控制按钮之间的间距
+          ],
+        )
       ],
     );
   }
