@@ -18,7 +18,7 @@ class MajorApi {
       final defaultParams = {
         'page': '1',
         'pageSize': '15',
-        'search': handleNullOrEmpty(''),
+        'keyword': handleNullOrEmpty(''),
       };
 
       // 合并默认参数和传入的参数
@@ -61,7 +61,7 @@ class MajorApi {
   static Future<dynamic> majorCreate(Map<String, dynamic> params) async {
     try {
       // 必传字段校验
-      List<String> requiredFields = ['title', 'author', 'answer', 'cate', 'level', 'major_id', 'status'];
+      List<String> requiredFields = ['first_level_category', 'second_level_category', 'major_name',];
       for (var field in requiredFields) {
         if (!params.containsKey(field) || params[field] == null) {
           throw ArgumentError('Missing required field: $field');
@@ -89,7 +89,7 @@ class MajorApi {
   static Future<dynamic> majorUpdate(int id, Map<String, dynamic> params) async {
     try {
       // 必传字段校验
-      List<String> requiredFields = ['title', 'author', 'answer', 'cate', 'level', 'major_id', 'status'];
+      List<String> requiredFields = ['first_level_category', 'second_level_category', 'major_name',];
       for (var field in requiredFields) {
         if (!params.containsKey(field) || params[field] == null) {
           throw ArgumentError('Missing required field: $field');

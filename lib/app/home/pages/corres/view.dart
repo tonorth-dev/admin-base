@@ -13,8 +13,8 @@ import '../../../../component/dialog.dart';
 import '../../../../component/widget.dart';
 
 class CorresPage extends StatelessWidget {
-  final jobLogic = Get.put(JobLogic());
   final majorLogic = Get.put(MajorLogic());
+  final jobLogic = Get.put(JobLogic());
 
   @override
   Widget build(BuildContext context) {

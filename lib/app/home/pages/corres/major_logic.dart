@@ -18,8 +18,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../api/major_api.dart';
 import '../../../../component/table/table_data.dart';
 import '../../../../component/widget.dart';
-import 'major_add_form.dart';
-import 'major_edit_form.dart';
 
 class MajorLogic extends GetxController {
   var list = <Map<String, dynamic>>[].obs;
@@ -218,37 +216,6 @@ class MajorLogic extends GetxController {
       ColumnData(title: "创建时间", key: "create_time", width: 200),
       ColumnData(title: "更新时间", key: "update_time", width: 200),
     ];
-  }
-
-  void add(BuildContext context) {
-    DynamicInputDialog.show(
-      context: context,
-      title: '录入专业',
-      child: MajorAddForm(),
-      onSubmit: (formData) {
-        print('提交的数据: $formData');
-      },
-    );
-  }
-
-  void edit(BuildContext context, Map<String, dynamic> major) {
-    currentEditMajor.value = RxMap<String, dynamic>(major);
-    var level2MajorId = getLevel2IdFromLevel3Id(major["major_id"].toString());
-    var level3MajorId = getLevel1IdFromLevel2Id(level2MajorId);
-
-    DynamicInputDialog.show(
-      context: context,
-      title: '录入专业',
-      child: MajorEditForm(
-        majorId: major["id"],
-        initialMajorName: major["major_name"],
-        initialFirstLevelCategory: major["first_level_category"],
-        initialSecondLevelCategory: major["second_level_category"],
-      ),
-      onSubmit: (formData) {
-        print('提交的数据: $formData');
-      },
-    );
   }
 
   Future<bool> saveMajor() async {

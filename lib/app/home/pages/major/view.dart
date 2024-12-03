@@ -97,7 +97,6 @@ class MajorPage extends StatelessWidget {
                 hint: '题干、答案、标签',
                 onTextChanged: (String value) {
                   logic.searchText.value = value;
-                  logic.applyFilters();
                 },
                 searchText: logic.searchText,
               ),
@@ -166,7 +165,7 @@ class MajorPage extends StatelessWidget {
                           ),
                           ...logic.columns.map((column) => GridColumn(
                                 columnName: column.key,
-                                width: _getColumnWidth(column.key),
+                                width: column.width,
                                 label: Container(
                                   color: Color(0xFFF3F4F8),
                                   alignment: Alignment.center,
