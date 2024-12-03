@@ -12,6 +12,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../component/table/table_data.dart';
 import '../../../../component/widget.dart';
+import 'j_logic.dart';
 
 class MLogic extends GetxController {
   var list = <Map<String, dynamic>>[].obs;
@@ -20,6 +21,7 @@ class MLogic extends GetxController {
   var page = 1.obs;
   var loading = false.obs;
   final searchText = ''.obs;
+  final jLogic = Get.put(JLogic());
 
   final GlobalKey<CascadingDropdownFieldState> majorDropdownKey =
   GlobalKey<CascadingDropdownFieldState>();
@@ -208,7 +210,7 @@ class MLogic extends GetxController {
       ColumnData(title: "专业名称", key: "major_name", width: 150),
       ColumnData(title: "年份", key: "year", width: 0),
       ColumnData(title: "创建时间", key: "create_time", width: 0),
-      ColumnData(title: "更新时间", key: "update_time", width: 150),
+      ColumnData(title: "更新时间", key: "update_time", width: 0),
     ];
   }
 
@@ -476,13 +478,7 @@ class MLogic extends GetxController {
   }
 
   void toggleSelectAll() {
-    if (selectedRows.length == list.length) {
-      // 当前所有行都被选中，清空选中状态
       selectedRows.clear();
-    } else {
-      // 当前不是所有行都被选中，选择所有行
-      selectedRows.assignAll(list.map((item) => item['id']));
-    }
   }
 
   void toggleSelect(int id) {
@@ -491,8 +487,10 @@ class MLogic extends GetxController {
       selectedRows.remove(id);
     } else {
       // 当前行未被选中，选中
+      selectedRows.clear();
       selectedRows.add(id);
     }
+    jLogic.findForMajor(id);
   }
 
   void reset() {

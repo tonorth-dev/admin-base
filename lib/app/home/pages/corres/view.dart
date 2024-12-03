@@ -23,13 +23,13 @@ class CorresPage extends StatelessWidget {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: MajorTableView(key: const Key("major_table"), title: "专业", logic: mLogic),
+            child: MajorTableView(key: const Key("major_table"), title: "专业列表", logic: mLogic),
           ),
         ),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: JobTableView(key: const Key("job_table"), title: "岗位", logic: jLogic),
+            child: JobTableView(key: const Key("job_table"), title: "岗位列表", logic: jLogic),
           ),
         ),
       ],
@@ -71,7 +71,7 @@ class JobTableView extends StatelessWidget {
               ),
               child: Center(
                 child: Text(
-                  "岗位列表",
+                  title,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -275,15 +275,15 @@ class MajorTableView extends StatelessWidget {
               width: 100,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.red.shade700, Colors.red.shade300], // 深红到浅红的渐变
+                  colors: [Colors.red.shade700, Colors.red.shade300],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
-                borderRadius: BorderRadius.circular(8), // 圆角（可选）
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Center(
                 child: Text(
-                  "专业列表",
+                  title,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -294,17 +294,16 @@ class MajorTableView extends StatelessWidget {
             ),
             Expanded(
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.end, // 右对齐
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   ThemeUtil.width(width: 20),
                   Padding(
                     padding: EdgeInsets.all(16.0),
                     child: FutureBuilder<void>(
-                      future: logic.fetchMajors(), // 调用 fetchMajors 方法
+                      future: logic.fetchMajors(),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(
-                              child: CircularProgressIndicator()); // 加载中显示进度条
+                          return Center(child: CircularProgressIndicator());
                         } else if (snapshot.hasError) {
                           return Text('加载失败: ${snapshot.error}');
                         } else {
@@ -318,12 +317,11 @@ class MajorTableView extends StatelessWidget {
                             level1Items: logic.level1Items,
                             level2Items: logic.level2Items,
                             level3Items: logic.level3Items,
-                            selectedLevel1: ValueNotifier(null),
-                            selectedLevel2: ValueNotifier(null),
-                            selectedLevel3: ValueNotifier(null),
+                            selectedLevel1: logic.selectedLevel1,
+                            selectedLevel2: logic.selectedLevel2,
+                            selectedLevel3: logic.selectedLevel3,
                             onChanged: (dynamic level1, dynamic level2, dynamic level3) {
                               logic.selectedMajorId.value = level3.toString();
-                              // 这里可以处理选择的 id
                             },
                           );
                         }
@@ -368,7 +366,7 @@ class MajorTableView extends StatelessWidget {
               : SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: SizedBox(
-              width: 800,
+              width: 900,
               height: Get.height,
               child: SfDataGrid(
                 source: MajorDataSource(logic: logic),
@@ -385,7 +383,7 @@ class MajorTableView extends StatelessWidget {
                       ),
                       child: Center(
                         child: Checkbox(
-                          value: logic.selectedRows.length == logic.list.length,
+                          value: logic.selectedRows.isNotEmpty,
                           onChanged: (value) => logic.toggleSelectAll(),
                         ),
                       ),
@@ -436,15 +434,16 @@ class MajorTableView extends StatelessWidget {
         ),
         Obx(() {
           return PaginationPage(
-            uniqueId: 'corres_pagination',
+            uniqueId: 'major_pagination',
             total: logic.total.value,
-            changed: (size, page) => logic.find(logic.size.value, logic.page.value),
+            changed: (size, page) => logic.find(size, page),
           );
         })
       ],
     );
   }
 }
+
 
 class MajorDataSource extends DataGridSource {
   final MLogic logic;
@@ -487,54 +486,68 @@ class MajorDataSource extends DataGridSource {
       cells: [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 4.0),
-          child: Checkbox(
-            value: isSelected,
-            onChanged: (value) => logic.toggleSelect(item['id']),
-            fillColor: MaterialStateProperty.resolveWith<Color>((states) {
-              return states.contains(MaterialState.selected)
-                  ? Color(0xFFD43030)
-                  : Colors.white;
-            }),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: Checkbox(
+              value: isSelected,
+              onChanged: (value) => logic.toggleSelect(item['id']),
+              fillColor: MaterialStateProperty.resolveWith<Color>((states) {
+                return states.contains(MaterialState.selected)
+                    ? Color(0xFFD43030)
+                    : Colors.white;
+              }),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
             ),
           ),
         ),
         ...row.getCells().skip(1).take(row.getCells().length - 2).map((cell) {
           final columnName = cell.columnName;
           final value = cell.value.toString();
-            return Container(
-              alignment: Alignment.center,
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                value,
-                style: TextStyle(fontSize: 14),
+          return MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: () => logic.toggleSelect(item['id']), // 点击行时触发选择
+              behavior: HitTestBehavior.opaque, // 确保点击整个区域都能响应
+              child: Container(
+                alignment: Alignment.center,
+                padding: const EdgeInsets.all(8.0),
+                width: double.infinity, // 确保单元格充满整个宽度
+                child: Text(
+                  value,
+                  textAlign: TextAlign.center, // 文字居中
+                  style: TextStyle(fontSize: 14),
+                ),
               ),
-            );
-          }
-        ),
+            ),
+          );
+        }),
         if (item['status'] != 4)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              HoverTextButton(
-                text: "编辑",
-                onTap: () => logic.delete(item, rowIndex),
-              ),
-              SizedBox(width: 5),
-              HoverTextButton(
-                text: "删除",
-                onTap: () => logic.delete(item, rowIndex),
-              ),
-              SizedBox(width: 5),
-              if (item['status'] == 1)
+          MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
                 HoverTextButton(
-                  text: "邀请",
-                  onTap: () => logic.delete(item, rowIndex),
-                )
-            ],
+                  text: "编辑",
+                  onTap: () => logic.find(1, 2),
+                ),
+                SizedBox(width: 5),
+                HoverTextButton(
+                  text: "删除",
+                  onTap: () => logic.find(1, 2),
+                ),
+              ],
+            ),
           )
       ],
     );
   }
+
 }
+
+
+
+
+

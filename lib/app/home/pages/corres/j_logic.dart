@@ -63,6 +63,7 @@ class JLogic extends GetxController {
   Map<String, List<Map<String, dynamic>>> level2Items = {};
   Map<String, List<Map<String, dynamic>>> level3Items = {};
   Rx<String> selectedMajorId = "0".obs;
+  var all = "0";
 
   final jobCode = ''.obs;
   final jobName = ''.obs;
@@ -211,6 +212,7 @@ class JLogic extends GetxController {
         "level": getSelectedLevelId() ?? "",
         "status": selectedQuestionStatus.value.toString(),
         "major_id": (selectedMajorId.value.toString() ?? ""),
+        "all": all ?? "0",
       }).then((value) async {
         if (value != null && value["list"] != null) {
           total.value = value["total"] ?? 0;
@@ -231,6 +233,12 @@ class JLogic extends GetxController {
       print("获取岗位列表失败: $e");
       "获取岗位列表失败: $e".toHint();
     }
+  }
+
+  void findForMajor(int majorId) {
+    all = "1";
+    selectedMajorId.value = majorId.toString();
+    find(size.value, page.value);
   }
 
   var columns = <ColumnData>[];

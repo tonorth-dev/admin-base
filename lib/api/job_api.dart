@@ -22,6 +22,7 @@ class JobApi {
         'level': handleNullOrEmpty(params['level']),
         'status': handleNullOrEmpty(params['status']),
         'major_id': handleNullOrEmpty(params['major_id']),
+        'all': handleNullOrEmpty(params['all']),
       };
 
       return await HttpUtil.get("/admin/job/job/list", params: finalParams);
