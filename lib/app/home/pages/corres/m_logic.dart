@@ -485,12 +485,14 @@ class MLogic extends GetxController {
     if (selectedRows.contains(id)) {
       // 当前行已被选中，取消选中
       selectedRows.remove(id);
+      selectedRows.clear();
+      jLogic.selectedRows.clear();
     } else {
       // 当前行未被选中，选中
       selectedRows.clear();
       selectedRows.add(id);
+      jLogic.findForMajor(id);
     }
-    jLogic.findForMajor(id);
   }
 
   void reset() {

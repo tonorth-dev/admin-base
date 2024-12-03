@@ -8,8 +8,6 @@ import 'package:admin_flutter/app/home/sidebar/logic.dart';
 import 'package:admin_flutter/app/home/pages/corres/m_logic.dart';
 import 'package:admin_flutter/app/home/pages/corres/j_logic.dart';
 import 'package:admin_flutter/theme/theme_util.dart';
-
-import '../../../../component/dialog.dart';
 import '../../../../component/widget.dart';
 
 class CorresPage extends StatelessWidget {
@@ -63,11 +61,11 @@ class JobTableView extends StatelessWidget {
               width: 100,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.blue.shade700, Colors.blue.shade400], // 深红到浅红的渐变
+                  colors: [Colors.blue.shade700, Colors.blue.shade400],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
-                borderRadius: BorderRadius.circular(8), // 圆角（可选）
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Center(
                 child: Text(
@@ -80,10 +78,16 @@ class JobTableView extends StatelessWidget {
                 ),
               ),
             ),
-            Expanded( // 使用 Expanded 占满剩余空间
+            Expanded(
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.end, // 右对齐
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  // 假设这里有一个按钮来切换是否允许选择
+                  ElevatedButton(
+                    onPressed: () => logic.isRowsSelectable.value ? logic.disableRowSelection() : logic.enableRowSelection(),
+                    child: Text(logic.isRowsSelectable.value ? '禁用选择' : '启用选择'),
+                  ),
+                  SizedBox(width: 10),
                   SearchBoxWidget(
                     key: Key('keywords'),
                     hint: '岗位代码、岗位名称、单位序号、单位名称',
@@ -119,60 +123,66 @@ class JobTableView extends StatelessWidget {
         ThemeUtil.height(),
         Expanded(
           child: Obx(() => logic.loading.value
-              ? const Center(child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
-                ))
+              ? const Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
+            ),
+          )
               : SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Container(
-                    width: 1000,
-                    height: Get.height,
-                    child: SfDataGrid(
-                      source: JobDataSource(logic: logic),
-                      headerGridLinesVisibility: GridLinesVisibility.values[1],
-                      columnWidthMode: ColumnWidthMode.fill,
-                      headerRowHeight: 50,
-                      gridLinesVisibility: GridLinesVisibility.both,
-                      columns: [
-                        GridColumn(
-                          width: 80,
-                          columnName: 'Select',
-                          label: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.indigo[50],
-                            ),
-                            child: Center(
-                              child: Checkbox(
-                                value: logic.selectedRows.length == logic.list.length,
-                                onChanged: (value) => logic.toggleSelectAll(),
-                                activeColor: Colors.teal,
-                              ),
-                            ),
-                          ),
-                        ),
-                        ...logic.columns.map((column) => GridColumn(
-                          width: column.width,
-                          columnName: column.key,
-                          label: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.indigo[50],
-                            ),
-                            child: Center(
-                              child: Text(
-                                column.title,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.indigo[800],
-                                ),
-                              ),
-                            ),
-                          ),
+            scrollDirection: Axis.horizontal,
+            child: Container(
+              width: 1000,
+              height: Get.height,
+              child: SfDataGrid(
+                source: JobDataSource(logic: logic),
+                headerGridLinesVisibility: GridLinesVisibility.values[1],
+                columnWidthMode: ColumnWidthMode.fill,
+                headerRowHeight: 50,
+                gridLinesVisibility: GridLinesVisibility.both,
+                columns: [
+                  GridColumn(
+                    width: 80,
+                    columnName: 'Select',
+                    label: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.indigo[50],
+                      ),
+                      child: Center(
+                        child: Obx(() => Checkbox(
+                          value: logic.isRowsSelectable.value && logic.selectedRows.length == logic.list.length,
+                          onChanged: (value) {
+                            if (logic.isRowsSelectable.value) {
+                              logic.toggleSelectAll();
+                            }
+                          },
+                          activeColor: Colors.teal,
                         )),
-                      ],
+                      ),
                     ),
                   ),
-                )),
+                  ...logic.columns.map((column) => GridColumn(
+                    width: column.width,
+                    columnName: column.key,
+                    label: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.indigo[50],
+                      ),
+                      child: Center(
+                        child: Text(
+                          column.title,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.indigo[800],
+                          ),
+                        ),
+                      ),
+                    ),
+                  )),
+                ],
+              ),
+            ),
+          )),
         ),
         Obx(() {
           return PaginationPage(
@@ -197,16 +207,16 @@ class JobDataSource extends DataGridSource {
   void _buildRows() {
     _rows = logic.list
         .map((item) => DataGridRow(
-              cells: [
-                DataGridCell(
-                    columnName: 'Select',
-                    value: logic.selectedRows.contains(item['id'])),
-                ...logic.columns.map((column) => DataGridCell(
-                      columnName: column.key,
-                      value: item[column.key],
-                    )),
-              ],
-            ))
+      cells: [
+        DataGridCell(
+            columnName: 'Select',
+            value: logic.selectedRows.contains(item['id'])),
+        ...logic.columns.map((column) => DataGridCell(
+          columnName: column.key,
+          value: item[column.key],
+        )),
+      ],
+    ))
         .toList();
   }
 
@@ -220,40 +230,51 @@ class JobDataSource extends DataGridSource {
     final rowIndex = _rows.indexOf(row);
 
     return DataGridRowAdapter(
-      color: isSelected ? Colors.teal[100] : (rowIndex.isEven ? Colors.teal[30] : Colors.white),
-      cells: row.getCells().map((cell) {
-        if (cell.columnName == 'Select') {
-          return Container(
-            alignment: Alignment.center,
+      color: logic.isRowsSelectable.value
+          ? (isSelected
+          ? Colors.teal.withOpacity(0.6) // 选中颜色
+          : (rowIndex.isEven ? Colors.teal.withOpacity(0.05) : Colors.white)) // 交替行颜色
+          : Colors.grey.withOpacity(0.1), // 禁用选择时的浅色蒙层
+      cells: [
+        Obx(() => MouseRegion(
+          cursor: logic.isRowsSelectable.value ? SystemMouseCursors.click : SystemMouseCursors.basic,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0),
             child: Checkbox(
               value: isSelected,
-              onChanged: (value) => _toggleRowSelection(rowId),
+              onChanged: logic.isRowsSelectable.value
+                  ? (value) => logic.toggleSelect(rowId) // 点击行时触发选择
+                  : null,
               activeColor: Colors.teal,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
             ),
-          );
-        } else {
-          return GestureDetector(
-            onTap: () => _toggleRowSelection(rowId),
-            child: Container(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              alignment: cell.columnName == 'id' ? Alignment.center : Alignment.centerLeft,
-              child: Text(
-                cell.value?.toString() ?? '',
-                style: TextStyle(
-                  color: Colors.teal[800],
-                  fontWeight: FontWeight.w500,
+          ),
+        )),
+        ...row.getCells().skip(1).map((cell) {
+          final columnName = cell.columnName;
+          final value = cell.value.toString();
+          return Obx(() => MouseRegion(
+            cursor: logic.isRowsSelectable.value ? SystemMouseCursors.click : SystemMouseCursors.basic,
+            child: GestureDetector(
+              onTap: logic.isRowsSelectable.value ? () => logic.toggleSelect(rowId) : null, // 点击行时触发选择
+              behavior: HitTestBehavior.opaque, // 确保点击整个区域都能响应
+              child: Container(
+                alignment: Alignment.center,
+                padding: const EdgeInsets.all(8.0),
+                width: double.infinity, // 确保单元格充满整个宽度
+                child: Text(
+                  value,
+                  textAlign: TextAlign.center, // 文字居中
+                  style: TextStyle(fontSize: 14),
                 ),
               ),
             ),
-          );
-        }
-      }).toList(),
+          ));
+        }),
+      ],
     );
-  }
-
-  void _toggleRowSelection(dynamic rowId) {
-    logic.toggleSelect(rowId);
-    notifyListeners();
   }
 }
 
@@ -478,6 +499,7 @@ class MajorDataSource extends DataGridSource {
     final isSelected = row.getCells().first.value as bool;
     final rowIndex = _rows.indexOf(row);
     final item = row.getCells().last.value;
+    print("deitem:$item");
 
     return DataGridRowAdapter(
       color: isSelected

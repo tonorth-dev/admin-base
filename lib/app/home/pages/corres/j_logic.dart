@@ -196,7 +196,7 @@ class JLogic extends GetxController {
     return level2IdToLevel1Id[secondLevelId] ?? '';
   }
 
-  void find(int newSize, int newPage) {
+  Future<List<Map<String, dynamic>>> find(int newSize, int newPage) async {
     size.value = newSize;
     page.value = newPage;
     list.clear();
@@ -204,7 +204,7 @@ class JLogic extends GetxController {
     loading.value = true;
     // 打印调用堆栈
     try {
-      JobApi.jobList({
+      var response = await JobApi.jobList({
         "size": size.value.toString(),
         "page": page.value.toString(),
         "keyword": searchText.value.toString() ?? "",
@@ -213,32 +213,38 @@ class JLogic extends GetxController {
         "status": selectedQuestionStatus.value.toString(),
         "major_id": (selectedMajorId.value.toString() ?? ""),
         "all": all ?? "0",
-      }).then((value) async {
-        if (value != null && value["list"] != null) {
-          total.value = value["total"] ?? 0;
-          list.assignAll((value["list"] as List<dynamic>).toListMap());
-          await Future.delayed(const Duration(milliseconds: 300));
-          loading.value = false;
-        } else {
-          loading.value = false;
-          "未获取到岗位数据".toHint();
-        }
-      }).catchError((error) {
-        loading.value = false;
-        print("获取岗位列表失败: $error");
-        "获取岗位列表失败: $error".toHint();
       });
+
+      if (response != null && response["list"] != null) {
+        total.value = response["total"] ?? 0;
+        list.assignAll((response["list"] as List<dynamic>).toListMap());
+
+        await Future.delayed(const Duration(milliseconds: 300));
+        loading.value = false;
+        return list;
+      } else {
+        loading.value = false;
+        "未获取到岗位数据".toHint();
+        return [];
+      }
     } catch (e) {
       loading.value = false;
       print("获取岗位列表失败: $e");
       "获取岗位列表失败: $e".toHint();
+      return [];
     }
   }
 
-  void findForMajor(int majorId) {
+  Future<void> findForMajor(int majorId) async {
     all = "1";
     selectedMajorId.value = majorId.toString();
-    find(size.value, page.value);
+    List<Map<String, dynamic>> items = await find(size.value, page.value);
+    for (var item in items) {
+      if (item['major_sorted'] == 1) {
+        print(item['id']);
+        toggleSelect(item['id']);
+      }
+    }
   }
 
   var columns = <ColumnData>[];
@@ -250,13 +256,13 @@ class JLogic extends GetxController {
     columns = [
       ColumnData(title: "ID", key: "id", width: 0),
       ColumnData(title: "岗位编码", key: "code", width: 100),
-      ColumnData(title: "岗位名称", key: "name", width: 120),
+      ColumnData(title: "岗位名称", key: "name", width: 200),
       ColumnData(title: "岗位类别", key: "cate", width: 120),
-      ColumnData(title: "从事工作", key: "desc", width: 200),
+      ColumnData(title: "从事工作", key: "desc", width: 150),
       ColumnData(title: "单位编码", key: "company_code", width: 100),
       ColumnData(title: "单位名称", key: "company_name", width: 120),
-      ColumnData(title: "录取人数", key: "enrollment_num", width: 80),
-      ColumnData(title: "录取比例", key: "enrollment_ratio", width: 80),
+      ColumnData(title: "录取人数", key: "enrollment_num", width: 60),
+      ColumnData(title: "录取比例", key: "enrollment_ratio", width: 0),
       ColumnData(title: "报考条件原文", key: "condition"),
       ColumnData(title: "报考条件", key: "condition_name"),
       ColumnData(title: "城市", key: "city"),
@@ -464,4 +470,16 @@ class JLogic extends GetxController {
     fetchMajors();
     find(size.value, page.value);
   }
+
+  var isRowsSelectable = false.obs; // 控制行是否可被选中
+
+  void enableRowSelection() {
+    isRowsSelectable.value = true;
+  }
+
+  void disableRowSelection() {
+    isRowsSelectable.value = false;
+    // selectedRows.clear(); // 清除所有选择
+  }
+
 }
