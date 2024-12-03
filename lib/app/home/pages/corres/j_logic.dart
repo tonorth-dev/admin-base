@@ -4,7 +4,7 @@ import 'package:admin_flutter/ex/ex_string.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:admin_flutter/api/major_api.dart';
+import 'package:admin_flutter/api/job_api.dart';
 import 'package:admin_flutter/ex/ex_hint.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
@@ -19,7 +19,7 @@ import '../../../../api/major_api.dart';
 import '../../../../component/table/table_data.dart';
 import '../../../../component/widget.dart';
 
-class MajorLogic extends GetxController {
+class JLogic extends GetxController {
   var list = <Map<String, dynamic>>[].obs;
   var total = 0.obs;
   var size = 15.obs;
@@ -37,8 +37,19 @@ class MajorLogic extends GetxController {
       GlobalKey<DropdownFieldState>();
 
   // 当前编辑的题目数据
-  var currentEditMajor = RxMap<String, dynamic>({}).obs;
+  var currentEditJob = RxMap<String, dynamic>({}).obs;
   RxList<int> selectedRows = <int>[].obs;
+
+  ValueNotifier<String?> selectedQuestionCate = ValueNotifier<String?>(null);
+  ValueNotifier<String?> selectedQuestionLevel = ValueNotifier<String?>(null);
+  ValueNotifier<String?> selectedQuestionStatus = ValueNotifier<String?>(null);
+  RxList<Map<String, dynamic>> questionLevel = <Map<String, dynamic>>[].obs;
+  RxList<Map<String, dynamic>> questionStatus = <Map<String, dynamic>>[
+    {'id': '0', 'name': '全部'},
+    {'id': '1', 'name': '草稿'},
+    {'id': '2', 'name': '生效中'},
+    {'id': '4', 'name': '审核中'},
+  ].obs;
 
   final ValueNotifier<dynamic> selectedLevel1 = ValueNotifier(null);
   final ValueNotifier<dynamic> selectedLevel2 = ValueNotifier(null);
@@ -53,20 +64,39 @@ class MajorLogic extends GetxController {
   Map<String, List<Map<String, dynamic>>> level3Items = {};
   Rx<String> selectedMajorId = "0".obs;
 
-  final firstLevelCategory = ''.obs;
-  final secondLevelCategory = ''.obs;
-  final majorName = ''.obs;
-  final year = ''.obs;
-  final createTime = ''.obs;
-  final updateTime = ''.obs;
+  final jobCode = ''.obs;
+  final jobName = ''.obs;
+  final jobCate = ''.obs;
+  final jobDesc = ''.obs;
+  final companyCode = ''.obs;
+  final companyName = ''.obs;
+  final enrollmentNum = 0.obs;
+  final enrollmentRatio = ''.obs;
+  final conditionSource = ''.obs;
+  final conditionQualification = "".obs;
+  final conditionDegree = "".obs;
+  final conditionMajor = "".obs;
+  final conditionExam = "".obs;
+  final conditionOther = "".obs;
+  final jobCity = "".obs;
+  final jobPhone = "".obs;
 
-  final uFirstLevelCategory = ''.obs;
-  final uSecondLevelCategory = ''.obs;
-  final uMajorName = ''.obs;
-  final uYear = ''.obs;
-  final uCreateTime = ''.obs;
-  final uUpdateTime = ''.obs;
-
+  final uJobCode = ''.obs;
+  final uJobName = ''.obs;
+  final uJobCate = ''.obs;
+  final uJobDesc = ''.obs;
+  final uCompanyCode = ''.obs;
+  final uCompanyName = ''.obs;
+  final uEnrollmentNum = 0.obs;
+  final uEnrollmentRatio = ''.obs;
+  final uConditionSource = ''.obs;
+  final uConditionQualification = "".obs;
+  final uConditionDegree = "".obs;
+  final uConditionMajor = "".obs;
+  final uConditionExam = "".obs;
+  final uConditionOther = "".obs;
+  final uJobCity = "".obs;
+  final uJobPhone = "".obs;
 
   // Maps for reverse lookup
   Map<String, String> level3IdToLevel2Id = {};
@@ -140,6 +170,7 @@ class MajorLogic extends GetxController {
         }
 
         // Debug output
+        print("questionLevel:$questionLevel");
         print('majorList: $majorList');
         print('subMajorMap: $subMajorMap');
         print('subSubMajorMap: $subSubMajorMap');
@@ -172,10 +203,13 @@ class MajorLogic extends GetxController {
     loading.value = true;
     // 打印调用堆栈
     try {
-      MajorApi.majorList(params: {
-        "pageSize": size.value.toString(),
+      JobApi.jobList({
+        "size": size.value.toString(),
         "page": page.value.toString(),
         "keyword": searchText.value.toString() ?? "",
+        "cate": getSelectedCateId() ?? "",
+        "level": getSelectedLevelId() ?? "",
+        "status": selectedQuestionStatus.value.toString(),
         "major_id": (selectedMajorId.value.toString() ?? ""),
       }).then((value) async {
         if (value != null && value["list"] != null) {
@@ -203,148 +237,30 @@ class MajorLogic extends GetxController {
 
   @override
   void onInit() {
-    fetchMajors();
-    super.onInit();
-    find(size.value, page.value);// Fetch and populate major data on initialization
+    super.onInit();// Fetch and populate major data on initialization
 
     columns = [
-      ColumnData(title: "ID", key: "id", width: 80),
-      ColumnData(title: "一级类别", key: "first_level_category", width: 200),
-      ColumnData(title: "二级类别", key: "second_level_category", width: 200),
-      ColumnData(title: "专业名称", key: "major_name", width: 200),
-      ColumnData(title: "年份", key: "year", width: 0),
-      ColumnData(title: "创建时间", key: "create_time", width: 200),
-      ColumnData(title: "更新时间", key: "update_time", width: 200),
+      ColumnData(title: "ID", key: "id", width: 0),
+      ColumnData(title: "岗位编码", key: "code", width: 100),
+      ColumnData(title: "岗位名称", key: "name", width: 120),
+      ColumnData(title: "岗位类别", key: "cate", width: 120),
+      ColumnData(title: "从事工作", key: "desc", width: 200),
+      ColumnData(title: "单位编码", key: "company_code", width: 100),
+      ColumnData(title: "单位名称", key: "company_name", width: 120),
+      ColumnData(title: "录取人数", key: "enrollment_num", width: 80),
+      ColumnData(title: "录取比例", key: "enrollment_ratio", width: 80),
+      ColumnData(title: "报考条件原文", key: "condition"),
+      ColumnData(title: "报考条件", key: "condition_name"),
+      ColumnData(title: "城市", key: "city"),
+      ColumnData(title: "专业ID", key: "major_id"),
+      ColumnData(title: "专业名称", key: "major_name"),
+      ColumnData(title: "状态", key: "status"),
+      ColumnData(title: "创建时间", key: "create_time"),
+      ColumnData(title: "更新时间", key: "update_time"),
     ];
-  }
 
-  Future<bool> saveMajor() async {
-    final firstLevelCategorySubmit = firstLevelCategory.value;
-    final secondLevelCategorySubmit = secondLevelCategory.value;
-    final majorNameSubmit = majorName.value;
-
-    bool isValid = true;
-    String errorMessage = "";
-
-    if (majorNameSubmit.isEmpty) {
-      isValid = false;
-      errorMessage += "专业名称不能为空\n";
-    }
-    if (firstLevelCategorySubmit.isEmpty) {
-      isValid = false;
-      errorMessage += "请选择一级类别\n";
-    }
-    if (secondLevelCategorySubmit.isEmpty) {
-      isValid = false;
-      errorMessage += "请选择二级类别\n";
-    }
-
-    if (isValid) {
-      try {
-        Map<String, dynamic> params = {
-          "first_level_category": firstLevelCategorySubmit,
-          "second_level_category": secondLevelCategorySubmit,
-          "major_name": majorNameSubmit,
-        };
-
-        dynamic result = await MajorApi.majorCreate(params);
-        if (result['id'] > 0) {
-          "创建专业成功".toHint();
-          return true;
-        } else {
-          "创建专业失败".toHint();
-          return false;
-        }
-      } catch (e) {
-        print('Error: $e');
-        "创建专业时发生错误：$e".toHint();
-        return false;
-      }
-    } else {
-      // 显示错误提示
-      errorMessage.toHint();
-      return false;
-    }
-  }
-
-
-  Future<bool> updateMajor(int majorId) async {
-    // 生成题本的逻辑
-    final uFirstLevelCategorySubmit = uFirstLevelCategory.value;
-    final uSecondLevelCategorySubmit = uSecondLevelCategory.value;
-    final uMajorNameSubmit = uMajorName.value;
-
-    bool isValid = true;
-    String errorMessage = "";
-
-    if (uMajorNameSubmit.isEmpty) {
-      isValid = false;
-      errorMessage += "专业名称不能为空\n";
-    }
-    if (uFirstLevelCategorySubmit.isEmpty) {
-      isValid = false;
-      errorMessage += "请选择一级类别\n";
-    }
-    if (uSecondLevelCategorySubmit.isEmpty) {
-      isValid = false;
-      errorMessage += "请选择二级类别\n";
-    }
-
-    if (isValid) {
-      try {
-        Map<String, dynamic> params = {
-          "first_level_category": uFirstLevelCategorySubmit,
-          "second_level_category": uSecondLevelCategorySubmit,
-          "major_name": uMajorNameSubmit,
-        };
-
-        dynamic result = await MajorApi.majorUpdate(majorId, params);
-        "更新专业成功".toHint();
-        return true;
-      } catch (e) {
-        print('Error: $e');
-        "更新专业时发生错误：$e".toHint();
-        return false;
-      }
-    } else {
-      // 显示错误提示
-      errorMessage.toHint();
-      return false;
-    }
-  }
-
-  void delete(Map<String, dynamic> d, int index) {
-    try {
-      MajorApi.majorDelete(d["id"].toString()).then((value) {
-        list.removeAt(index);
-      }).catchError((error) {
-        "删除失败: $error".toHint();
-      });
-    } catch (e) {
-      "删除失败: $e".toHint();
-    }
-  }
-
-  Future<void> audit(int majorId, int status) async {
-    try {
-      await MajorApi.auditMajor(majorId, status);
-      "审核完成".toHint();
-      find(size.value, page.value);
-    } catch (e) {
-      "审核失败: $e".toHint();
-    }
-  }
-
-  void generateAndOpenLink(
-      BuildContext context, Map<String, dynamic> item) async {
-    final url =
-        Uri.parse('http://localhost:8888/static/h5/?majorId=${item['id']}');
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url);
-    } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('无法打开链接')));
-    }
+    // 初始化数据
+    // find(size.value, page.value);
   }
 
   @override
@@ -375,7 +291,7 @@ class MajorLogic extends GetxController {
       final now = DateTime.now();
       final formattedDate = DateFormat('yyyyMMdd_HHmmss').format(now);
       String csv = const ListToCsvConverter().convert(rows);
-      File('$directory/majors_selected_$formattedDate.csv')
+      File('$directory/jobs_selected_$formattedDate.csv')
           .writeAsStringSync(csv);
       "导出选中项成功!".toHint();
     } catch (e) {
@@ -393,7 +309,10 @@ class MajorLogic extends GetxController {
       int pageSize = 100;
 
       while (true) {
-        var response = await MajorApi.majorList();
+        var response = await JobApi.jobList({
+          "size": pageSize.toString(),
+          "page": currentPage.toString(),
+        });
 
         allItems.addAll((response["list"] as List<dynamic>).toListMap());
 
@@ -409,7 +328,7 @@ class MajorLogic extends GetxController {
       }
 
       String csv = const ListToCsvConverter().convert(rows);
-      File('$directory/majors_all_pages.csv').writeAsStringSync(csv);
+      File('$directory/jobs_all_pages.csv').writeAsStringSync(csv);
       "导出全部成功!".toHint();
     } catch (e) {
       "导出全部失败: $e".toHint();
@@ -419,36 +338,28 @@ class MajorLogic extends GetxController {
   void importFromCSV() async {
     try {
       FilePickerResult? result = await FilePicker.platform
-          .pickFiles(type: FileType.custom, allowedExtensions: ['csv']);
+          .pickFiles(type: FileType.custom, allowedExtensions: ['xlsx', 'xls']);
       if (result != null) {
         PlatformFile file = result.files.first;
-        String content;
+        String? filePath = file.path;
 
-        // 使用文件路径读取内容
-        if (file.path != null) {
-          content = await File(file.path!).readAsString(encoding: utf8);
+        if (filePath != null) {
+          // 创建 File 对象
+          File excelFile = File(filePath);
 
-          // 检查文件内容是否为空
-          if (content.isEmpty) {
+          // 检查文件是否为空
+          int fileSize = await excelFile.length();
+          if (fileSize == 0) {
             "文件内容为空".toHint();
             return;
           }
 
-          // 检查 BOM 并移除
-          if (content.startsWith('\uFEFF')) {
-            content = content.substring(1);
-          }
-
-          // 解析 CSV 内容
-          List<List<dynamic>> rows =
-              const CsvToListConverter().convert(content);
-          rows.removeAt(0); // 移除表头
-
           // 调用 API 执行批量导入
-          await MajorApi.majorBatchImport(File(file.path!)).then((value) {
+          await JobApi.jobBatchImport(excelFile).then((value) {
             "导入成功!".toHint();
             refresh();
           }).catchError((error) {
+            print("导入失败: $error");
             "导入失败: $error".toHint();
           });
         } else {
@@ -458,7 +369,20 @@ class MajorLogic extends GetxController {
         "没有选择文件".toHint();
       }
     } catch (e) {
+      print("导入失败: $e");
       "导入失败: $e".toHint();
+    }
+  }
+
+  void delete(Map<String, dynamic> d, int index) {
+    try {
+      JobApi.jobDelete(d["id"].toString()).then((value) {
+        list.removeAt(index);
+      }).catchError((error) {
+        "删除失败: $error".toHint();
+      });
+    } catch (e) {
+      "删除失败: $e".toHint();
     }
   }
 
@@ -466,10 +390,10 @@ class MajorLogic extends GetxController {
     try {
       List<String> idsStr = ids.map((id) => id.toString()).toList();
       if (idsStr.isEmpty) {
-        "请先选择要删除的专业".toHint();
+        "请先选择要删除的试题".toHint();
         return;
       }
-      MajorApi.majorDelete(idsStr.join(",")).then((value) {
+      JobApi.jobDelete(idsStr.join(",")).then((value) {
         "批量删除成功!".toHint();
         selectedRows.clear();
         refresh();
@@ -501,11 +425,30 @@ class MajorLogic extends GetxController {
     }
   }
 
+  String? getSelectedCateId() {
+    if (selectedQuestionCate.value == '全部题型') {
+      return "";
+    }
+    return selectedQuestionCate.value?.toString() ?? "";
+  }
+
+  String? getSelectedLevelId() {
+    if (selectedQuestionLevel.value == '全部难度') {
+      return "";
+    }
+    return selectedQuestionLevel.value?.toString() ?? "";
+  }
+
+
+  void applyFilters() {
+    // 这里可以添加应用过滤逻辑
+    // print('Selected Major: ${selectedMajor.value}');
+    // print('Selected Sub Major: ${selectedSubMajor.value}');
+    // print('Selected Sub Sub Major: ${selectedSubSubMajor.value}');
+  }
+
   void reset() {
     majorDropdownKey.currentState?.reset();
-    cateDropdownKey.currentState?.reset();
-    levelDropdownKey.currentState?.reset();
-    statusDropdownKey.currentState?.reset();
     searchText.value = '';
     selectedRows.clear();
 

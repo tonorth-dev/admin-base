@@ -5,16 +5,16 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:admin_flutter/component/pagination/view.dart';
 import 'package:admin_flutter/component/table/ex.dart';
 import 'package:admin_flutter/app/home/sidebar/logic.dart';
-import 'package:admin_flutter/app/home/pages/job/logic.dart';
-import 'package:admin_flutter/app/home/pages/major/logic.dart';
+import 'package:admin_flutter/app/home/pages/corres/m_logic.dart';
+import 'package:admin_flutter/app/home/pages/corres/j_logic.dart';
 import 'package:admin_flutter/theme/theme_util.dart';
 
 import '../../../../component/dialog.dart';
 import '../../../../component/widget.dart';
 
 class CorresPage extends StatelessWidget {
-  final majorLogic = Get.put(MajorLogic());
-  final jobLogic = Get.put(JobLogic());
+  final mLogic = Get.put(MLogic());
+  final jLogic = Get.put(JLogic());
 
   @override
   Widget build(BuildContext context) {
@@ -23,13 +23,13 @@ class CorresPage extends StatelessWidget {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: MajorTableView(key: const Key("major_table"), title: "专业", logic: majorLogic),
+            child: MajorTableView(key: const Key("major_table"), title: "专业", logic: mLogic),
           ),
         ),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: JobTableView(key: const Key("job_table"), title: "岗位", logic: jobLogic),
+            child: JobTableView(key: const Key("job_table"), title: "岗位", logic: jLogic),
           ),
         ),
       ],
@@ -47,7 +47,7 @@ class CorresPage extends StatelessWidget {
 
 class JobTableView extends StatelessWidget {
   final String title;
-  final JobLogic logic;
+  final JLogic logic;
 
   const JobTableView({super.key, required this.title, required this.logic});
 
@@ -57,34 +57,62 @@ class JobTableView extends StatelessWidget {
       children: [
         TableEx.actions(
           children: [
-            ThemeUtil.width(width: 50),
-            SizedBox(
-              width: 260,
-              child: TextField(
-                key: const Key('search_box'),
-                decoration: InputDecoration(
-                  hintText: '搜索',
-                  prefixIcon: Icon(Icons.search, color: Colors.teal),
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.teal),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.teal, width: 2),
+            SizedBox(width: 30),
+            Container(
+              height: 50,
+              width: 100,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.blue.shade700, Colors.blue.shade400], // 深红到浅红的渐变
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                borderRadius: BorderRadius.circular(8), // 圆角（可选）
+              ),
+              child: Center(
+                child: Text(
+                  "岗位列表",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                // onSubmitted: (value) => logic.search(value),
               ),
             ),
-            ThemeUtil.width(),
-            ElevatedButton(
-              onPressed: () => logic.find(1, 10),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal,
-                foregroundColor: Colors.white,
+            Expanded( // 使用 Expanded 占满剩余空间
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end, // 右对齐
+                children: [
+                  SearchBoxWidget(
+                    key: Key('keywords'),
+                    hint: '岗位代码、岗位名称、单位序号、单位名称',
+                    onTextChanged: (String value) {
+                      logic.searchText.value = value;
+                      logic.applyFilters();
+                    },
+                    searchText: logic.searchText,
+                  ),
+                  SizedBox(width: 10),
+                  SearchButtonWidget(
+                    key: Key('search'),
+                    onPressed: () {
+                      logic.selectedRows.clear();
+                      logic.find(logic.size.value, logic.page.value);
+                    },
+                  ),
+                  SizedBox(width: 8),
+                  ResetButtonWidget(
+                    key: Key('reset'),
+                    onPressed: () {
+                      logic.reset();
+                      logic.find(logic.size.value, logic.page.value);
+                    },
+                  ),
+                  ThemeUtil.width(width: 30),
+                ],
               ),
-              child: const Text("搜索"),
             ),
-            ThemeUtil.width(width: 30),
           ],
         ),
         ThemeUtil.lineH(),
@@ -123,7 +151,7 @@ class JobTableView extends StatelessWidget {
                           ),
                         ),
                         ...logic.columns.map((column) => GridColumn(
-                          width: _getColumnWidth(column.key),
+                          width: column.width,
                           columnName: column.key,
                           label: Container(
                             decoration: BoxDecoration(
@@ -156,24 +184,10 @@ class JobTableView extends StatelessWidget {
       ],
     );
   }
-
-  double _getColumnWidth(String key) {
-    switch (key) {
-      case 'id':
-        return 60;
-      case 'name':
-        return 100;
-      case 'job_desc':
-        return 200;
-    // 添加其他列的case
-      default:
-        return 100;  // 默认宽度
-    }
-  }
 }
 
 class JobDataSource extends DataGridSource {
-  final JobLogic logic;
+  final JLogic logic;
   List<DataGridRow> _rows = [];
 
   JobDataSource({required this.logic}) {
@@ -206,7 +220,7 @@ class JobDataSource extends DataGridSource {
     final rowIndex = _rows.indexOf(row);
 
     return DataGridRowAdapter(
-      color: isSelected ? Colors.teal[100] : (rowIndex.isEven ? Colors.teal[50] : Colors.white),
+      color: isSelected ? Colors.teal[100] : (rowIndex.isEven ? Colors.teal[30] : Colors.white),
       cells: row.getCells().map((cell) {
         if (cell.columnName == 'Select') {
           return Container(
@@ -245,7 +259,7 @@ class JobDataSource extends DataGridSource {
 
 class MajorTableView extends StatelessWidget {
   final String title;
-  final MajorLogic logic;
+  final MLogic logic;
 
   const MajorTableView({super.key, required this.title, required this.logic});
 
@@ -255,30 +269,95 @@ class MajorTableView extends StatelessWidget {
       children: [
         TableEx.actions(
           children: [
-            ThemeUtil.width(width: 50),
-            SizedBox(
-              width: 260,
-              child: TextField(
-                key: const Key('search_box'),
-                decoration: const InputDecoration(
-                  hintText: '搜索',
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
+            SizedBox(width: 30),
+            Container(
+              height: 50,
+              width: 100,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.red.shade700, Colors.red.shade300], // 深红到浅红的渐变
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                 ),
-                onSubmitted: (value) => logic.find(logic.size.value, logic.page.value),
+                borderRadius: BorderRadius.circular(8), // 圆角（可选）
+              ),
+              child: Center(
+                child: Text(
+                  "专业列表",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
-            ThemeUtil.width(),
-            ElevatedButton(
-              onPressed: () => logic.find(logic.size.value, logic.page.value),
-              child: const Text("搜索"),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end, // 右对齐
+                children: [
+                  ThemeUtil.width(width: 20),
+                  Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: FutureBuilder<void>(
+                      future: logic.fetchMajors(), // 调用 fetchMajors 方法
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Center(
+                              child: CircularProgressIndicator()); // 加载中显示进度条
+                        } else if (snapshot.hasError) {
+                          return Text('加载失败: ${snapshot.error}');
+                        } else {
+                          return CascadingDropdownField(
+                            key: logic.majorDropdownKey,
+                            width: 110,
+                            height: 34,
+                            hint1: '专业类目一',
+                            hint2: '专业类目二',
+                            hint3: '专业名称',
+                            level1Items: logic.level1Items,
+                            level2Items: logic.level2Items,
+                            level3Items: logic.level3Items,
+                            selectedLevel1: ValueNotifier(null),
+                            selectedLevel2: ValueNotifier(null),
+                            selectedLevel3: ValueNotifier(null),
+                            onChanged: (dynamic level1, dynamic level2, dynamic level3) {
+                              logic.selectedMajorId.value = level3.toString();
+                              // 这里可以处理选择的 id
+                            },
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                  SearchBoxWidget(
+                    key: Key('keywords'),
+                    hint: '类目名称、专业名称',
+                    onTextChanged: (String value) {
+                      logic.searchText.value = value;
+                    },
+                    searchText: logic.searchText,
+                  ),
+                  SizedBox(width: 10),
+                  SearchButtonWidget(
+                    key: Key('search'),
+                    onPressed: () {
+                      logic.selectedRows.clear();
+                      logic.find(logic.size.value, logic.page.value);
+                    },
+                  ),
+                  SizedBox(width: 8),
+                  ResetButtonWidget(
+                    key: Key('reset'),
+                    onPressed: () {
+                      logic.reset();
+                      logic.find(logic.size.value, logic.page.value);
+                    },
+                  ),
+                  ThemeUtil.width(width: 30),
+                ],
+              ),
             ),
-            const Spacer(),
-            FilledButton(
-              onPressed:() => logic.find(logic.size.value, logic.page.value),
-              child: const Text("保存关系"),
-            ),
-            ThemeUtil.width(width: 30),
           ],
         ),
         ThemeUtil.lineH(),
@@ -298,11 +377,11 @@ class MajorTableView extends StatelessWidget {
                 headerRowHeight: 50,
                 columns: [
                   GridColumn(
-                    width: 0,
+                    width: 80,
                     columnName: 'Select',
                     label: Container(
                       decoration: BoxDecoration(
-                        color: Colors.indigo[50],
+                        color: Color(0xfff8e6dd),
                       ),
                       child: Center(
                         child: Checkbox(
@@ -313,11 +392,11 @@ class MajorTableView extends StatelessWidget {
                     ),
                   ),
                   ...logic.columns.map((column) => GridColumn(
-                    width: _getColumnWidth(column.key),
+                    width: column.width,
                     columnName: column.key,
                     label: Container(
                       decoration: BoxDecoration(
-                        color: Colors.indigo[50],
+                        color: Color(0xfff8e6dd),
                       ),
                       child: FittedBox(
                         fit: BoxFit.scaleDown,
@@ -336,7 +415,7 @@ class MajorTableView extends StatelessWidget {
                     columnName: 'Actions',
                     label: Container(
                       decoration: BoxDecoration(
-                        color: Colors.indigo[50],
+                        color: Color(0xfff8e6dd),
                       ),
                       child: Center(
                         child: Text(
@@ -365,24 +444,10 @@ class MajorTableView extends StatelessWidget {
       ],
     );
   }
-
-  double _getColumnWidth(String key) {
-    switch (key) {
-      case 'id':
-        return 60;
-      case 'job_name':
-        return 150;
-      case 'job_desc':
-        return 100;
-    // 添加其他列的case
-      default:
-        return 100;  // 默认宽度
-    }
-  }
 }
 
 class MajorDataSource extends DataGridSource {
-  final MajorLogic logic;
+  final MLogic logic;
   List<DataGridRow> _rows = [];
 
   MajorDataSource({required this.logic}) {
@@ -416,15 +481,17 @@ class MajorDataSource extends DataGridSource {
     final item = row.getCells().last.value;
 
     return DataGridRowAdapter(
-      color: rowIndex.isEven ? Color(0x50F1FDFC) : Colors.white,
+      color: isSelected
+          ? Colors.red.shade100 // 选中颜色
+          : (rowIndex.isEven ? Color(0x06FF5733) : Colors.white), // 交替行颜色
       cells: [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: Checkbox(
             value: isSelected,
             onChanged: (value) => logic.toggleSelect(item['id']),
-            fillColor: WidgetStateProperty.resolveWith<Color>((states) {
-              return states.contains(WidgetState.selected)
+            fillColor: MaterialStateProperty.resolveWith<Color>((states) {
+              return states.contains(MaterialState.selected)
                   ? Color(0xFFD43030)
                   : Colors.white;
             }),
@@ -436,60 +503,6 @@ class MajorDataSource extends DataGridSource {
         ...row.getCells().skip(1).take(row.getCells().length - 2).map((cell) {
           final columnName = cell.columnName;
           final value = cell.value.toString();
-
-          if (columnName == 'title' || columnName == 'answer') {
-            // LayoutBuilder 处理溢出和文本显示
-            return Tooltip(
-              message: "点击右侧复制或查看全文",
-              verticalOffset: 25.0,
-              showDuration: Duration(milliseconds: 200),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade800,
-                borderRadius: BorderRadius.circular(4.0),
-              ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final isOverflowing = value.length > 100; // 判断是否溢出
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          alignment: Alignment.centerLeft,
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            value,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 14),
-                          ),
-                        ),
-                      ),
-                      isOverflowing
-                          ? TextButton(
-                        onPressed: () {
-                          CopyDialog.show(context, value);
-                        },
-                        child: Text("全文"),
-                      )
-                          : TextButton(
-                        onPressed: () async {
-                          await Clipboard.setData(
-                              ClipboardData(text: value));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text("复制成功"),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                        },
-                        child: Text("复制"),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            );
-          } else {
             return Container(
               alignment: Alignment.center,
               padding: const EdgeInsets.all(8.0),
@@ -499,25 +512,10 @@ class MajorDataSource extends DataGridSource {
               ),
             );
           }
-        }),
-        if (item['status'] == 4)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center, // 将按钮左对齐
-            children: [
-              HoverTextButton(
-                text: "审核通过",
-                onTap: () => logic.audit(item['id'], 2),
-              ),
-              SizedBox(width: 5),
-              HoverTextButton(
-                text: "审核拒绝",
-                onTap: () => logic.audit(item['id'], 1),
-              ), // 控制按钮之间的间距
-            ],
-          ),
+        ),
         if (item['status'] != 4)
           Row(
-            mainAxisAlignment: MainAxisAlignment.center, // 将按钮左对齐
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               HoverTextButton(
                 text: "编辑",
@@ -528,8 +526,8 @@ class MajorDataSource extends DataGridSource {
                 text: "删除",
                 onTap: () => logic.delete(item, rowIndex),
               ),
-              SizedBox(width: 5), // 控制按钮之间的间距
-              if (item['status'] == 1) // 假设 status 字段表示数据状态
+              SizedBox(width: 5),
+              if (item['status'] == 1)
                 HoverTextButton(
                   text: "邀请",
                   onTap: () => logic.delete(item, rowIndex),

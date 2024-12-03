@@ -94,7 +94,7 @@ class MajorPage extends StatelessWidget {
               ),
               SearchBoxWidget(
                 key: Key('keywords'),
-                hint: '题干、答案、标签',
+                hint: '类目名称、专业名称',
                 onTextChanged: (String value) {
                   logic.searchText.value = value;
                 },
