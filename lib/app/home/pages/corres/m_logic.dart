@@ -481,7 +481,7 @@ class MLogic extends GetxController {
       selectedRows.clear();
   }
 
-  void toggleSelect(int id) {
+  Future<void> toggleSelect(int id) async {
     if (selectedRows.contains(id)) {
       // 当前行已被选中，取消选中
       selectedRows.remove(id);
@@ -491,7 +491,8 @@ class MLogic extends GetxController {
       // 当前行未被选中，选中
       selectedRows.clear();
       selectedRows.add(id);
-      jLogic.findForMajor(id);
+      await jLogic.findForMajor(id);
+      // jLogic.disableRowSelection();
     }
   }
 
@@ -506,5 +507,33 @@ class MLogic extends GetxController {
     // 重新初始化数据
     fetchMajors();
     find(size.value, page.value);
+  }
+
+  final Map<int, ValueNotifier<bool>> blueButtonStates = {};
+  final Map<int, ValueNotifier<bool>> grayButtonStates = {};
+  final Map<int, ValueNotifier<bool>> redButtonStates = {};
+
+  void blueButtonAction(int id) {
+    print("蓝色按钮点击");
+    if (selectedRows.contains(id)) {
+      blueButtonStates[id]!.value = false;
+      jLogic.enableRowSelection();
+      grayButtonStates[id]!.value = true;
+      redButtonStates[id]!.value = true;
+    } else {
+      "请先选择要操作的专业".toHint();
+    }
+  }
+
+  void grayButtonAction(int id) {
+    print("灰色按钮点击");
+    jLogic.disableRowSelection();
+    // blueButtonStates[id]!.value = false;
+  }
+
+  void redButtonAction(int id) {
+    print("红色按钮点击");
+    // redButtonStates[id]!.value = false;
+    // isRedButtonEnabled.value = !isRedButtonEnabled.value;
   }
 }

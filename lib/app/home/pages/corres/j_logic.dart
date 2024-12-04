@@ -475,10 +475,12 @@ class JLogic extends GetxController {
 
   void enableRowSelection() {
     isRowsSelectable.value = true;
+    update();
   }
 
   void disableRowSelection() {
     isRowsSelectable.value = false;
+    update();
     // selectedRows.clear(); // 清除所有选择
   }
 
