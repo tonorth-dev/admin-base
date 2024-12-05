@@ -1269,9 +1269,10 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
   Map<String, List<Map<String, dynamic>>> cities = {};
   Map<String, List<Map<String, dynamic>>> counties = {};
 
-// widget.dart
-  Future<List<Map<String, dynamic>>> fetchDivisions(
-      {required String level, String? parentId}) async {
+  Future<List<Map<String, dynamic>>> fetchDivisions({
+    required String level,
+    String? parentId,
+  }) async {
     try {
       print('Fetching divisions for level: $level, parentId: $parentId');
       var areaData = await ConfigApi.configArea("area", level, parentId);
@@ -1285,15 +1286,14 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
       return divisions;
     } catch (e) {
       print('Error fetching divisions: $e');
-      rethrow; // 确保异常被抛出，以便可以在调用处捕获
+      rethrow;
     }
   }
-
 
   Future<void> fetchProvinces() async {
     try {
       provinces = await fetchDivisions(level: "province");
-      setState(() {}); // Trigger a rebuild after data is loaded.
+      setState(() {});
     } catch (e) {
       print('Failed to load provinces: $e');
     }
@@ -1303,7 +1303,7 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
     try {
       var cityData = await fetchDivisions(level: "city", parentId: provinceId);
       cities[provinceId] = cityData;
-      setState(() {}); // Trigger a rebuild after data is loaded.
+      setState(() {});
     } catch (e) {
       print('Failed to load cities: $e');
     }
@@ -1313,7 +1313,7 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
     try {
       var countyData = await fetchDivisions(level: "county", parentId: cityId);
       counties[cityId] = countyData;
-      setState(() {}); // Trigger a rebuild after data is loaded.
+      setState(() {});
     } catch (e) {
       print('Failed to load counties: $e');
     }
@@ -1322,79 +1322,79 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
   @override
   void initState() {
     super.initState();
-    fetchProvinces(); // Load provinces when the widget is initialized.
+    fetchProvinces(); // 加载省份
   }
+
+  Widget buildDropdown({
+    required String? value,
+    required List<Map<String, dynamic>>? items,
+    required void Function(String?)? onChanged,
+    required String hintText,
+    bool isEnabled = true,
+  }) {
+    return Container(
+      width: 140,
+      height: 34,
+      margin: EdgeInsets.symmetric(horizontal: 2),
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: isEnabled ? Colors.grey : Colors.grey[300]!, // 禁用时使用浅灰色边框
+          width: 1.0,
+        ),
+        borderRadius: BorderRadius.circular(2),
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          canvasColor: Colors.white,
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            value: value,
+            items: items?.map((item) {
+              return DropdownMenuItem<String>(
+                value: item['id'],
+                child: Text(
+                  item['name'],
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: true,
+                  style: TextStyle(fontSize: 14),
+                ),
+              );
+            }).toList(),
+            onChanged: isEnabled ? onChanged : null,
+            isExpanded: true, // 确保下拉菜单填充整个宽度
+            icon: Icon(Icons.arrow_drop_down),
+            iconSize: 24,
+            elevation: 16,
+            style: TextStyle(color: Colors.black, fontSize: 14),
+            dropdownColor: Colors.white,
+            hint: Container(
+              alignment: Alignment.center, // 确保 hintText 居中
+              child: Text(
+                hintText,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
-    Widget buildDropdown({
-      required String? value,
-      required List<DropdownMenuItem<String>>? items,
-      required void Function(String?)? onChanged,
-      required String hintText,
-      bool isEnabled = true,
-    }) {
-      return Container(
-        width: 200, // 固定宽度
-        margin: EdgeInsets.symmetric(horizontal: 8), // 控制水平间距
-        child: DropdownButtonFormField<String>(
-          value: value,
-          items: items,
-          onChanged: isEnabled ? onChanged : null, // 禁用未加载的下拉菜单
-          decoration: InputDecoration(
-            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.grey),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.blue, width: 2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            filled: true,
-            fillColor: isEnabled ? Colors.grey[100] : Colors.grey[300], // 未启用状态使用浅灰色
-            hintText: hintText,
-          ),
-          dropdownColor: Colors.white, // 下拉菜单背景颜色
-          selectedItemBuilder: (BuildContext context) {
-            return items?.map((item) {
-              // 这里直接使用 item.value 替代原来的 .child
-              final displayText = item.value ?? '';
-              return Wrap(
-                children: [
-                  Text(
-                    displayText,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    softWrap: true,
-                  ),
-                ],
-              );
-            }).toList() ??
-                [];
-          },
-        ),
-      );
-    }
-
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // 省份下拉菜单
         buildDropdown(
           value: selectedProvince.value,
-          items: provinces?.map((province) {
-            return DropdownMenuItem<String>(
-              value: province['id'],
-              child: Wrap(
-                children: [Text(province['name'], softWrap: true)],
-              ),
-            );
-          }).toList(),
+          items: provinces,
           onChanged: (String? newValue) {
             setState(() {
               selectedProvince.value = newValue;
@@ -1411,14 +1411,7 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
         // 城市下拉菜单
         buildDropdown(
           value: selectedCity.value,
-          items: (selectedProvince.value != null ? cities[selectedProvince.value!] : null)?.map((city) {
-            return DropdownMenuItem<String>(
-              value: city['id'],
-              child: Wrap(
-                children: [Text(city['name'], softWrap: true)],
-              ),
-            );
-          }).toList(),
+          items: selectedProvince.value != null ? cities[selectedProvince.value!] : null,
           onChanged: (String? newValue) {
             setState(() {
               selectedCity.value = newValue;
@@ -1434,14 +1427,7 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
         // 区县下拉菜单
         buildDropdown(
           value: selectedDistrict.value,
-          items: (selectedCity.value != null ? counties[selectedCity.value!] : null)?.map((county) {
-            return DropdownMenuItem<String>(
-              value: county['id'],
-              child: Wrap(
-                children: [Text(county['name'], softWrap: true)],
-              ),
-            );
-          }).toList(),
+          items: selectedCity.value != null ? counties[selectedCity.value!] : null,
           onChanged: (String? newValue) {
             setState(() {
               selectedDistrict.value = newValue;
@@ -1454,3 +1440,4 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
     );
   }
 }
+
