@@ -1327,55 +1327,72 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
 
   @override
   Widget build(BuildContext context) {
-    if (provinces == null) {
-      return Center(child: CircularProgressIndicator());
-    }
-
     Widget buildDropdown({
       required String? value,
       required List<DropdownMenuItem<String>>? items,
-      required void Function(String?) onChanged,
+      required void Function(String?)? onChanged,
       required String hintText,
+      bool isEnabled = true,
     }) {
       return Container(
-        width: 150, // 固定宽度
-        height: 34,
-        margin: EdgeInsets.symmetric(horizontal: 3), // 控制水平间距
+        width: 200, // 固定宽度
+        margin: EdgeInsets.symmetric(horizontal: 8), // 控制水平间距
         child: DropdownButtonFormField<String>(
           value: value,
           items: items,
-          onChanged: onChanged,
+          onChanged: isEnabled ? onChanged : null, // 禁用未加载的下拉菜单
           decoration: InputDecoration(
             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(8),
             ),
             enabledBorder: OutlineInputBorder(
               borderSide: BorderSide(color: Colors.grey),
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(8),
             ),
             focusedBorder: OutlineInputBorder(
               borderSide: BorderSide(color: Colors.blue, width: 2),
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(8),
             ),
             filled: true,
-            fillColor: Colors.grey[100],
+            fillColor: isEnabled ? Colors.grey[100] : Colors.grey[300], // 未启用状态使用浅灰色
             hintText: hintText,
           ),
           dropdownColor: Colors.white, // 下拉菜单背景颜色
+          selectedItemBuilder: (BuildContext context) {
+            return items?.map((item) {
+              // 这里直接使用 item.value 替代原来的 .child
+              final displayText = item.value ?? '';
+              return Wrap(
+                children: [
+                  Text(
+                    displayText,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: true,
+                  ),
+                ],
+              );
+            }).toList() ??
+                [];
+          },
         ),
       );
     }
 
+
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center, // 控制内容居中对齐
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        // 省份下拉菜单
         buildDropdown(
           value: selectedProvince.value,
-          items: provinces!.map((province) {
+          items: provinces?.map((province) {
             return DropdownMenuItem<String>(
               value: province['id'],
-              child: Text(province['name']),
+              child: Wrap(
+                children: [Text(province['name'], softWrap: true)],
+              ),
             );
           }).toList(),
           onChanged: (String? newValue) {
@@ -1384,50 +1401,55 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
               selectedCity.value = null;
               selectedDistrict.value = null;
               if (newValue != null) {
-                fetchCities(
-                    newValue); // Fetch cities when a province is selected.
+                fetchCities(newValue);
               }
             });
           },
           hintText: '请选择省份',
+          isEnabled: provinces != null,
         ),
-        if (selectedProvince.value != null)
-          buildDropdown(
-            value: selectedCity.value,
-            items: cities[selectedProvince.value!]?.map((city) {
-              return DropdownMenuItem<String>(
-                value: city['id'],
-                child: Text(city['name']),
-              );
-            }).toList(),
-            onChanged: (String? newValue) {
-              setState(() {
-                selectedCity.value = newValue;
-                selectedDistrict.value = null;
-                if (newValue != null) {
-                  fetchCounties(
-                      newValue); // Fetch counties when a city is selected.
-                }
-              });
-            },
-            hintText: '请选择城市',
-          ),
-        if (selectedCity.value != null)
-          buildDropdown(
-            value: selectedDistrict.value,
-            items: counties[selectedCity.value!]?.map((county) {
-              return DropdownMenuItem<String>(
-                value: county['id'],
-                child: Text(county['name']),
-              );
-            }).toList(),
-            onChanged: (String? newValue) {
-              setState(() {
-                selectedDistrict.value = newValue;
-              });
-            },
-            hintText: '请选择区县',
-          ),
+        // 城市下拉菜单
+        buildDropdown(
+          value: selectedCity.value,
+          items: (selectedProvince.value != null ? cities[selectedProvince.value!] : null)?.map((city) {
+            return DropdownMenuItem<String>(
+              value: city['id'],
+              child: Wrap(
+                children: [Text(city['name'], softWrap: true)],
+              ),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            setState(() {
+              selectedCity.value = newValue;
+              selectedDistrict.value = null;
+              if (newValue != null) {
+                fetchCounties(newValue);
+              }
+            });
+          },
+          hintText: '请选择城市',
+          isEnabled: selectedProvince.value != null,
+        ),
+        // 区县下拉菜单
+        buildDropdown(
+          value: selectedDistrict.value,
+          items: (selectedCity.value != null ? counties[selectedCity.value!] : null)?.map((county) {
+            return DropdownMenuItem<String>(
+              value: county['id'],
+              child: Wrap(
+                children: [Text(county['name'], softWrap: true)],
+              ),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            setState(() {
+              selectedDistrict.value = newValue;
+            });
+          },
+          hintText: '请选择区县',
+          isEnabled: selectedCity.value != null,
+        ),
       ],
     );
   }
