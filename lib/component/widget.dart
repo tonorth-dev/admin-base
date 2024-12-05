@@ -1335,6 +1335,7 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
     return Container(
       width: 140,
       height: 34,
+      padding: EdgeInsets.only(left: 0),
       margin: EdgeInsets.symmetric(horizontal: 2),
       decoration: BoxDecoration(
         border: Border.all(
@@ -1348,34 +1349,41 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
           canvasColor: Colors.white,
         ),
         child: DropdownButtonHideUnderline(
-          child: DropdownButton<String>(
-            value: value,
-            items: items?.map((item) {
-              return DropdownMenuItem<String>(
-                value: item['id'],
+          child: Padding(
+            padding: EdgeInsets.zero,
+            child: DropdownButton<String>(
+              value: value,
+              items: items?.map((item) {
+                return DropdownMenuItem<String>(
+                  value: item['id'],
+                  child: Padding(
+                    padding: EdgeInsets.zero, // 确保 hintText 与左侧无间距
+                    child: Text(
+                      item['name'],
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      softWrap: true,
+                      style: TextStyle(fontSize: 14),
+                    ),
+                  ),
+                );
+              }).toList(),
+              onChanged: isEnabled ? onChanged : null,
+              isExpanded: true,
+              icon: Icon(Icons.arrow_drop_down),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: Colors.black, fontSize: 14),
+              dropdownColor: Colors.white,
+              hint: Container(
+                alignment: Alignment.centerLeft, // 确保 hintText 左对齐
+                padding: EdgeInsets.only(left: 3.0), // 给 hintText 增加左边距
                 child: Text(
-                  item['name'],
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  softWrap: true,
-                  style: TextStyle(fontSize: 14),
-                ),
-              );
-            }).toList(),
-            onChanged: isEnabled ? onChanged : null,
-            isExpanded: true, // 确保下拉菜单填充整个宽度
-            icon: Icon(Icons.arrow_drop_down),
-            iconSize: 24,
-            elevation: 16,
-            style: TextStyle(color: Colors.black, fontSize: 14),
-            dropdownColor: Colors.white,
-            hint: Container(
-              alignment: Alignment.center, // 确保 hintText 居中
-              child: Text(
-                hintText,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
+                  hintText,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
                 ),
               ),
             ),
@@ -1385,11 +1393,10 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         // 省份下拉菜单
         buildDropdown(
@@ -1425,17 +1432,17 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
           isEnabled: selectedProvince.value != null,
         ),
         // 区县下拉菜单
-        buildDropdown(
-          value: selectedDistrict.value,
-          items: selectedCity.value != null ? counties[selectedCity.value!] : null,
-          onChanged: (String? newValue) {
-            setState(() {
-              selectedDistrict.value = newValue;
-            });
-          },
-          hintText: '请选择区县',
-          isEnabled: selectedCity.value != null,
-        ),
+        // buildDropdown(
+        //   value: selectedDistrict.value,
+        //   items: selectedCity.value != null ? counties[selectedCity.value!] : null,
+        //   onChanged: (String? newValue) {
+        //     setState(() {
+        //       selectedDistrict.value = newValue;
+        //     });
+        //   },
+        //   hintText: '请选择区县',
+        //   isEnabled: selectedCity.value != null,
+        // ),
       ],
     );
   }

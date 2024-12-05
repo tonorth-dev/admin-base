@@ -56,33 +56,20 @@ class InstitutionLogic extends GetxController {
   Map<String, List<Map<String, dynamic>>> level3Items = {};
   Rx<String> selectedInstitutionId = "0".obs;
 
-  final firstLevelCategory = ''.obs;
-  final secondLevelCategory = ''.obs;
-  final institutionName = ''.obs;
-  final year = ''.obs;
-  final createTime = ''.obs;
-  final updateTime = ''.obs;
+  final RxString name = ''.obs;
+  final RxString province = ''.obs;
+  final RxString city = ''.obs;
+  final RxString password = ''.obs;
+  final RxString leader = ''.obs;
+  final RxInt status = 0.obs; // 假设状态为整数，1表示激活，0表示停用
 
-  final uFirstLevelCategory = ''.obs;
-  final uSecondLevelCategory = ''.obs;
-  final uInstitutionName = ''.obs;
-  final uYear = ''.obs;
-  final uCreateTime = ''.obs;
-  final uUpdateTime = ''.obs;
+  final uName = ''.obs;
+  final uProvince = ''.obs;
+  final uCity = ''.obs;
+  final uPassword = ''.obs;
+  final uLeader = ''.obs;
+  final uStatus = 0.obs;
 
-
-  // Maps for reverse lookup
-  Map<String, String> level3IdToLevel2Id = {};
-  Map<String, String> level2IdToLevel1Id = {};
-
-
-  String getLevel2IdFromLevel3Id(String thirdLevelId) {
-    return level3IdToLevel2Id[thirdLevelId] ?? '';
-  }
-
-  String getLevel1IdFromLevel2Id(String secondLevelId) {
-    return level2IdToLevel1Id[secondLevelId] ?? '';
-  }
 
   void find(int newSize, int newPage) {
     size.value = newSize;
@@ -128,12 +115,13 @@ class InstitutionLogic extends GetxController {
 
     columns = [
       ColumnData(title: "ID", key: "id", width: 80),
-      ColumnData(title: "一级类别", key: "first_level_category", width: 200),
-      ColumnData(title: "二级类别", key: "second_level_category", width: 200),
-      ColumnData(title: "机构名称", key: "institution_name", width: 200),
-      ColumnData(title: "年份", key: "year", width: 0),
-      ColumnData(title: "创建时间", key: "create_time", width: 200),
-      ColumnData(title: "更新时间", key: "update_time", width: 200),
+      ColumnData(title: "名称", key: "name", width: 200),
+      ColumnData(title: "省份", key: "province", width: 200),
+      ColumnData(title: "城市", key: "city", width: 200),
+      ColumnData(title: "密码", key: "password", width: 200),
+      ColumnData(title: "负责人", key: "leader", width: 200),
+      ColumnData(title: "状态", key: "status_name", width: 100),
+      ColumnData(title: "入驻时间", key: "create_time", width: 200),
     ];
   }
 
@@ -150,17 +138,18 @@ class InstitutionLogic extends GetxController {
 
   void edit(BuildContext context, Map<String, dynamic> institution) {
     currentEditInstitution.value = RxMap<String, dynamic>(institution);
-    var level2InstitutionId = getLevel2IdFromLevel3Id(institution["institution_id"].toString());
-    var level3InstitutionId = getLevel1IdFromLevel2Id(level2InstitutionId);
 
     DynamicInputDialog.show(
       context: context,
       title: '录入机构',
       child: InstitutionEditForm(
         institutionId: institution["id"],
-        initialInstitutionName: institution["institution_name"],
-        initialFirstLevelCategory: institution["first_level_category"],
-        initialSecondLevelCategory: institution["second_level_category"],
+        initialName: institution["name"],
+        initialProvince: institution["province"],
+        initialCity: institution["city"],
+        initialPassword: institution["password"],
+        initialLeader: institution["leader"],
+        initialStatus: institution["status"],
       ),
       onSubmit: (formData) {
         print('提交的数据: $formData');
@@ -168,33 +157,48 @@ class InstitutionLogic extends GetxController {
     );
   }
 
+
   Future<bool> saveInstitution() async {
-    final firstLevelCategorySubmit = firstLevelCategory.value;
-    final secondLevelCategorySubmit = secondLevelCategory.value;
-    final institutionNameSubmit = institutionName.value;
+    final nameSubmit = name.value;
+    final provinceSubmit = province.value;
+    final citySubmit = city.value;
+    final passwordSubmit = password.value;
+    final leaderSubmit = leader.value;
+    final statusSubmit = status.value;
 
     bool isValid = true;
     String errorMessage = "";
 
-    if (institutionNameSubmit.isEmpty) {
+    if (nameSubmit.isEmpty) {
       isValid = false;
       errorMessage += "机构名称不能为空\n";
     }
-    if (firstLevelCategorySubmit.isEmpty) {
+    if (provinceSubmit.isEmpty) {
       isValid = false;
-      errorMessage += "请选择一级类别\n";
+      errorMessage += "省份不能为空\n";
     }
-    if (secondLevelCategorySubmit.isEmpty) {
+    if (citySubmit.isEmpty) {
       isValid = false;
-      errorMessage += "请选择二级类别\n";
+      errorMessage += "城市不能为空\n";
+    }
+    if (passwordSubmit.isEmpty) {
+      isValid = false;
+      errorMessage += "密码不能为空\n";
+    }
+    if (leaderSubmit.isEmpty) {
+      isValid = false;
+      errorMessage += "负责人不能为空\n";
     }
 
     if (isValid) {
       try {
         Map<String, dynamic> params = {
-          "first_level_category": firstLevelCategorySubmit,
-          "second_level_category": secondLevelCategorySubmit,
-          "institution_name": institutionNameSubmit,
+          "name": nameSubmit,
+          "province": provinceSubmit,
+          "city": citySubmit,
+          "password": passwordSubmit,
+          "leader": leaderSubmit,
+          "status": statusSubmit,
         };
 
         dynamic result = await InstitutionApi.institutionCreate(params);
@@ -218,34 +222,53 @@ class InstitutionLogic extends GetxController {
   }
 
 
+
   Future<bool> updateInstitution(int institutionId) async {
     // 生成题本的逻辑
-    final uFirstLevelCategorySubmit = uFirstLevelCategory.value;
-    final uSecondLevelCategorySubmit = uSecondLevelCategory.value;
-    final uInstitutionNameSubmit = uInstitutionName.value;
+    final uNameSubmit = uName.value;
+    final uProvinceSubmit = uProvince.value;
+    final uCitySubmit = uCity.value;
+    final uPasswordSubmit = uPassword.value;
+    final uLeaderSubmit = uLeader.value;
+    final uStatusSubmit = uStatus.value;
 
     bool isValid = true;
     String errorMessage = "";
 
-    if (uInstitutionNameSubmit.isEmpty) {
+    if (uNameSubmit.isEmpty) {
       isValid = false;
       errorMessage += "机构名称不能为空\n";
     }
-    if (uFirstLevelCategorySubmit.isEmpty) {
+    if (uProvinceSubmit.isEmpty) {
       isValid = false;
-      errorMessage += "请选择一级类别\n";
+      errorMessage += "省份不能为空\n";
     }
-    if (uSecondLevelCategorySubmit.isEmpty) {
+    if (uCitySubmit.isEmpty) {
       isValid = false;
-      errorMessage += "请选择二级类别\n";
+      errorMessage += "城市不能为空\n";
+    }
+    if (uPasswordSubmit.isEmpty) {
+      isValid = false;
+      errorMessage += "密码不能为空\n";
+    }
+    if (uLeaderSubmit.isEmpty) {
+      isValid = false;
+      errorMessage += "负责人不能为空\n";
+    }
+    if (uStatusSubmit == null) {
+      isValid = false;
+      errorMessage += "状态不能为空\n";
     }
 
     if (isValid) {
       try {
         Map<String, dynamic> params = {
-          "first_level_category": uFirstLevelCategorySubmit,
-          "second_level_category": uSecondLevelCategorySubmit,
-          "institution_name": uInstitutionNameSubmit,
+          "name": uNameSubmit,
+          "province": uProvinceSubmit,
+          "city": uCitySubmit,
+          "password": uPasswordSubmit,
+          "leader": uLeaderSubmit,
+          "status": uStatusSubmit,
         };
 
         dynamic result = await InstitutionApi.institutionUpdate(institutionId, params);
@@ -262,6 +285,7 @@ class InstitutionLogic extends GetxController {
       return false;
     }
   }
+
 
   void delete(Map<String, dynamic> d, int index) {
     try {

@@ -7,20 +7,27 @@ import 'logic.dart';
 
 class InstitutionEditForm extends StatefulWidget {
   final int institutionId;
-  final String initialInstitutionName;
-  final String initialFirstLevelCategory;
-  final String initialSecondLevelCategory;
+  final String initialName;
+  final String initialProvince;
+  final String initialCity;
+  final String initialPassword;
+  final String initialLeader;
+  final int initialStatus;
 
   InstitutionEditForm({
     required this.institutionId,
-    required this.initialInstitutionName,
-    required this.initialFirstLevelCategory,
-    required this.initialSecondLevelCategory,
+    required this.initialName,
+    required this.initialProvince,
+    required this.initialCity,
+    required this.initialPassword,
+    required this.initialLeader,
+    required this.initialStatus,
   });
 
   @override
   State<InstitutionEditForm> createState() => _EditInstitutionDialogState();
 }
+
 class _EditInstitutionDialogState extends State<InstitutionEditForm> {
   final logic = Get.find<InstitutionLogic>();
   final _formKey = GlobalKey<FormBuilderState>();
@@ -37,12 +44,13 @@ class _EditInstitutionDialogState extends State<InstitutionEditForm> {
 
   @override
   void initState() {
-    print("initialStatus");
-    print(widget.institutionId);
     super.initState();
-    logic.uInstitutionName.value = widget.initialInstitutionName;
-    logic.uFirstLevelCategory.value = widget.initialFirstLevelCategory;
-    logic.uSecondLevelCategory.value = widget.initialSecondLevelCategory;
+    logic.uName.value = widget.initialName;
+    logic.uProvince.value = widget.initialProvince;
+    logic.uCity.value = widget.initialCity;
+    logic.uPassword.value = widget.initialPassword;
+    logic.uLeader.value = widget.initialLeader;
+    logic.uStatus.value = widget.initialStatus;
   }
 
   @override
@@ -63,64 +71,6 @@ class _EditInstitutionDialogState extends State<InstitutionEditForm> {
                       width: 150,
                       child: Row(
                         children: const [
-                          Text('一级类别'),
-                          Text('*', style: TextStyle(color: Colors.red)),
-                        ],
-                      ),
-                    ),
-                    SizedBox(
-                      width: 600,
-                      child: TextInputWidget(
-                        width: 240,
-                        height: 34,
-                        maxLines: 1,
-                        hint: "输入一级类别",
-                        text: widget.initialFirstLevelCategory.obs,
-                        onTextChanged: (value) {
-                          logic.uFirstLevelCategory.value = value;
-                        },
-                        validator:
-                        FormBuilderValidators.required(errorText: '一级类别不能为空'),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 150,
-                      child: Row(
-                        children: const [
-                          Text('二级类别'),
-                          Text('*', style: TextStyle(color: Colors.red)),
-                        ],
-                      ),
-                    ),
-                    SizedBox(
-                      width: 600,
-                      child: TextInputWidget(
-                        width: 240,
-                        height: 34,
-                        maxLines: 1,
-                        hint: "输入二级类别",
-                        text: widget.initialSecondLevelCategory.obs,
-                        onTextChanged: (value) {
-                          logic.uSecondLevelCategory.value = value;
-                        },
-                        validator:
-                        FormBuilderValidators.required(errorText: '二级类别不能为空'),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 150,
-                      child: Row(
-                        children: const [
                           Text('机构名称'),
                           Text('*', style: TextStyle(color: Colors.red)),
                         ],
@@ -131,14 +81,167 @@ class _EditInstitutionDialogState extends State<InstitutionEditForm> {
                       child: TextInputWidget(
                         width: 240,
                         height: 34,
-                        maxLines: 8,
+                        maxLines: 1,
                         hint: "输入机构名称",
-                        text: widget.initialInstitutionName.obs,
+                        text: widget.initialName.obs,
                         onTextChanged: (value) {
-                          logic.uInstitutionName.value = value;
+                          logic.uName.value = value;
                         },
                         validator:
                         FormBuilderValidators.required(errorText: '机构名称不能为空'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 150,
+                      child: Row(
+                        children: const [
+                          Text('省份'),
+                          Text('*', style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      width: 600,
+                      child: TextInputWidget(
+                        width: 240,
+                        height: 34,
+                        maxLines: 1,
+                        hint: "输入省份",
+                        text: widget.initialProvince.obs,
+                        onTextChanged: (value) {
+                          logic.uProvince.value = value;
+                        },
+                        validator:
+                        FormBuilderValidators.required(errorText: '省份不能为空'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 150,
+                      child: Row(
+                        children: const [
+                          Text('城市'),
+                          Text('*', style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      width: 600,
+                      child: TextInputWidget(
+                        width: 240,
+                        height: 34,
+                        maxLines: 1,
+                        hint: "输入城市",
+                        text: widget.initialCity.obs,
+                        onTextChanged: (value) {
+                          logic.uCity.value = value;
+                        },
+                        validator:
+                        FormBuilderValidators.required(errorText: '城市不能为空'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 150,
+                      child: Row(
+                        children: const [
+                          Text('密码'),
+                          Text('*', style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      width: 600,
+                      child: TextInputWidget(
+                        width: 240,
+                        height: 34,
+                        maxLines: 1,
+                        hint: "输入密码",
+                        text: widget.initialPassword.obs,
+                        onTextChanged: (value) {
+                          logic.uPassword.value = value;
+                        },
+                        validator:
+                        FormBuilderValidators.required(errorText: '密码不能为空'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 150,
+                      child: Row(
+                        children: const [
+                          Text('负责人'),
+                          Text('*', style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      width: 600,
+                      child: TextInputWidget(
+                        width: 240,
+                        height: 34,
+                        maxLines: 1,
+                        hint: "输入负责人",
+                        text: widget.initialLeader.obs,
+                        onTextChanged: (value) {
+                          logic.uLeader.value = value;
+                        },
+                        validator:
+                        FormBuilderValidators.required(errorText: '负责人不能为空'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 150,
+                      child: Row(
+                        children: const [
+                          Text('状态'),
+                          Text('*', style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      width: 600,
+                      child: FormBuilderDropdown<int>(
+                        name: 'status',
+                        initialValue: widget.initialStatus,
+                        onChanged: (value) {
+                          logic.uStatus.value = value!;
+                        },
+                        items: [
+                          DropdownMenuItem(
+                            value: 1,
+                            child: Text('激活'),
+                          ),
+                          DropdownMenuItem(
+                            value: 0,
+                            child: Text('停用'),
+                          ),
+                        ],
+                        validator: FormBuilderValidators.compose([
+                          FormBuilderValidators.required(errorText: '状态不能为空'),
+                        ]),
                       ),
                     ),
                   ],
@@ -174,4 +277,3 @@ class _EditInstitutionDialogState extends State<InstitutionEditForm> {
     );
   }
 }
-

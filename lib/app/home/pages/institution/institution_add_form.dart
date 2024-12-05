@@ -37,65 +37,6 @@ class _InstitutionAddFormState extends State<InstitutionAddForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(width: 800),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  SizedBox(
-                    width: 150,
-                    child: Row(
-                      children: const [
-                        Text('一级类别'),
-                        Text('*', style: TextStyle(color: Colors.red)),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    width: 600,
-                    child: TextInputWidget(
-                      width: 240,
-                      height: 34,
-                      maxLines: 8,
-                      hint: "输入一级类别",
-                      text: logic.firstLevelCategory,
-                      onTextChanged: (value) {
-                        logic.firstLevelCategory.value = value;
-                      },
-                      validator:
-                      FormBuilderValidators.required(errorText: '一级类别不能为空'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  SizedBox(
-                    width: 150,
-                    child: Row(
-                      children: const [
-                        Text('二级类别'),
-                        Text('*', style: TextStyle(color: Colors.red)),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    width: 600,
-                    child: TextInputWidget(
-                      width: 240,
-                      height: 34,
-                      maxLines: 8,
-                      hint: "输入二级类别",
-                      text: logic.secondLevelCategory,
-                      onTextChanged: (value) {
-                        logic.secondLevelCategory.value = value;
-                      },
-                      validator:
-                      FormBuilderValidators.required(errorText: '二级类别不能为空'),
-                    ),
-                  ),
-                ],
-              ),
               const SizedBox(height: 10),
               Row(
                 children: [
@@ -114,13 +55,93 @@ class _InstitutionAddFormState extends State<InstitutionAddForm> {
                       width: 240,
                       height: 34,
                       maxLines: 8,
-                      hint: "输入机构名称",
-                      text: logic.institutionName,
+                      hint: "输入名称",
+                      text: logic.name,
                       onTextChanged: (value) {
-                        logic.institutionName.value = value;
+                        logic.name.value = value;
                       },
                       validator:
-                      FormBuilderValidators.required(errorText: '机构名称不能为空'),
+                          FormBuilderValidators.required(errorText: '名称不能为空'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start, // 确保这里设置为 start
+                children: [
+                  SizedBox(
+                    width: 150,
+                    child: Row(
+                      children: const [
+                        Text('机构地点'),
+                        Text('*', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    width: 600,
+                    child: ProvinceCityDistrictSelector(), // 直接放置在这里，不需要额外的 Align 或 Container
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 150,
+                    child: Row(
+                      children: const [
+                        Text('负责人'),
+                        Text('*', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    width: 600,
+                    child: TextInputWidget(
+                      width: 240,
+                      height: 34,
+                      maxLines: 8,
+                      hint: "输入负责人",
+                      text: logic.leader,
+                      onTextChanged: (value) {
+                        logic.leader.value = value;
+                      },
+                      validator:
+                          FormBuilderValidators.required(errorText: '负责人不能为空'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 150,
+                    child: Row(
+                      children: const [
+                        Text('状态'),
+                        Text('*', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    width: 120,
+                    child: DropdownField(
+                      key: UniqueKey(),
+                      items: [
+                        {'id': '2', 'name': '生效中'},
+                        {'id': '3', 'name': '已过期'},
+                      ],
+                      hint: '',
+                      label: true,
+                      width: 100,
+                      height: 34,
+                      selectedValue: ValueNotifier<String?>('2'),
+                      onChanged: (dynamic newValue) {
+                        logic.status.value = newValue;
+                      },
                     ),
                   ),
                 ],
@@ -159,4 +180,3 @@ class _InstitutionAddFormState extends State<InstitutionAddForm> {
     );
   }
 }
-
