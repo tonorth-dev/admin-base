@@ -81,7 +81,12 @@ class _InstitutionAddFormState extends State<InstitutionAddForm> {
                   ),
                   SizedBox(
                     width: 600,
-                    child: ProvinceCityDistrictSelector(), // 直接放置在这里，不需要额外的 Align 或 Container
+                    child: ProvinceCityDistrictSelector(
+                      onChanged: (province, city, district) {
+                        logic.province.value = province!;
+                        logic.city.value = city!;
+                      }
+                    ), // 直接放置在这里，不需要额外的 Align 或 Container
                   ),
                 ],
               ),
@@ -131,15 +136,17 @@ class _InstitutionAddFormState extends State<InstitutionAddForm> {
                     child: DropdownField(
                       key: UniqueKey(),
                       items: [
+                        {'id': '1', 'name': '未生效'},
                         {'id': '2', 'name': '生效中'},
-                        {'id': '3', 'name': '已过期'},
+                        {'id': '5', 'name': '已过期'},
                       ],
                       hint: '',
                       label: true,
                       width: 100,
                       height: 34,
-                      selectedValue: ValueNotifier<String?>('2'),
+                      selectedValue: ValueNotifier<String?>(logic.status.value.toString()),
                       onChanged: (dynamic newValue) {
+                        print(newValue);
                         logic.status.value = newValue;
                       },
                     ),

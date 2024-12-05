@@ -12,7 +12,7 @@ class InstitutionEditForm extends StatefulWidget {
   final String initialCity;
   final String initialPassword;
   final String initialLeader;
-  final int initialStatus;
+  final String initialStatus;
 
   InstitutionEditForm({
     required this.institutionId,
@@ -222,26 +222,23 @@ class _EditInstitutionDialogState extends State<InstitutionEditForm> {
                       ),
                     ),
                     SizedBox(
-                      width: 600,
-                      child: FormBuilderDropdown<int>(
-                        name: 'status',
-                        initialValue: widget.initialStatus,
-                        onChanged: (value) {
-                          logic.uStatus.value = value!;
-                        },
+                      width: 120,
+                      child: DropdownField(
+                        key: UniqueKey(),
                         items: [
-                          DropdownMenuItem(
-                            value: 1,
-                            child: Text('激活'),
-                          ),
-                          DropdownMenuItem(
-                            value: 0,
-                            child: Text('停用'),
-                          ),
+                          {'id': '1', 'name': '未生效'},
+                          {'id': '2', 'name': '生效中'},
+                          {'id': '3', 'name': '已过期'},
                         ],
-                        validator: FormBuilderValidators.compose([
-                          FormBuilderValidators.required(errorText: '状态不能为空'),
-                        ]),
+                        hint: '',
+                        label: true,
+                        width: 100,
+                        height: 34,
+                        selectedValue: ValueNotifier<String?>(widget.initialLeader),
+                        onChanged: (dynamic newValue) {
+                          print(newValue);
+                          logic.uStatus.value = newValue.toInt();
+                        },
                       ),
                     ),
                   ],

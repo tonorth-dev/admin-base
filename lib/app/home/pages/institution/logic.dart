@@ -30,45 +30,28 @@ class InstitutionLogic extends GetxController {
   var loading = false.obs;
   final searchText = ''.obs;
 
-  final GlobalKey<CascadingDropdownFieldState> institutionDropdownKey =
-      GlobalKey<CascadingDropdownFieldState>();
-  final GlobalKey<DropdownFieldState> cateDropdownKey =
-      GlobalKey<DropdownFieldState>();
-  final GlobalKey<DropdownFieldState> levelDropdownKey =
-      GlobalKey<DropdownFieldState>();
-  final GlobalKey<DropdownFieldState> statusDropdownKey =
-      GlobalKey<DropdownFieldState>();
-
+  final  GlobalKey<ProvinceCityDistrictSelectorState> provinceCityDistrictKey = GlobalKey<ProvinceCityDistrictSelectorState>();
   // 当前编辑的题目数据
   var currentEditInstitution = RxMap<String, dynamic>({}).obs;
   RxList<int> selectedRows = <int>[].obs;
 
-  final ValueNotifier<dynamic> selectedLevel1 = ValueNotifier(null);
-  final ValueNotifier<dynamic> selectedLevel2 = ValueNotifier(null);
-  final ValueNotifier<dynamic> selectedLevel3 = ValueNotifier(null);
-
   // 机构列表数据
-  List<Map<String, dynamic>> institutionList = [];
-  Map<String, List<Map<String, dynamic>>> subInstitutionMap = {};
-  Map<String, List<Map<String, dynamic>>> subSubInstitutionMap = {};
-  List<Map<String, dynamic>> level1Items = [];
-  Map<String, List<Map<String, dynamic>>> level2Items = {};
-  Map<String, List<Map<String, dynamic>>> level3Items = {};
-  Rx<String> selectedInstitutionId = "0".obs;
+  Rx<String> selectedProvince = "".obs;
+  Rx<String> selectedCityId = "".obs;
 
   final RxString name = ''.obs;
   final RxString province = ''.obs;
   final RxString city = ''.obs;
   final RxString password = ''.obs;
   final RxString leader = ''.obs;
-  final RxInt status = 0.obs; // 假设状态为整数，1表示激活，0表示停用
+  final RxString status = '2'.obs;
 
   final uName = ''.obs;
   final uProvince = ''.obs;
   final uCity = ''.obs;
   final uPassword = ''.obs;
   final uLeader = ''.obs;
-  final uStatus = 0.obs;
+  final uStatus = '2'.obs;
 
 
   void find(int newSize, int newPage) {
@@ -83,7 +66,8 @@ class InstitutionLogic extends GetxController {
         "pageSize": size.value.toString(),
         "page": page.value.toString(),
         "keyword": searchText.value.toString() ?? "",
-        "institution_id": (selectedInstitutionId.value.toString() ?? ""),
+        "province": selectedProvince.value,
+        "city": selectedCityId.value,
       }).then((value) async {
         if (value != null && value["list"] != null) {
           total.value = value["total"] ?? 0;
@@ -116,8 +100,8 @@ class InstitutionLogic extends GetxController {
     columns = [
       ColumnData(title: "ID", key: "id", width: 80),
       ColumnData(title: "名称", key: "name", width: 200),
-      ColumnData(title: "省份", key: "province", width: 200),
-      ColumnData(title: "城市", key: "city", width: 200),
+      ColumnData(title: "省份", key: "province_name", width: 200),
+      ColumnData(title: "城市", key: "city_name", width: 200),
       ColumnData(title: "密码", key: "password", width: 200),
       ColumnData(title: "负责人", key: "leader", width: 200),
       ColumnData(title: "状态", key: "status_name", width: 100),
@@ -162,7 +146,6 @@ class InstitutionLogic extends GetxController {
     final nameSubmit = name.value;
     final provinceSubmit = province.value;
     final citySubmit = city.value;
-    final passwordSubmit = password.value;
     final leaderSubmit = leader.value;
     final statusSubmit = status.value;
 
@@ -181,10 +164,6 @@ class InstitutionLogic extends GetxController {
       isValid = false;
       errorMessage += "城市不能为空\n";
     }
-    if (passwordSubmit.isEmpty) {
-      isValid = false;
-      errorMessage += "密码不能为空\n";
-    }
     if (leaderSubmit.isEmpty) {
       isValid = false;
       errorMessage += "负责人不能为空\n";
@@ -196,9 +175,8 @@ class InstitutionLogic extends GetxController {
           "name": nameSubmit,
           "province": provinceSubmit,
           "city": citySubmit,
-          "password": passwordSubmit,
           "leader": leaderSubmit,
-          "status": statusSubmit,
+          "status": int.parse(statusSubmit),
         };
 
         dynamic result = await InstitutionApi.institutionCreate(params);
@@ -247,17 +225,9 @@ class InstitutionLogic extends GetxController {
       isValid = false;
       errorMessage += "城市不能为空\n";
     }
-    if (uPasswordSubmit.isEmpty) {
-      isValid = false;
-      errorMessage += "密码不能为空\n";
-    }
     if (uLeaderSubmit.isEmpty) {
       isValid = false;
       errorMessage += "负责人不能为空\n";
-    }
-    if (uStatusSubmit == null) {
-      isValid = false;
-      errorMessage += "状态不能为空\n";
     }
 
     if (isValid) {
@@ -268,7 +238,7 @@ class InstitutionLogic extends GetxController {
           "city": uCitySubmit,
           "password": uPasswordSubmit,
           "leader": uLeaderSubmit,
-          "status": uStatusSubmit,
+          "status": int.parse(uStatusSubmit),
         };
 
         dynamic result = await InstitutionApi.institutionUpdate(institutionId, params);
@@ -476,10 +446,7 @@ class InstitutionLogic extends GetxController {
   }
 
   void reset() {
-    institutionDropdownKey.currentState?.reset();
-    cateDropdownKey.currentState?.reset();
-    levelDropdownKey.currentState?.reset();
-    statusDropdownKey.currentState?.reset();
+    provinceCityDistrictKey.currentState?.reset();
     searchText.value = '';
     selectedRows.clear();
 

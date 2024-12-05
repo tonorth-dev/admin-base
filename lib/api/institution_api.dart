@@ -19,6 +19,8 @@ class InstitutionApi {
         'page': '1',
         'pageSize': '15',
         'keyword': handleNullOrEmpty(''),
+        'province': handleNullOrEmpty(''),
+        'city': handleNullOrEmpty(''),
       };
 
       // 合并默认参数和传入的参数
@@ -61,7 +63,7 @@ class InstitutionApi {
   static Future<dynamic> institutionCreate(Map<String, dynamic> params) async {
     try {
       // 必传字段校验
-      List<String> requiredFields = ['first_level_category', 'second_level_category', 'institution_name',];
+      List<String> requiredFields = ['name', 'city', 'leader'];
       for (var field in requiredFields) {
         if (!params.containsKey(field) || params[field] == null) {
           throw ArgumentError('Missing required field: $field');

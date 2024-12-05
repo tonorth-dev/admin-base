@@ -1256,11 +1256,34 @@ class _HoverTextButtonState extends State<HoverTextButton> {
 }
 
 class ProvinceCityDistrictSelector extends StatefulWidget {
+  final String? defaultProvince;
+  final String? defaultCity;
+  final String? defaultDistrict;
+  final Function(String?, String?, String?)? onChanged;
+
+  ProvinceCityDistrictSelector({
+    this.defaultProvince,
+    this.defaultCity,
+    this.defaultDistrict,
+    this.onChanged,
+    Key? key,
+  }) : super(key: key);
+
   @override
-  _ProvinceCityDistrictSelectorState createState() => _ProvinceCityDistrictSelectorState();
+  ProvinceCityDistrictSelectorState createState() =>
+      ProvinceCityDistrictSelectorState();
+
+  /// 提供一个清空选择项的功能
+  final GlobalKey<ProvinceCityDistrictSelectorState> key =
+  GlobalKey<ProvinceCityDistrictSelectorState>();
+
+  void reset() {
+    key.currentState?.reset();
+  }
 }
 
-class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelector> {
+class ProvinceCityDistrictSelectorState
+    extends State<ProvinceCityDistrictSelector> {
   final ValueNotifier<String?> selectedProvince = ValueNotifier(null);
   final ValueNotifier<String?> selectedCity = ValueNotifier(null);
   final ValueNotifier<String?> selectedDistrict = ValueNotifier(null);
@@ -1278,7 +1301,6 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
       var areaData = await ConfigApi.configArea("area", level, parentId);
       print('Fetched divisions data: $areaData');
 
-      // 确保每个元素都是 Map<String, dynamic>
       List<Map<String, dynamic>> divisions = (areaData as List)
           .map((item) => item as Map<String, dynamic>)
           .toList();
@@ -1322,7 +1344,37 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
   @override
   void initState() {
     super.initState();
-    fetchProvinces(); // 加载省份
+    fetchProvinces();
+    if (widget.defaultProvince != null) {
+      selectedProvince.value = widget.defaultProvince;
+      fetchCities(widget.defaultProvince!);
+      if (widget.defaultCity != null) {
+        selectedCity.value = widget.defaultCity;
+        fetchCounties(widget.defaultCity!);
+        if (widget.defaultDistrict != null) {
+          selectedDistrict.value = widget.defaultDistrict;
+        }
+      }
+    }
+  }
+
+  /// 清空选择项
+  void reset() {
+    setState(() {
+      selectedProvince.value = null;
+      selectedCity.value = null;
+      selectedDistrict.value = null;
+      cities.clear();
+      counties.clear();
+    });
+
+    // 清空数据后重新加载省份
+    fetchProvinces();
+
+    // 通知外部清空事件
+    if (widget.onChanged != null) {
+      widget.onChanged!(null, null, null);
+    }
   }
 
   Widget buildDropdown({
@@ -1335,11 +1387,9 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
     return Container(
       width: 140,
       height: 34,
-      padding: EdgeInsets.only(left: 0),
-      margin: EdgeInsets.symmetric(horizontal: 2),
       decoration: BoxDecoration(
         border: Border.all(
-          color: isEnabled ? Colors.grey : Colors.grey[300]!, // 禁用时使用浅灰色边框
+          color: isEnabled ? Colors.grey : Colors.grey[300]!,
           width: 1.0,
         ),
         borderRadius: BorderRadius.circular(2),
@@ -1350,14 +1400,14 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
         ),
         child: DropdownButtonHideUnderline(
           child: Padding(
-            padding: EdgeInsets.zero,
+            padding: EdgeInsets.only(left: 8.0),
             child: DropdownButton<String>(
               value: value,
               items: items?.map((item) {
                 return DropdownMenuItem<String>(
                   value: item['id'],
                   child: Padding(
-                    padding: EdgeInsets.zero, // 确保 hintText 与左侧无间距
+                    padding: EdgeInsets.only(left: 8.0),
                     child: Text(
                       item['name'],
                       maxLines: 2,
@@ -1368,7 +1418,18 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
                   ),
                 );
               }).toList(),
-              onChanged: isEnabled ? onChanged : null,
+              onChanged: isEnabled
+                  ? (String? newValue) {
+                onChanged?.call(newValue);
+                if (widget.onChanged != null) {
+                  widget.onChanged!(
+                    selectedProvince.value,
+                    selectedCity.value,
+                    selectedDistrict.value,
+                  );
+                }
+              }
+                  : null,
               isExpanded: true,
               icon: Icon(Icons.arrow_drop_down),
               iconSize: 24,
@@ -1376,8 +1437,8 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
               style: TextStyle(color: Colors.black, fontSize: 14),
               dropdownColor: Colors.white,
               hint: Container(
-                alignment: Alignment.centerLeft, // 确保 hintText 左对齐
-                padding: EdgeInsets.only(left: 3.0), // 给 hintText 增加左边距
+                alignment: Alignment.centerLeft,
+                padding: EdgeInsets.only(left: 8.0),
                 child: Text(
                   hintText,
                   style: TextStyle(
@@ -1398,7 +1459,6 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        // 省份下拉菜单
         buildDropdown(
           value: selectedProvince.value,
           items: provinces,
@@ -1415,10 +1475,11 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
           hintText: '请选择省份',
           isEnabled: provinces != null,
         ),
-        // 城市下拉菜单
         buildDropdown(
           value: selectedCity.value,
-          items: selectedProvince.value != null ? cities[selectedProvince.value!] : null,
+          items: selectedProvince.value != null
+              ? cities[selectedProvince.value!]
+              : null,
           onChanged: (String? newValue) {
             setState(() {
               selectedCity.value = newValue;
@@ -1431,20 +1492,20 @@ class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelec
           hintText: '请选择城市',
           isEnabled: selectedProvince.value != null,
         ),
-        // 区县下拉菜单
-        // buildDropdown(
-        //   value: selectedDistrict.value,
-        //   items: selectedCity.value != null ? counties[selectedCity.value!] : null,
-        //   onChanged: (String? newValue) {
-        //     setState(() {
-        //       selectedDistrict.value = newValue;
-        //     });
-        //   },
-        //   hintText: '请选择区县',
-        //   isEnabled: selectedCity.value != null,
-        // ),
+        buildDropdown(
+          value: selectedDistrict.value,
+          items: selectedCity.value != null
+              ? counties[selectedCity.value!]
+              : null,
+          onChanged: (String? newValue) {
+            setState(() {
+              selectedDistrict.value = newValue;
+            });
+          },
+          hintText: '请选择区县',
+          isEnabled: selectedCity.value != null,
+        ),
       ],
     );
   }
 }
-

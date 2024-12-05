@@ -62,12 +62,19 @@ class InstitutionPage extends StatelessWidget {
                 width: 320,
                 child: Padding(
                   padding: EdgeInsets.all(16.0),
-                  child: ProvinceCityDistrictSelector(),
+                  child: ProvinceCityDistrictSelector(
+                    key: logic.provinceCityDistrictKey,
+                    onChanged: (province, city, district) {
+                      logic.selectedProvince.value = province!;
+                      print("city: $city, district: $district");
+                      logic.selectedCityId.value = city!;
+                    },
+                  ),
                 ),
               ),
               SearchBoxWidget(
                 key: Key('keywords'),
-                hint: '类目名称、机构名称',
+                hint: '机构名称、负责人',
                 onTextChanged: (String value) {
                   logic.searchText.value = value;
                 },
@@ -85,6 +92,7 @@ class InstitutionPage extends StatelessWidget {
               ResetButtonWidget(
                 key: Key('reset'),
                 onPressed: () {
+                  print('reset sr');
                   logic.reset();
                   logic.find(logic.size.value, logic.page.value);
                 },
@@ -189,36 +197,6 @@ class InstitutionPage extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  double _getColumnWidth(String key) {
-    switch (key) {
-      case 'id':
-        return 0;
-      case 'code':
-        return 80;
-      case 'name':
-        return 120;
-      case 'cate':
-        return 80;
-      case 'company_code':
-        return 80;
-      case 'company_name':
-        return 120;
-      case 'course_desc':
-        return 200;
-      case 'institution_name':
-        return 200;
-      case 'source':
-      case 'city':
-      case 'ext':
-      case 'status':
-      case 'institution_id':
-      case 'create_time':
-        return 0;
-      default:
-        return 100; // 默认宽度
-    }
   }
 
   static SidebarTree newThis() {
