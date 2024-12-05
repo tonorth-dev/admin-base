@@ -21,5 +21,4 @@ class ConfigLogic extends GetxController {
       rethrow; // 重新抛出异常，以便在调用方捕获
     }
   }
-
 }

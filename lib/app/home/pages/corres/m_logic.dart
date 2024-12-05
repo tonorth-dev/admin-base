@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'package:csv/csv.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../api/job_api.dart';
 import '../../../../component/table/table_data.dart';
 import '../../../../component/widget.dart';
 import 'j_logic.dart';
@@ -166,6 +167,9 @@ class MLogic extends GetxController {
     list.clear();
     selectedRows.clear();
     loading.value = true;
+    jLogic.selectedMajorId.value = "0";
+    jLogic.findForMajor(newSize, newPage);
+    jLogic.enableRowSelection();
     // 打印调用堆栈
     try {
       MajorApi.majorList(params: {
@@ -487,12 +491,15 @@ class MLogic extends GetxController {
       selectedRows.remove(id);
       selectedRows.clear();
       jLogic.selectedRows.clear();
+      jLogic.selectedMajorId.value = "0";
+      jLogic.enableRowSelection();
     } else {
       // 当前行未被选中，选中
       selectedRows.clear();
       selectedRows.add(id);
-      await jLogic.findForMajor(id);
-      // jLogic.disableRowSelection();
+      jLogic.selectedMajorId.value = id.toString();
+      await jLogic.findForMajor(jLogic.size.value, jLogic.page.value);
+      jLogic.disableRowSelection();
     }
   }
 
@@ -514,6 +521,9 @@ class MLogic extends GetxController {
   final Map<int, ValueNotifier<bool>> redButtonStates = {};
 
   void blueButtonAction(int id) {
+    if (!blueButtonStates[id]!.value) {
+        return;
+    }
     print("蓝色按钮点击");
     if (selectedRows.contains(id)) {
       blueButtonStates[id]!.value = false;
@@ -525,15 +535,93 @@ class MLogic extends GetxController {
     }
   }
 
-  void grayButtonAction(int id) {
+  void grayButtonAction(int majorId) {
+    if (!grayButtonStates[majorId]!.value) {
+      return;
+    }
     print("灰色按钮点击");
+    jLogic.findForMajor(jLogic.size.value, jLogic.page.value);
     jLogic.disableRowSelection();
-    // blueButtonStates[id]!.value = false;
+    blueButtonStates[majorId]!.value = true;
+    grayButtonStates[majorId]!.value = false;
+    redButtonStates[majorId]!.value = false;
   }
 
-  void redButtonAction(int id) {
+  Future<void> redButtonAction(int majorId) async {
+    if (!grayButtonStates[majorId]!.value) {
+      return;
+    }
     print("红色按钮点击");
-    // redButtonStates[id]!.value = false;
-    // isRedButtonEnabled.value = !isRedButtonEnabled.value;
+    List<String> hasMajorJobs = [];
+    for (var id in jLogic.selectedRows) {
+      // 找到与 id 匹配的岗位数据
+      var job = jLogic.list.firstWhere((job) => job['id'] == id, orElse: () => {});
+      if (job.isNotEmpty && job['major_id'] > 0 && job['major_id'] != majorId) {
+        hasMajorJobs.add("岗位编码：${job['code']}，岗位名称：${job['name']}"); // 记录major_id > 0的数据
+      }
+    }
+
+    if (hasMajorJobs.isNotEmpty) {
+      // 生成确认弹窗
+      Get.dialog(
+        Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          child: Container(
+            width: 800, // 设置你想要的宽度
+            padding: EdgeInsets.all(16.0),
+            child: AlertDialog(
+              title: Text("确认"),
+              content: Text("${hasMajorJobs.join("，")}，已经绑定在其它专业上，是否继续执行？"),
+              actions: <Widget>[
+                TextButton(
+                  child: Text("取消"),
+                  onPressed: () {
+                    Get.back(); // 关闭对话框
+                  },
+                ),
+                TextButton(
+                  child: Text("确认"),
+                  onPressed: () async {
+                    // 用户确认后执行的操作
+                    try {
+                      await JobApi.jobUpdateMajor(jLogic.selectedRows, majorId);
+                      "绑定成功".toHint();
+                      jLogic.disableRowSelection();
+                      blueButtonStates[majorId]!.value = true;
+                      grayButtonStates[majorId]!.value = false;
+                      redButtonStates[majorId]!.value = false;
+                      jLogic.findForMajor(jLogic.size.value, jLogic.page.value);
+                    } catch (e) {
+                      print('Error: $e');
+                      "绑定时发生错误：$e".toHint();
+                    } finally {
+                      Get.back(); // 确保对话框关闭
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    } else {
+      // 如果没有符合条件的数据，则直接执行后续操作
+      try {
+        await JobApi.jobUpdateMajor(jLogic.selectedRows, majorId);
+        "绑定成功".toHint();
+        jLogic.disableRowSelection();
+        blueButtonStates[majorId]!.value = true;
+        grayButtonStates[majorId]!.value = false;
+        redButtonStates[majorId]!.value = false;
+        jLogic.findForMajor(jLogic.size.value, jLogic.page.value);
+      } catch (e) {
+        print('Error: $e');
+        "绑定时发生错误：$e".toHint();
+      }
+      jLogic.disableRowSelection();
+    }
   }
+
 }

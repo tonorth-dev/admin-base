@@ -103,6 +103,28 @@ class JobApi {
     }
   }
 
+  static Future<dynamic> jobUpdateMajor(List<int> jobIds, int majorId) async {
+    try {
+      // 必传字段校验
+      if (jobIds == null || jobIds.isEmpty) {
+        throw ArgumentError('缺少必填字段: job_ids');
+      }
+      if (majorId == null) {
+        throw ArgumentError('缺少必填字段: major_id');
+      }
+
+      Map<String, dynamic> params = {
+        'job_ids': jobIds,
+        'major_id': majorId,
+      };
+
+      return await HttpUtil.post("/admin/job/update-major", params: params);
+    } catch (e) {
+      print('更新岗位专业时发生错误: $e');
+      rethrow; // 重新抛出异常以便调用者处理
+    }
+  }
+
   // 删除题目
   static Future<dynamic> jobDelete(String id) async {
     try {
@@ -165,5 +187,7 @@ class JobApi {
       throw Exception('审核请求失败: $e');
     }
   }
+
+
 
 }

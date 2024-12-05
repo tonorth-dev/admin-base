@@ -84,18 +84,18 @@ class JobTableView extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  // 切换选择状态的按钮
-                  ElevatedButton(
-                    onPressed: () => logic.isRowsSelectable.value ? logic.disableRowSelection() : logic.enableRowSelection(),
+                  Obx(() => ElevatedButton(
+                    onPressed: () => logic.isRowsSelectable.value
+                        ? logic.disableRowSelection()
+                        : logic.enableRowSelection(),
                     child: Text(logic.isRowsSelectable.value ? '禁用选择' : '启用选择'),
-                  ),
+                  )),
                   SizedBox(width: 10),
                   SearchBoxWidget(
                     key: Key('keywords'),
                     hint: '岗位代码、岗位名称、单位序号、单位名称',
                     onTextChanged: (String value) {
                       logic.searchText.value = value;
-                      logic.applyFilters();
                     },
                     searchText: logic.searchText,
                   ),
@@ -104,7 +104,7 @@ class JobTableView extends StatelessWidget {
                     key: Key('search'),
                     onPressed: () {
                       logic.selectedRows.clear();
-                      logic.find(logic.size.value, logic.page.value);
+                      logic.findForMajor(logic.size.value, logic.page.value);
                     },
                   ),
                   SizedBox(width: 8),
@@ -112,7 +112,7 @@ class JobTableView extends StatelessWidget {
                     key: Key('reset'),
                     onPressed: () {
                       logic.reset();
-                      logic.find(logic.size.value, logic.page.value);
+                      logic.findForMajor(logic.size.value, logic.page.value);
                     },
                   ),
                   ThemeUtil.width(width: 30),
@@ -124,79 +124,84 @@ class JobTableView extends StatelessWidget {
         ThemeUtil.lineH(),
         ThemeUtil.height(),
         Expanded(
-          child: Obx(() => logic.loading.value
-              ? const Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
-            ),
-          )
-              : SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Container(
-              width: 1000,
-              height: Get.height,
-              child: Obx(() => SfDataGrid( // 使用 Obx 包裹 SfDataGrid
-                source: JobDataSource(logic: logic),
-                headerGridLinesVisibility: GridLinesVisibility.values[1],
-                columnWidthMode: ColumnWidthMode.fill,
-                headerRowHeight: 50,
-                gridLinesVisibility: GridLinesVisibility.both,
-                columns: [
-                  GridColumn(
-                    width: 80,
-                    columnName: 'Select',
-                    label: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.indigo[50],
-                      ),
-                      child: Center(
-                        child: Obx(() => Checkbox(
-                          value: logic.isRowsSelectable.value && logic.selectedRows.length == logic.list.length,
-                          onChanged: (value) {
-                            if (logic.isRowsSelectable.value) {
-                              logic.toggleSelectAll();
-                            }
-                          },
-                          activeColor: Colors.teal,
-                        )),
-                      ),
-                    ),
-                  ),
-                  ...logic.columns.map((column) => GridColumn(
-                    width: column.width,
-                    columnName: column.key,
-                    label: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.indigo[50],
-                      ),
-                      child: Center(
-                        child: Text(
-                          column.title,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.indigo[800],
+          child: Obx(() => Stack(
+            children: [
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Container(
+                  width: 1000,
+                  height: Get.height,
+                  child: SfDataGrid(
+                    source: JobDataSource(logic: logic),
+                    headerGridLinesVisibility: GridLinesVisibility.values[1],
+                    columnWidthMode: ColumnWidthMode.fill,
+                    headerRowHeight: 50,
+                    gridLinesVisibility: GridLinesVisibility.both,
+                    columns: [
+                      GridColumn(
+                        width: 80,
+                        columnName: 'Select',
+                        label: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.indigo[50],
+                          ),
+                          child: Center(
+                            child: Obx(() => Checkbox(
+                              value: logic.isRowsSelectable.value && logic.selectedRows.length == logic.list.length,
+                              onChanged: (value) {
+                                if (logic.isRowsSelectable.value) {
+                                  logic.toggleSelectAll();
+                                }
+                              },
+                              activeColor: Colors.teal,
+                            )),
                           ),
                         ),
                       ),
-                    ),
-                  )),
-                ],
-              )),
-            ),
+                      ...logic.columns.map((column) => GridColumn(
+                        width: column.width,
+                        columnName: column.key,
+                        label: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.indigo[50],
+                          ),
+                          child: Center(
+                            child: Text(
+                              column.title,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.indigo[800],
+                              ),
+                            ),
+                          ),
+                        ),
+                      )),
+                    ],
+                  ),
+                ),
+              ),
+              if (!logic.isRowsSelectable.value)
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.grey.withOpacity(0.2),
+                  ),
+                ),
+            ],
           )),
         ),
         Obx(() {
           return PaginationPage(
-            uniqueId: 'corres_pagination',
+            uniqueId: 'job1_pagination',
             total: logic.total.value,
-            changed: (size, page) => logic.find(size, page),
+            changed: (size, page) => logic.findForMajor(size, page),
           );
         })
       ],
     );
   }
 }
+
 
 class JobDataSource extends DataGridSource {
   final JLogic logic;

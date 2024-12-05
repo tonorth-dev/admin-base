@@ -8,6 +8,8 @@ import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+import '../api/config_api.dart';
+
 class CustomButton extends StatefulWidget {
   final VoidCallback onPressed;
   final String text;
@@ -1249,6 +1251,184 @@ class _HoverTextButtonState extends State<HoverTextButton> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class ProvinceCityDistrictSelector extends StatefulWidget {
+  @override
+  _ProvinceCityDistrictSelectorState createState() => _ProvinceCityDistrictSelectorState();
+}
+
+class _ProvinceCityDistrictSelectorState extends State<ProvinceCityDistrictSelector> {
+  final ValueNotifier<String?> selectedProvince = ValueNotifier(null);
+  final ValueNotifier<String?> selectedCity = ValueNotifier(null);
+  final ValueNotifier<String?> selectedDistrict = ValueNotifier(null);
+
+  List<Map<String, dynamic>>? provinces;
+  Map<String, List<Map<String, dynamic>>> cities = {};
+  Map<String, List<Map<String, dynamic>>> counties = {};
+
+// widget.dart
+  Future<List<Map<String, dynamic>>> fetchDivisions(
+      {required String level, String? parentId}) async {
+    try {
+      print('Fetching divisions for level: $level, parentId: $parentId');
+      var areaData = await ConfigApi.configArea("area", level, parentId);
+      print('Fetched divisions data: $areaData');
+
+      // 确保每个元素都是 Map<String, dynamic>
+      List<Map<String, dynamic>> divisions = (areaData as List)
+          .map((item) => item as Map<String, dynamic>)
+          .toList();
+
+      return divisions;
+    } catch (e) {
+      print('Error fetching divisions: $e');
+      rethrow; // 确保异常被抛出，以便可以在调用处捕获
+    }
+  }
+
+
+  Future<void> fetchProvinces() async {
+    try {
+      provinces = await fetchDivisions(level: "province");
+      setState(() {}); // Trigger a rebuild after data is loaded.
+    } catch (e) {
+      print('Failed to load provinces: $e');
+    }
+  }
+
+  Future<void> fetchCities(String provinceId) async {
+    try {
+      var cityData = await fetchDivisions(level: "city", parentId: provinceId);
+      cities[provinceId] = cityData;
+      setState(() {}); // Trigger a rebuild after data is loaded.
+    } catch (e) {
+      print('Failed to load cities: $e');
+    }
+  }
+
+  Future<void> fetchCounties(String cityId) async {
+    try {
+      var countyData = await fetchDivisions(level: "county", parentId: cityId);
+      counties[cityId] = countyData;
+      setState(() {}); // Trigger a rebuild after data is loaded.
+    } catch (e) {
+      print('Failed to load counties: $e');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchProvinces(); // Load provinces when the widget is initialized.
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (provinces == null) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+    Widget buildDropdown({
+      required String? value,
+      required List<DropdownMenuItem<String>>? items,
+      required void Function(String?) onChanged,
+      required String hintText,
+    }) {
+      return Container(
+        width: 150, // 固定宽度
+        height: 34,
+        margin: EdgeInsets.symmetric(horizontal: 3), // 控制水平间距
+        child: DropdownButtonFormField<String>(
+          value: value,
+          items: items,
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(2),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.grey),
+              borderRadius: BorderRadius.circular(2),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.blue, width: 2),
+              borderRadius: BorderRadius.circular(2),
+            ),
+            filled: true,
+            fillColor: Colors.grey[100],
+            hintText: hintText,
+          ),
+          dropdownColor: Colors.white, // 下拉菜单背景颜色
+        ),
+      );
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center, // 控制内容居中对齐
+      children: [
+        buildDropdown(
+          value: selectedProvince.value,
+          items: provinces!.map((province) {
+            return DropdownMenuItem<String>(
+              value: province['id'],
+              child: Text(province['name']),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            setState(() {
+              selectedProvince.value = newValue;
+              selectedCity.value = null;
+              selectedDistrict.value = null;
+              if (newValue != null) {
+                fetchCities(
+                    newValue); // Fetch cities when a province is selected.
+              }
+            });
+          },
+          hintText: '请选择省份',
+        ),
+        if (selectedProvince.value != null)
+          buildDropdown(
+            value: selectedCity.value,
+            items: cities[selectedProvince.value!]?.map((city) {
+              return DropdownMenuItem<String>(
+                value: city['id'],
+                child: Text(city['name']),
+              );
+            }).toList(),
+            onChanged: (String? newValue) {
+              setState(() {
+                selectedCity.value = newValue;
+                selectedDistrict.value = null;
+                if (newValue != null) {
+                  fetchCounties(
+                      newValue); // Fetch counties when a city is selected.
+                }
+              });
+            },
+            hintText: '请选择城市',
+          ),
+        if (selectedCity.value != null)
+          buildDropdown(
+            value: selectedDistrict.value,
+            items: counties[selectedCity.value!]?.map((county) {
+              return DropdownMenuItem<String>(
+                value: county['id'],
+                child: Text(county['name']),
+              );
+            }).toList(),
+            onChanged: (String? newValue) {
+              setState(() {
+                selectedDistrict.value = newValue;
+              });
+            },
+            hintText: '请选择区县',
+          ),
+      ],
     );
   }
 }
