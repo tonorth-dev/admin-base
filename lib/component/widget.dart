@@ -1316,6 +1316,7 @@ class ProvinceCityDistrictSelectorState
     try {
       provinces = await fetchDivisions(level: "province");
       setState(() {});
+      print('Provinces fetched successfully'); // 添加此行以确认数据获取成功
     } catch (e) {
       print('Failed to load provinces: $e');
     }
@@ -1366,9 +1367,10 @@ class ProvinceCityDistrictSelectorState
       selectedDistrict.value = null;
       cities.clear();
       counties.clear();
+      provinces = null; // 清空省份数据
     });
 
-    // 清空数据后重新加载省份
+    // 重新加载省份数据
     fetchProvinces();
 
     // 通知外部清空事件
@@ -1378,79 +1380,84 @@ class ProvinceCityDistrictSelectorState
   }
 
   Widget buildDropdown({
-    required String? value,
+    required ValueNotifier<String?> valueNotifier,
     required List<Map<String, dynamic>>? items,
     required void Function(String?)? onChanged,
     required String hintText,
     bool isEnabled = true,
   }) {
-    return Container(
-      width: 140,
-      height: 34,
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: isEnabled ? Colors.grey : Colors.grey[300]!,
-          width: 1.0,
-        ),
-        borderRadius: BorderRadius.circular(2),
-      ),
-      child: Theme(
-        data: Theme.of(context).copyWith(
-          canvasColor: Colors.white,
-        ),
-        child: DropdownButtonHideUnderline(
-          child: Padding(
-            padding: EdgeInsets.only(left: 8.0),
-            child: DropdownButton<String>(
-              value: value,
-              items: items?.map((item) {
-                return DropdownMenuItem<String>(
-                  value: item['id'],
-                  child: Padding(
+    return ValueListenableBuilder<String?>(
+      valueListenable: valueNotifier,
+      builder: (context, value, child) {
+        return Container(
+          width: 140,
+          height: 34,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: isEnabled ? Colors.grey : Colors.grey[300]!,
+              width: 1.0,
+            ),
+            borderRadius: BorderRadius.circular(2),
+          ),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              canvasColor: Colors.white,
+            ),
+            child: DropdownButtonHideUnderline(
+              child: Padding(
+                padding: EdgeInsets.only(left: 8.0),
+                child: DropdownButton<String>(
+                  value: value,
+                  items: items?.map((item) {
+                    return DropdownMenuItem<String>(
+                      value: item['id'],
+                      child: Padding(
+                        padding: EdgeInsets.only(left: 8.0),
+                        child: Text(
+                          item['name'],
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: isEnabled
+                      ? (String? newValue) {
+                    onChanged?.call(newValue);
+                    if (widget.onChanged != null) {
+                      widget.onChanged!(
+                        selectedProvince.value,
+                        selectedCity.value,
+                        selectedDistrict.value,
+                      );
+                    }
+                  }
+                      : null,
+                  isExpanded: true,
+                  icon: Icon(Icons.arrow_drop_down),
+                  iconSize: 24,
+                  elevation: 16,
+                  style: TextStyle(color: Colors.black, fontSize: 14),
+                  dropdownColor: Colors.white,
+                  hint: Container(
+                    alignment: Alignment.centerLeft,
                     padding: EdgeInsets.only(left: 8.0),
                     child: Text(
-                      item['name'],
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      softWrap: true,
-                      style: TextStyle(fontSize: 14),
+                      hintText,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
                     ),
-                  ),
-                );
-              }).toList(),
-              onChanged: isEnabled
-                  ? (String? newValue) {
-                onChanged?.call(newValue);
-                if (widget.onChanged != null) {
-                  widget.onChanged!(
-                    selectedProvince.value,
-                    selectedCity.value,
-                    selectedDistrict.value,
-                  );
-                }
-              }
-                  : null,
-              isExpanded: true,
-              icon: Icon(Icons.arrow_drop_down),
-              iconSize: 24,
-              elevation: 16,
-              style: TextStyle(color: Colors.black, fontSize: 14),
-              dropdownColor: Colors.white,
-              hint: Container(
-                alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(left: 8.0),
-                child: Text(
-                  hintText,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -1460,13 +1467,15 @@ class ProvinceCityDistrictSelectorState
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         buildDropdown(
-          value: selectedProvince.value,
+          valueNotifier: selectedProvince,
           items: provinces,
           onChanged: (String? newValue) {
             setState(() {
               selectedProvince.value = newValue;
               selectedCity.value = null;
               selectedDistrict.value = null;
+              cities.clear();
+              counties.clear();
               if (newValue != null) {
                 fetchCities(newValue);
               }
@@ -1476,7 +1485,7 @@ class ProvinceCityDistrictSelectorState
           isEnabled: provinces != null,
         ),
         buildDropdown(
-          value: selectedCity.value,
+          valueNotifier: selectedCity,
           items: selectedProvince.value != null
               ? cities[selectedProvince.value!]
               : null,
@@ -1484,6 +1493,7 @@ class ProvinceCityDistrictSelectorState
             setState(() {
               selectedCity.value = newValue;
               selectedDistrict.value = null;
+              counties.clear();
               if (newValue != null) {
                 fetchCounties(newValue);
               }
@@ -1493,7 +1503,7 @@ class ProvinceCityDistrictSelectorState
           isEnabled: selectedProvince.value != null,
         ),
         buildDropdown(
-          value: selectedDistrict.value,
+          valueNotifier: selectedDistrict,
           items: selectedCity.value != null
               ? counties[selectedCity.value!]
               : null,

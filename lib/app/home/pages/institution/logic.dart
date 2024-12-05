@@ -30,7 +30,8 @@ class InstitutionLogic extends GetxController {
   var loading = false.obs;
   final searchText = ''.obs;
 
-  final  GlobalKey<ProvinceCityDistrictSelectorState> provinceCityDistrictKey = GlobalKey<ProvinceCityDistrictSelectorState>();
+  final GlobalKey<ProvinceCityDistrictSelectorState> provinceCityDistrictKey = GlobalKey<ProvinceCityDistrictSelectorState>();
+
   // 当前编辑的题目数据
   var currentEditInstitution = RxMap<String, dynamic>({}).obs;
   RxList<int> selectedRows = <int>[].obs;
