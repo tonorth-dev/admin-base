@@ -59,16 +59,25 @@ class InstitutionPage extends StatelessWidget {
               ),
               SizedBox(width: 340), // 添加一些间距
               SizedBox(
-                width: 320,
+                width: 500,
                 child: Padding(
                   padding: EdgeInsets.all(16.0),
                   child: ProvinceCityDistrictSelector(
                     key: logic.provinceCityDistrictKey,
                     onChanged: (province, city, district) {
-                      logic.selectedProvince.value = province!;
-                      print("city: $city, district: $district");
-                      logic.selectedCityId.value = city!;
+                      if (province != null) {
+                        logic.selectedProvince.value = province;
+                      } else {
+                        logic.selectedProvince.value = '';
+                      }
+                      if (city != null) {
+                        logic.selectedCityId.value = city;
+                      } else {
+                        logic.selectedCityId.value = '';
+                      }
+                      print("city: $city, province: $province");
                     },
+
                   ),
                 ),
               ),
