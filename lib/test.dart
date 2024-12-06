@@ -18,30 +18,10 @@ class CustomFieldSuggestion extends StatefulWidget {
 
 class _CustomFieldSuggestionState extends State<CustomFieldSuggestion> {
   final TextEditingController _textController = TextEditingController();
-  List<String> _suggestions = [];
-  bool _noOptions = false;
-
-  Future<void> _updateSuggestions(String query) async {
-    if (query.isEmpty) {
-      setState(() {
-        _suggestions = [];
-        _noOptions = false;
-      });
-      return;
-    }
-
-    final suggestions = await widget.fetchSuggestions(query);
-    setState(() {
-      _suggestions = suggestions;
-      _noOptions = suggestions.isEmpty;
-    });
-  }
 
   void _reset() {
     setState(() {
       _textController.clear();
-      _suggestions = [];
-      _noOptions = false;
     });
   }
 
@@ -50,55 +30,85 @@ class _CustomFieldSuggestionState extends State<CustomFieldSuggestion> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TextField(
-          controller: _textController,
-          decoration: InputDecoration(
-            labelText: widget.labelText,
-            hintText: widget.hintText,
-            border: OutlineInputBorder(),
-          ),
-          onChanged: (value) async {
-            await _updateSuggestions(value);
+        Autocomplete<String>(
+          optionsBuilder: (TextEditingValue textEditingValue) async {
+            if (textEditingValue.text.isEmpty) {
+              return const Iterable<String>.empty();
+            }
+            final suggestions = await widget.fetchSuggestions(textEditingValue.text);
+            return suggestions;
           },
-        ),
-        const SizedBox(height: 8.0),
-        _suggestions.isNotEmpty
-            ? ListView.builder(
-          shrinkWrap: true,
-          itemCount: _suggestions.length,
-          itemBuilder: (context, index) {
-            final suggestion = _suggestions[index];
-            return ListTile(
-              title: Text(suggestion),
-              onTap: () {
-                _textController.text = suggestion;
-                setState(() {
-                  _suggestions = [];
-                });
-              },
+          displayStringForOption: (String option) => option,
+          onSelected: (String selection) {
+            debugPrint('Selected: $selection');
+            _textController.text = selection;
+          },
+          fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+            // 将传入的 textEditingController 同步到自定义的 _textController
+            textEditingController.addListener(() {
+              if (textEditingController.text != _textController.text) {
+                _textController.text = textEditingController.text;
+                _textController.selection =
+                    TextSelection.collapsed(offset: _textController.text.length);
+              }
+            });
+
+            // 在 reset 时同步清空 textEditingController
+            _textController.addListener(() {
+              if (textEditingController.text != _textController.text) {
+                textEditingController.text = _textController.text;
+              }
+            });
+
+            return TextField(
+              controller: textEditingController,
+              focusNode: focusNode,
+              decoration: InputDecoration(
+                labelText: widget.labelText,
+                hintText: widget.hintText,
+                border: OutlineInputBorder(),
+              ),
             );
           },
-        )
-            : _noOptions
-            ? Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(
-            '无匹配选项',
-            style: TextStyle(color: Colors.grey),
-          ),
-        )
-            : SizedBox.shrink(),
-        const SizedBox(height: 8.0),
-        ElevatedButton(
-          onPressed: _reset,
-          child: Text('Reset'),
+          optionsViewBuilder: (context, onSelected, options) {
+            if (options.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  '无匹配选项',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              );
+            }
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Material(
+                elevation: 4.0,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: 200),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: options.length,
+                    itemBuilder: (context, index) {
+                      final option = options.elementAt(index);
+                      return ListTile(
+                        title: Text(option),
+                        onTap: () {
+                          onSelected(option);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ],
     );
   }
 }
 
-// 示例应用
 void main() => runApp(App());
 
 class App extends StatelessWidget {
@@ -111,23 +121,44 @@ class App extends StatelessWidget {
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final GlobalKey<_CustomFieldSuggestionState> _suggestionKey = GlobalKey<_CustomFieldSuggestionState>();
+
+  void _reset() {
+    _suggestionKey.currentState?._reset();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('CustomFieldSuggestion Example')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: CustomFieldSuggestion(
-          labelText: 'Search',
-          hintText: 'Enter a name',
-          fetchSuggestions: (query) async {
-            await Future.delayed(Duration(milliseconds: 300));
-            final allSuggestions = ['Alice', 'Bob', 'Charlie', 'David', 'Eve'];
-            return allSuggestions
-                .where((item) => item.toLowerCase().contains(query.toLowerCase()))
-                .toList();
-          },
+        child: Column(
+          children: [
+            CustomFieldSuggestion(
+              key: _suggestionKey,
+              labelText: 'Search',
+              hintText: 'Enter a name',
+              fetchSuggestions: (query) async {
+                await Future.delayed(Duration(milliseconds: 300));
+                final allSuggestions = ['Alice', 'Bob', 'Charlie', 'David', 'Eve'];
+                return allSuggestions
+                    .where((item) => item.toLowerCase().contains(query.toLowerCase()))
+                    .toList();
+              },
+            ),
+            const SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: _reset,
+              child: Text('Reset'),
+            ),
+          ],
         ),
       ),
     );
