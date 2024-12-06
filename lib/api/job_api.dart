@@ -96,7 +96,7 @@ class JobApi {
         }
       }
 
-      return await HttpUtil.put("/admin/job/job/$id?invite=1", params: params);
+      return await HttpUtil.put("/admin/job/job/$id", params: params);
     } catch (e) {
       print('更新题目时发生错误: $e');
       rethrow; // 重新抛出异常以便调用者处理

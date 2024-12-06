@@ -77,7 +77,6 @@ class InstitutionPage extends StatelessWidget {
                       }
                       print("city: $city, province: $province");
                     },
-
                   ),
                 ),
               ),
@@ -118,7 +117,8 @@ class InstitutionPage extends StatelessWidget {
                     child: SizedBox(
                       width: 1700,
                       child: SfDataGrid(
-                        source: InstitutionDataSource(logic: logic, context: context),
+                        source: InstitutionDataSource(
+                            logic: logic, context: context),
                         headerGridLinesVisibility:
                             GridLinesVisibility.values[1],
                         gridLinesVisibility: GridLinesVisibility.values[1],
@@ -339,42 +339,20 @@ class InstitutionDataSource extends DataGridSource {
             );
           }
         }),
-        if (item['status'] == 4)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center, // 将按钮左对齐
-            children: [
-              HoverTextButton(
-                text: "审核通过",
-                onTap: () => logic.audit(item['id'], 2),
-              ),
-              SizedBox(width: 5),
-              HoverTextButton(
-                text: "审核拒绝",
-                onTap: () => logic.audit(item['id'], 1),
-              ), // 控制按钮之间的间距
-            ],
-          ),
-        if (item['status'] != 4)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center, // 将按钮左对齐
-            children: [
-              HoverTextButton(
-                text: "编辑",
-                onTap: () => logic.edit(context, item),
-              ),
-              SizedBox(width: 5),
-              HoverTextButton(
-                text: "删除",
-                onTap: () => logic.delete(item, rowIndex),
-              ),
-              SizedBox(width: 5), // 控制按钮之间的间距
-              if (item['status'] == 1) // 假设 status 字段表示数据状态
-                HoverTextButton(
-                  text: "邀请",
-                  onTap: () => logic.generateAndOpenLink(context, item),
-                )
-            ],
-          )
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center, // 将按钮左对齐
+          children: [
+            HoverTextButton(
+              text: "编辑",
+              onTap: () => logic.edit(context, item),
+            ),
+            SizedBox(width: 5),
+            HoverTextButton(
+              text: "删除",
+              onTap: () => logic.delete(item, rowIndex),
+            ),
+          ],
+        )
       ],
     );
   }

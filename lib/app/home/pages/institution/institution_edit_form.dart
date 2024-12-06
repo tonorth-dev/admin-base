@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:get/get.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import '../../../../component/widget.dart';
 import 'logic.dart';
 
@@ -25,10 +26,10 @@ class InstitutionEditForm extends StatefulWidget {
   });
 
   @override
-  State<InstitutionEditForm> createState() => _EditInstitutionDialogState();
+  State<InstitutionEditForm> createState() => _InstitutionEditFormState();
 }
 
-class _EditInstitutionDialogState extends State<InstitutionEditForm> {
+class _InstitutionEditFormState extends State<InstitutionEditForm> {
   final logic = Get.find<InstitutionLogic>();
   final _formKey = GlobalKey<FormBuilderState>();
 
@@ -55,219 +56,156 @@ class _EditInstitutionDialogState extends State<InstitutionEditForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: FormBuilder(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 150,
-                      child: Row(
-                        children: const [
-                          Text('机构名称'),
-                          Text('*', style: TextStyle(color: Colors.red)),
-                        ],
-                      ),
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: SingleChildScrollView(
+        child: FormBuilder(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 150,
+                    child: Row(
+                      children: const [
+                        Text('机构名称'),
+                        Text('*', style: TextStyle(color: Colors.red)),
+                      ],
                     ),
-                    SizedBox(
-                      width: 600,
-                      child: TextInputWidget(
-                        width: 240,
-                        height: 34,
-                        maxLines: 1,
-                        hint: "输入机构名称",
-                        text: widget.initialName.obs,
-                        onTextChanged: (value) {
-                          logic.uName.value = value;
-                        },
-                        validator:
-                        FormBuilderValidators.required(errorText: '机构名称不能为空'),
-                      ),
+                  ),
+                  SizedBox(
+                    width: 600,
+                    child: TextInputWidget(
+                      width: 240,
+                      height: 34,
+                      maxLines: 1,
+                      hint: "输入机构名称",
+                      text: logic.uName,
+                      onTextChanged: (value) {
+                        logic.uName.value = value;
+                      },
+                      validator:
+                      FormBuilderValidators.required(errorText: '机构名称不能为空'),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 150,
-                      child: Row(
-                        children: const [
-                          Text('省份'),
-                          Text('*', style: TextStyle(color: Colors.red)),
-                        ],
-                      ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start, // 确保这里设置为 start
+                children: [
+                  SizedBox(
+                    width: 150,
+                    child: Row(
+                      children: const [
+                        Text('机构地点'),
+                        Text('*', style: TextStyle(color: Colors.red)),
+                      ],
                     ),
-                    SizedBox(
-                      width: 600,
-                      child: TextInputWidget(
-                        width: 240,
-                        height: 34,
-                        maxLines: 1,
-                        hint: "输入省份",
-                        text: widget.initialProvince.obs,
-                        onTextChanged: (value) {
-                          logic.uProvince.value = value;
-                        },
-                        validator:
-                        FormBuilderValidators.required(errorText: '省份不能为空'),
-                      ),
+                  ),
+                  SizedBox(
+                    width: 600,
+                    child: ProvinceCityDistrictSelector(
+                        defaultProvince: logic.uProvince.value,
+                        defaultCity: logic.uCity.value,
+                        onChanged: (province, city, district) {
+                          logic.province.value = province!;
+                          logic.city.value = city!;
+                        }
+                    ), // 直接放置在这里，不需要额外的 Align 或 Container
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 150,
+                    child: Row(
+                      children: const [
+                        Text('负责人'),
+                        Text('*', style: TextStyle(color: Colors.red)),
+                      ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 150,
-                      child: Row(
-                        children: const [
-                          Text('城市'),
-                          Text('*', style: TextStyle(color: Colors.red)),
-                        ],
-                      ),
+                  ),
+                  SizedBox(
+                    width: 600,
+                    child: TextInputWidget(
+                      width: 240,
+                      height: 34,
+                      maxLines: 1,
+                      hint: "输入负责人",
+                      text: logic.uLeader,
+                      onTextChanged: (value) {
+                        logic.uLeader.value = value;
+                      },
+                      validator:
+                      FormBuilderValidators.required(errorText: '负责人不能为空'),
                     ),
-                    SizedBox(
-                      width: 600,
-                      child: TextInputWidget(
-                        width: 240,
-                        height: 34,
-                        maxLines: 1,
-                        hint: "输入城市",
-                        text: widget.initialCity.obs,
-                        onTextChanged: (value) {
-                          logic.uCity.value = value;
-                        },
-                        validator:
-                        FormBuilderValidators.required(errorText: '城市不能为空'),
-                      ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 150,
+                    child: Row(
+                      children: const [
+                        Text('状态'),
+                        Text('*', style: TextStyle(color: Colors.red)),
+                      ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 150,
-                      child: Row(
-                        children: const [
-                          Text('密码'),
-                          Text('*', style: TextStyle(color: Colors.red)),
-                        ],
-                      ),
+                  ),
+                  SizedBox(
+                    width: 120,
+                    child: DropdownField(
+                      key: UniqueKey(),
+                      items: [
+                        {'id': '1', 'name': '未生效'},
+                        {'id': '2', 'name': '生效中'},
+                        {'id': '5', 'name': '已过期'},
+                      ],
+                      hint: '',
+                      label: true,
+                      width: 100,
+                      height: 34,
+                      selectedValue: ValueNotifier<String?>(logic.uStatus.value.toString()),
+                      onChanged: (dynamic newValue) {
+                        print(newValue);
+                        logic.uStatus.value = newValue;
+                      },
                     ),
-                    SizedBox(
-                      width: 600,
-                      child: TextInputWidget(
-                        width: 240,
-                        height: 34,
-                        maxLines: 1,
-                        hint: "输入密码",
-                        text: widget.initialPassword.obs,
-                        onTextChanged: (value) {
-                          logic.uPassword.value = value;
-                        },
-                        validator:
-                        FormBuilderValidators.required(errorText: '密码不能为空'),
-                      ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: TextButton.styleFrom(
+                        foregroundColor: Colors.grey[700]),
+                    child: const Text('取消'),
+                  ),
+                  const SizedBox(width: 10),
+                  ElevatedButton(
+                    onPressed: _submitForm,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF25B7E8),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 150,
-                      child: Row(
-                        children: const [
-                          Text('负责人'),
-                          Text('*', style: TextStyle(color: Colors.red)),
-                        ],
-                      ),
-                    ),
-                    SizedBox(
-                      width: 600,
-                      child: TextInputWidget(
-                        width: 240,
-                        height: 34,
-                        maxLines: 1,
-                        hint: "输入负责人",
-                        text: widget.initialLeader.obs,
-                        onTextChanged: (value) {
-                          logic.uLeader.value = value;
-                        },
-                        validator:
-                        FormBuilderValidators.required(errorText: '负责人不能为空'),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 150,
-                      child: Row(
-                        children: const [
-                          Text('状态'),
-                          Text('*', style: TextStyle(color: Colors.red)),
-                        ],
-                      ),
-                    ),
-                    SizedBox(
-                      width: 120,
-                      child: DropdownField(
-                        key: UniqueKey(),
-                        items: [
-                          {'id': '1', 'name': '未生效'},
-                          {'id': '2', 'name': '生效中'},
-                          {'id': '3', 'name': '已过期'},
-                        ],
-                        hint: '',
-                        label: true,
-                        width: 100,
-                        height: 34,
-                        selectedValue: ValueNotifier<String?>(widget.initialLeader),
-                        onChanged: (dynamic newValue) {
-                          print(newValue);
-                          logic.uStatus.value = newValue.toInt();
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: TextButton.styleFrom(
-                          foregroundColor: Colors.grey[700]),
-                      child: const Text('取消'),
-                    ),
-                    const SizedBox(width: 10),
-                    ElevatedButton(
-                      onPressed: _submitForm,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF25B7E8),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: const Text('保存'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                    child: const Text('保存'),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),

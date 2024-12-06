@@ -91,14 +91,14 @@ class InstitutionApi {
   static Future<dynamic> institutionUpdate(int id, Map<String, dynamic> params) async {
     try {
       // 必传字段校验
-      List<String> requiredFields = ['first_level_category', 'second_level_category', 'institution_name',];
+      List<String> requiredFields = ['name', 'city', 'leader'];
       for (var field in requiredFields) {
         if (!params.containsKey(field) || params[field] == null) {
           throw ArgumentError('Missing required field: $field');
         }
       }
 
-      return await HttpUtil.put("/admin/institution/institution/$id?invite=1", params: params);
+      return await HttpUtil.put("/admin/institution/institution/$id", params: params);
     } catch (e) {
       print('Error in institutionCreate: $e');
       rethrow; // 重新抛出异常以便调用者处理

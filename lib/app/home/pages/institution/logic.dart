@@ -134,7 +134,7 @@ class InstitutionLogic extends GetxController {
         initialCity: institution["city"],
         initialPassword: institution["password"],
         initialLeader: institution["leader"],
-        initialStatus: institution["status"],
+        initialStatus: institution["status"].toString(),
       ),
       onSubmit: (formData) {
         print('提交的数据: $formData');
@@ -207,7 +207,6 @@ class InstitutionLogic extends GetxController {
     final uNameSubmit = uName.value;
     final uProvinceSubmit = uProvince.value;
     final uCitySubmit = uCity.value;
-    final uPasswordSubmit = uPassword.value;
     final uLeaderSubmit = uLeader.value;
     final uStatusSubmit = uStatus.value;
 
@@ -237,7 +236,6 @@ class InstitutionLogic extends GetxController {
           "name": uNameSubmit,
           "province": uProvinceSubmit,
           "city": uCitySubmit,
-          "password": uPasswordSubmit,
           "leader": uLeaderSubmit,
           "status": int.parse(uStatusSubmit),
         };
