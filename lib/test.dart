@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class CustomFieldSuggestion extends StatelessWidget {
+class CustomFieldSuggestion extends StatefulWidget {
   final String labelText;
   final String hintText;
   final Future<List<String>> Function(String query) fetchSuggestions;
@@ -13,55 +13,87 @@ class CustomFieldSuggestion extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _CustomFieldSuggestionState createState() => _CustomFieldSuggestionState();
+}
+
+class _CustomFieldSuggestionState extends State<CustomFieldSuggestion> {
+  final TextEditingController _textController = TextEditingController();
+  List<String> _suggestions = [];
+  bool _noOptions = false;
+
+  Future<void> _updateSuggestions(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _suggestions = [];
+        _noOptions = false;
+      });
+      return;
+    }
+
+    final suggestions = await widget.fetchSuggestions(query);
+    setState(() {
+      _suggestions = suggestions;
+      _noOptions = suggestions.isEmpty;
+    });
+  }
+
+  void _reset() {
+    setState(() {
+      _textController.clear();
+      _suggestions = [];
+      _noOptions = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Autocomplete<String>(
-      optionsBuilder: (TextEditingValue textEditingValue) async {
-        if (textEditingValue.text.isEmpty) {
-          return const Iterable<String>.empty();
-        }
-        final suggestions = await fetchSuggestions(textEditingValue.text);
-        return suggestions;
-      },
-      displayStringForOption: (String option) => option,
-      onSelected: (String selection) {
-        // 回填逻辑由 Autocomplete 内部处理，这里可以监听用户选择
-        debugPrint('Selected: $selection');
-      },
-      fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
-        return TextField(
-          controller: textEditingController,
-          focusNode: focusNode,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: _textController,
           decoration: InputDecoration(
-            labelText: labelText,
-            hintText: hintText,
+            labelText: widget.labelText,
+            hintText: widget.hintText,
             border: OutlineInputBorder(),
           ),
-        );
-      },
-      optionsViewBuilder: (context, onSelected, options) {
-        return Align(
-          alignment: Alignment.topLeft,
-          child: Material(
-            elevation: 4.0,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: 200),
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: options.length,
-                itemBuilder: (context, index) {
-                  final option = options.elementAt(index);
-                  return ListTile(
-                    title: Text(option),
-                    onTap: () {
-                      onSelected(option);
-                    },
-                  );
-                },
-              ),
-            ),
+          onChanged: (value) async {
+            await _updateSuggestions(value);
+          },
+        ),
+        const SizedBox(height: 8.0),
+        _suggestions.isNotEmpty
+            ? ListView.builder(
+          shrinkWrap: true,
+          itemCount: _suggestions.length,
+          itemBuilder: (context, index) {
+            final suggestion = _suggestions[index];
+            return ListTile(
+              title: Text(suggestion),
+              onTap: () {
+                _textController.text = suggestion;
+                setState(() {
+                  _suggestions = [];
+                });
+              },
+            );
+          },
+        )
+            : _noOptions
+            ? Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            '无匹配选项',
+            style: TextStyle(color: Colors.grey),
           ),
-        );
-      },
+        )
+            : SizedBox.shrink(),
+        const SizedBox(height: 8.0),
+        ElevatedButton(
+          onPressed: _reset,
+          child: Text('Reset'),
+        ),
+      ],
     );
   }
 }

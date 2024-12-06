@@ -85,11 +85,23 @@ class StudentPage extends StatelessWidget {
                 child: Padding(
                   padding: EdgeInsets.all(0),
                   child: SuggestionTextField(
+                    labelText: '',
                     key: logic.institutionTextFieldKey,
                     suggestionsFetcher: logic.fetchInstructions,
                     defaultValue: '',
                     onSelected: (String selectedText) {
                       print('Selected: $selectedText');
+                    },
+                  ),
+                  SuggestionTextField(
+                    labelText: 'Search',
+                    hintText: 'Enter a name',
+                    fetchSuggestions: (query) async {
+                      await Future.delayed(Duration(milliseconds: 300));
+                      final allSuggestions = ['Alice', 'Bob', 'Charlie', 'David', 'Eve'];
+                      return allSuggestions
+                          .where((item) => item.toLowerCase().contains(query.toLowerCase()))
+                          .toList();
                     },
                   ),
                 ),

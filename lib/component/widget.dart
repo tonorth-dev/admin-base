@@ -1527,153 +1527,100 @@ class SuggestionTextField extends StatefulWidget {
   SuggestionTextFieldState createState() => SuggestionTextFieldState();
 }
 
-class SuggestionTextFieldState extends State<SuggestionTextField> {
-  final textController = TextEditingController();
-  OverlayEntry? _overlayEntry;
-  List<String> currentSuggestions = [];
-  bool hasValidSelection = false;
-  GlobalKey textFieldKey = GlobalKey(); // 用于获取TextField的位置
-  FocusNode focusNode = FocusNode();
-  FocusScopeNode? _focusScopeNode;
+class SuggestionTextField extends StatefulWidget {
+  final String labelText;
+  final String hintText;
+  final Future<List<String>> Function(String query) fetchSuggestions;
 
-  void _showOverlay(BuildContext context) {
-    final RenderBox renderBox = textFieldKey.currentContext!.findRenderObject() as RenderBox;
-    final position = renderBox.localToGlobal(Offset.zero);
-
-    final overlay = Overlay.of(context);
-    _overlayEntry = OverlayEntry(
-      builder: (context) {
-        return Positioned(
-          top: position.dy + renderBox.size.height, // 输入框下方
-          left: position.dx,
-          width: renderBox.size.width,
-          child: Material(
-            elevation: 4.0,
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(4.0),
-              ),
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: currentSuggestions.length,
-                itemBuilder: (context, index) {
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        textController.text = currentSuggestions[index];
-                        textController.selection = TextSelection.fromPosition(
-                          TextPosition(offset: textController.text.length),
-                        );
-                        hasValidSelection = true;
-                      });
-                      _hideOverlay();
-                      FocusScope.of(context).requestFocus(focusNode); // 保持输入框聚焦
-                    },
-                    child: Card(
-                      margin: EdgeInsets.symmetric(vertical: 4),
-                      child: ListTile(
-                        title: Text(currentSuggestions[index]),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        );
-      },
-    );
-    overlay.insert(_overlayEntry!);
-  }
-
-  void _hideOverlay() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
-  }
+  SuggestionTextField({
+    Key? key,
+    required this.labelText,
+    required this.hintText,
+    required this.fetchSuggestions,
+  }) : super(key: key);
 
   @override
-  void initState() {
-    super.initState();
-    focusNode.addListener(() {
-      if (!focusNode.hasFocus && !hasValidSelection) {
-        SchedulerBinding.instance.addPostFrameCallback((_) {
-          if (textController.text.isNotEmpty) {
-            setState(() {
-              textController.clear();
-            });
-          }
-        });
-      } else if (!focusNode.hasFocus) {
-        hasValidSelection = false; // 重置选中状态
-      }
+  SuggestionTextFieldState createState() => SuggestionTextFieldState();
+}
+
+class SuggestionTextFieldState extends State<SuggestionTextField> {
+  final TextEditingController _textController = TextEditingController();
+  List<String> _suggestions = [];
+  bool _noOptions = false;
+
+  Future<void> _updateSuggestions(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _suggestions = [];
+        _noOptions = false;
+      });
+      return;
+    }
+
+    final suggestions = await widget.fetchSuggestions(query);
+    setState(() {
+      _suggestions = suggestions;
+      _noOptions = suggestions.isEmpty;
+    });
+  }
+
+  void _reset() {
+    setState(() {
+      _textController.clear();
+      _suggestions = [];
+      _noOptions = false;
     });
   }
 
   @override
-  void dispose() {
-    focusNode.removeListener(() {});
-    focusNode.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return FocusScope(
-      node: _focusScopeNode ??= FocusScopeNode(),
-      child: GestureDetector(
-        onTap: () {
-          // 这里判断点击是否在TextField外部，如果是，则隐藏下拉菜单
-          if (!focusNode.hasFocus) {
-            _hideOverlay();
-          }
-        },
-        child: TextField(
-          key: textFieldKey, // 使用key来定位TextField
-          controller: textController,
-          focusNode: focusNode,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: _textController,
           decoration: InputDecoration(
             labelText: widget.labelText,
             hintText: widget.hintText,
             border: OutlineInputBorder(),
           ),
           onChanged: (value) async {
-            // 清空输入框时立即隐藏下拉菜单
-            if (value.isEmpty) {
-              _hideOverlay();
-              setState(() {
-                currentSuggestions.clear();
-              });
-              return;
-            }
-
-            currentSuggestions = await widget.fetchSuggestions(value);
-            if (currentSuggestions.isNotEmpty) {
-              if (_overlayEntry == null) {
-                _showOverlay(context);
-              } else {
-                _overlayEntry?.markNeedsBuild();
-              }
-            } else {
-              _hideOverlay();
-            }
-            setState(() {
-              hasValidSelection = false; // 当输入框内容改变时，重置选择标志
-            });
-          },
-          onTap: () {
-            if (currentSuggestions.isNotEmpty) {
-              _showOverlay(context);
-            }
-          },
-          onEditingComplete: () {
-            if (!hasValidSelection) {
-              textController.clear();
-            }
-            _hideOverlay();
+            await _updateSuggestions(value);
           },
         ),
-      ),
+        const SizedBox(height: 8.0),
+        if (_suggestions.isNotEmpty)
+          ListView.builder(
+            shrinkWrap: true,
+            physics: ClampingScrollPhysics(), // 防止 ListView 在没有足够内容时滚动
+            itemCount: _suggestions.length,
+            itemBuilder: (context, index) {
+              final suggestion = _suggestions[index];
+              return ListTile(
+                title: Text(suggestion),
+                onTap: () {
+                  _textController.text = suggestion;
+                  setState(() {
+                    _suggestions = [];
+                  });
+                },
+              );
+            },
+          ),
+        if (_noOptions)
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              '无匹配选项',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+        const SizedBox(height: 8.0),
+        ElevatedButton(
+          onPressed: _reset,
+          child: Text('Reset'),
+        ),
+      ],
     );
   }
 }
