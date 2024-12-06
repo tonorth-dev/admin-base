@@ -80,6 +80,20 @@ class StudentPage extends StatelessWidget {
                   ),
                 ),
               ),
+              SizedBox(
+                width: 120,
+                child: Padding(
+                  padding: EdgeInsets.all(0),
+                  child: SuggestionTextField(
+                    key: logic.institutionTextFieldKey,
+                    suggestionsFetcher: logic.fetchInstructions,
+                    defaultValue: '',
+                    onSelected: (String selectedText) {
+                      print('Selected: $selectedText');
+                    },
+                  ),
+                ),
+              ),
               SearchBoxWidget(
                 key: Key('keywords'),
                 hint: '考生名称、负责人',

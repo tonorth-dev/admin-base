@@ -11,6 +11,7 @@ import 'package:csv/csv.dart';
 import 'package:admin_flutter/component/dialog.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../api/institution_api.dart';
 import '../../../../component/table/table_data.dart';
 import '../../../../component/widget.dart';
 import 'student_add_form.dart';
@@ -25,6 +26,7 @@ class StudentLogic extends GetxController {
   final searchText = ''.obs;
 
   final GlobalKey<ProvinceCityDistrictSelectorState> provinceCityDistrictKey = GlobalKey<ProvinceCityDistrictSelectorState>();
+  final GlobalKey<SuggestionTextFieldState> institutionTextFieldKey = GlobalKey<SuggestionTextFieldState>();
 
   // 当前编辑的题目数据
   var currentEditStudent = RxMap<String, dynamic>({}).obs;
@@ -311,7 +313,38 @@ class StudentLogic extends GetxController {
     }
   }
 
-
+  Future<List<String>> fetchInstructions(String name) async {
+    try {
+      final response = await InstitutionApi.institutionList(params: {
+        "pageSize": 10,
+        "page": 1,
+        "keyword": searchText.value.toString() ?? "",
+      });
+      var data = response['list'];
+      print("response: $data");
+      // 检查数据是否为 List
+      if (data is List) {
+        final List<String> suggestions = data.map((item) {
+          // 检查每个 item 是否包含 'name' 和 'id' 字段
+          if (item is Map && item.containsKey('name') &&
+              item.containsKey('id')) {
+            return '${item['name']} - ${item['id']}';
+          } else {
+            throw FormatException('Invalid item format: $item');
+          }
+        }).toList();
+        print("suggestions, $suggestions");
+        return suggestions;
+      } else {
+        // Handle the case where data is not a List
+        return [];
+      }
+    } catch (e) {
+      // Handle any exceptions that are thrown
+      print('Error fetching instructions: $e');
+      return [];
+    }
+  }
 
   void delete(Map<String, dynamic> d, int index) {
     try {
@@ -503,6 +536,7 @@ class StudentLogic extends GetxController {
 
   void reset() {
     provinceCityDistrictKey.currentState?.reset();
+    institutionTextFieldKey.currentState?.reset();
     searchText.value = '';
     selectedRows.clear();
 

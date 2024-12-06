@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:flutter/services.dart';
@@ -1511,28 +1512,29 @@ class ProvinceCityDistrictSelectorState
 }
 
 class SuggestionTextField extends StatefulWidget {
-  final List<String> suggestions;
-  final String? defaultValue; // 默认选中项
-  final ValueChanged<String>? onSelected; // 当选择建议项时触发
+  final String labelText;
+  final String hintText;
+  final List<String> Function(String query) fetchSuggestions;
 
-  const SuggestionTextField({
+  SuggestionTextField({
     Key? key,
-    required this.suggestions,
-    this.defaultValue,
-    this.onSelected,
+    required this.labelText,
+    required this.hintText,
+    required this.fetchSuggestions,
   }) : super(key: key);
 
   @override
-  _SuggestionTextFieldState createState() => _SuggestionTextFieldState();
+  SuggestionTextFieldState createState() => SuggestionTextFieldState();
 }
 
-class _SuggestionTextFieldState extends State<SuggestionTextField> {
+class SuggestionTextFieldState extends State<SuggestionTextField> {
   final textController = TextEditingController();
   OverlayEntry? _overlayEntry;
   List<String> currentSuggestions = [];
   bool hasValidSelection = false;
   GlobalKey textFieldKey = GlobalKey(); // 用于获取TextField的位置
   FocusNode focusNode = FocusNode();
+  FocusScopeNode? _focusScopeNode;
 
   void _showOverlay(BuildContext context) {
     final RenderBox renderBox = textFieldKey.currentContext!.findRenderObject() as RenderBox;
@@ -1565,7 +1567,6 @@ class _SuggestionTextFieldState extends State<SuggestionTextField> {
                         );
                         hasValidSelection = true;
                       });
-                      widget.onSelected?.call(currentSuggestions[index]);
                       _hideOverlay();
                       FocusScope.of(context).requestFocus(focusNode); // 保持输入框聚焦
                     },
@@ -1591,35 +1592,9 @@ class _SuggestionTextFieldState extends State<SuggestionTextField> {
     _overlayEntry = null;
   }
 
-  void reset() {
-    setState(() {
-      textController.clear();
-      currentSuggestions.clear();
-      hasValidSelection = false;
-    });
-    if (widget.defaultValue != null && widget.defaultValue!.isNotEmpty) {
-      textController.text = widget.defaultValue!;
-      widget.onSelected?.call(widget.defaultValue!);
-    }
-    _hideOverlay();
-  }
-
-  void _setDefaultValueIfEmpty() {
-    if (widget.defaultValue != null &&
-        widget.defaultValue!.isNotEmpty &&
-        textController.text.isEmpty) {
-      setState(() {
-        textController.text = widget.defaultValue!;
-        hasValidSelection = true;
-      });
-      widget.onSelected?.call(widget.defaultValue!);
-    }
-  }
-
   @override
   void initState() {
     super.initState();
-    _setDefaultValueIfEmpty(); // 在初始化时设置默认值
     focusNode.addListener(() {
       if (!focusNode.hasFocus && !hasValidSelection) {
         SchedulerBinding.instance.addPostFrameCallback((_) {
@@ -1627,8 +1602,6 @@ class _SuggestionTextFieldState extends State<SuggestionTextField> {
             setState(() {
               textController.clear();
             });
-          } else {
-            _setDefaultValueIfEmpty(); // 如果没有选择且文本为空，则设置默认值
           }
         });
       } else if (!focusNode.hasFocus) {
@@ -1646,63 +1619,59 @@ class _SuggestionTextFieldState extends State<SuggestionTextField> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // 点击空白区域时隐藏下拉菜单
-        _hideOverlay();
-      },
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              key: textFieldKey, // 使用key来定位TextField
-              controller: textController,
-              focusNode: focusNode,
-              decoration: InputDecoration(
-                labelText: "Search",
-                hintText: "Enter a name",
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (value) async {
-                // 清空输入框时立即隐藏下拉菜单
-                if (value.isEmpty) {
-                  _hideOverlay();
-                  setState(() {
-                    currentSuggestions.clear();
-                  });
-                  return;
-                }
+    return FocusScope(
+      node: _focusScopeNode ??= FocusScopeNode(),
+      child: GestureDetector(
+        onTap: () {
+          // 这里判断点击是否在TextField外部，如果是，则隐藏下拉菜单
+          if (!focusNode.hasFocus) {
+            _hideOverlay();
+          }
+        },
+        child: TextField(
+          key: textFieldKey, // 使用key来定位TextField
+          controller: textController,
+          focusNode: focusNode,
+          decoration: InputDecoration(
+            labelText: widget.labelText,
+            hintText: widget.hintText,
+            border: OutlineInputBorder(),
+          ),
+          onChanged: (value) async {
+            // 清空输入框时立即隐藏下拉菜单
+            if (value.isEmpty) {
+              _hideOverlay();
+              setState(() {
+                currentSuggestions.clear();
+              });
+              return;
+            }
 
-                currentSuggestions = widget.suggestions
-                    .where((item) => item.toLowerCase().contains(value.toLowerCase()))
-                    .toList();
-                if (currentSuggestions.isNotEmpty) {
-                  if (_overlayEntry == null) {
-                    _showOverlay(context);
-                  } else {
-                    _overlayEntry?.markNeedsBuild();
-                  }
-                } else {
-                  _hideOverlay();
-                }
-                setState(() {
-                  hasValidSelection = false; // 当输入框内容改变时，重置选择标志
-                });
-              },
-              onTap: () {
-                if (currentSuggestions.isNotEmpty) {
-                  _showOverlay(context);
-                }
-              },
-              onEditingComplete: () {
-                if (!hasValidSelection) {
-                  _setDefaultValueIfEmpty(); // 如果没有选择则设置默认值
-                }
-                _hideOverlay();
-              },
-            ),
-          ],
+            currentSuggestions = await widget.fetchSuggestions(value);
+            if (currentSuggestions.isNotEmpty) {
+              if (_overlayEntry == null) {
+                _showOverlay(context);
+              } else {
+                _overlayEntry?.markNeedsBuild();
+              }
+            } else {
+              _hideOverlay();
+            }
+            setState(() {
+              hasValidSelection = false; // 当输入框内容改变时，重置选择标志
+            });
+          },
+          onTap: () {
+            if (currentSuggestions.isNotEmpty) {
+              _showOverlay(context);
+            }
+          },
+          onEditingComplete: () {
+            if (!hasValidSelection) {
+              textController.clear();
+            }
+            _hideOverlay();
+          },
         ),
       ),
     );
