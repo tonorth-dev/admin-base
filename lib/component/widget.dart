@@ -1517,6 +1517,7 @@ class SuggestionTextField extends StatefulWidget {
   final String? initialValue; // 默认值
   final Future<List<String>> Function(String query) fetchSuggestions;
   final ValueChanged<String>? onSelected; // 选择后的回调
+  final ValueChanged<String?>? onChanged; // 输入或重置后的回调
 
   SuggestionTextField({
     Key? key,
@@ -1525,6 +1526,7 @@ class SuggestionTextField extends StatefulWidget {
     required this.fetchSuggestions,
     this.initialValue, // 初始化默认值
     this.onSelected, // 可选的 onSelected 回调
+    this.onChanged, // 可选的 onChanged 回调
   }) : super(key: key);
 
   @override
@@ -1537,15 +1539,25 @@ class SuggestionTextFieldState extends State<SuggestionTextField> {
   @override
   void initState() {
     super.initState();
-    // 初始化 TextEditingController 并设置默认值
     _textController = TextEditingController(text: widget.initialValue ?? '');
+    _textController.addListener(_onTextFieldChange);
   }
 
-  /// 重置输入框内容
+  /// 监听文本框变化
+  void _onTextFieldChange() {
+    final currentText = _textController.text;
+    // 如果内容被清空，确保调用 onChanged(null)
+    widget.onChanged?.call(currentText.isEmpty ? null : currentText);
+  }
+
+  /// 重置输入框内容并通知父组件
   void reset() {
     setState(() {
       _textController.clear();
     });
+
+    // 调用 onChanged 回调，传递 null 表示已重置
+    widget.onChanged?.call(null);
   }
 
   @override
@@ -1568,50 +1580,49 @@ class SuggestionTextFieldState extends State<SuggestionTextField> {
               debugPrint('Selected: $selection');
               _textController.text = selection;
               // 调用父组件提供的回调
-              if (widget.onSelected != null) {
-                widget.onSelected!(selection);
-              }
+              widget.onSelected?.call(selection);
+              // 同样地，调用 onChanged 回调来通知父组件新的值
+              widget.onChanged?.call(selection);
             },
-            fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
-              // 同步传入的 textEditingController
+        fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+          // 同步外部的 _textController 和内部的 textEditingController
+          textEditingController.text = _textController.text;
+          textEditingController.addListener(() {
+            if (textEditingController.text != _textController.text) {
+              _textController.text = textEditingController.text;
+              _textController.selection =
+                  TextSelection.collapsed(offset: _textController.text.length);
+            }
+          });
+
+          _textController.addListener(() {
+            if (textEditingController.text != _textController.text) {
               textEditingController.text = _textController.text;
-              textEditingController.addListener(() {
-                if (textEditingController.text != _textController.text) {
-                  _textController.text = textEditingController.text;
-                  _textController.selection =
-                      TextSelection.collapsed(offset: _textController.text.length);
-                }
-              });
+            }
+          });
 
-              // 在 reset 时同步清空 textEditingController
-              _textController.addListener(() {
-                if (textEditingController.text != _textController.text) {
-                  textEditingController.text = _textController.text;
-                }
-              });
-
-              return Container(
-                width: 150, // 设置输入框宽度
-                height: 34, // 设置输入框高度
-                child: TextField(
-                  controller: textEditingController,
-                  focusNode: focusNode,
-                  style: TextStyle(fontSize: 14), // 设置内部文字大小
-                  decoration: InputDecoration(
-                    labelText: widget.labelText,
-                    hintText: widget.hintText,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6), // 增加内边距以防止文字被遮挡
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(2), // 设置圆角
-                      borderSide: BorderSide(color: Colors.grey, width: focusNode.hasFocus ? 1 : 0.5,), // 设置边框颜色
-                    ),
-                    filled: true,
-                    fillColor: Colors.white, // 设置填充颜色为浅灰色
-                  ),
+          return Container(
+            width: 150,
+            height: 34,
+            child: TextField(
+              controller: textEditingController,
+              focusNode: focusNode,
+              style: TextStyle(fontSize: 14),
+              decoration: InputDecoration(
+                labelText: widget.labelText,
+                hintText: widget.hintText,
+                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(2),
+                  borderSide: BorderSide(color: Colors.grey, width: focusNode.hasFocus ? 1 : 0.5),
                 ),
-              );
-            },
-            optionsViewBuilder: (context, onSelected, options) {
+                filled: true,
+                fillColor: Colors.white,
+              ),
+            ),
+          );
+        },
+        optionsViewBuilder: (context, onSelected, options) {
               return Align(
                 alignment: Alignment.topLeft,
                 child: Material(

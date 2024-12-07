@@ -105,14 +105,25 @@ class StudentPage extends StatelessWidget {
                     fetchSuggestions: logic.fetchInstructions,
                     initialValue: '',
                     onSelected: (value) {
+                      if (value == '') {
+                        logic.selectedInstitutionId.value = "";
+                        return;
+                      }
                       RegExp regExp = RegExp(r'ID：(\d+)');
                       Match? match = regExp.firstMatch(value);
                       if (match != null) {
                         String id = match.group(1)!;
                         logic.selectedInstitutionId.value = id;
                       } else {
-                        print('SuggestionTextField未找到ID');
+                        logic.selectedInstitutionId.value = "";
                       }
+                      print("selectedInstitutionId value: ${logic.selectedInstitutionId.value}");
+                    },
+                    onChanged: (value) {
+                      if (value == null || value.isEmpty) {
+                        logic.selectedInstitutionId.value = ""; // 确保清空
+                      }
+                      print("onChanged selectedInstitutionId value: ${logic.selectedInstitutionId.value}");
                     },
                   ),
                 ),
