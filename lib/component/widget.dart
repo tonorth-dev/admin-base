@@ -1514,29 +1514,17 @@ class ProvinceCityDistrictSelectorState
 class SuggestionTextField extends StatefulWidget {
   final String labelText;
   final String hintText;
-  final List<String> Function(String query) fetchSuggestions;
-
-  SuggestionTextField({
-    Key? key,
-    required this.labelText,
-    required this.hintText,
-    required this.fetchSuggestions,
-  }) : super(key: key);
-
-  @override
-  SuggestionTextFieldState createState() => SuggestionTextFieldState();
-}
-
-class SuggestionTextField extends StatefulWidget {
-  final String labelText;
-  final String hintText;
+  final String? initialValue; // 默认值
   final Future<List<String>> Function(String query) fetchSuggestions;
+  final ValueChanged<String>? onSelected; // 选择后的回调
 
   SuggestionTextField({
     Key? key,
     required this.labelText,
     required this.hintText,
     required this.fetchSuggestions,
+    this.initialValue, // 初始化默认值
+    this.onSelected, // 可选的 onSelected 回调
   }) : super(key: key);
 
   @override
@@ -1544,83 +1532,134 @@ class SuggestionTextField extends StatefulWidget {
 }
 
 class SuggestionTextFieldState extends State<SuggestionTextField> {
-  final TextEditingController _textController = TextEditingController();
-  List<String> _suggestions = [];
-  bool _noOptions = false;
+  late TextEditingController _textController;
 
-  Future<void> _updateSuggestions(String query) async {
-    if (query.isEmpty) {
-      setState(() {
-        _suggestions = [];
-        _noOptions = false;
-      });
-      return;
-    }
-
-    final suggestions = await widget.fetchSuggestions(query);
-    setState(() {
-      _suggestions = suggestions;
-      _noOptions = suggestions.isEmpty;
-    });
+  @override
+  void initState() {
+    super.initState();
+    // 初始化 TextEditingController 并设置默认值
+    _textController = TextEditingController(text: widget.initialValue ?? '');
   }
 
-  void _reset() {
+  /// 重置输入框内容
+  void reset() {
     setState(() {
       _textController.clear();
-      _suggestions = [];
-      _noOptions = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          controller: _textController,
-          decoration: InputDecoration(
-            labelText: widget.labelText,
-            hintText: widget.hintText,
-            border: OutlineInputBorder(),
-          ),
-          onChanged: (value) async {
-            await _updateSuggestions(value);
-          },
-        ),
-        const SizedBox(height: 8.0),
-        if (_suggestions.isNotEmpty)
-          ListView.builder(
-            shrinkWrap: true,
-            physics: ClampingScrollPhysics(), // 防止 ListView 在没有足够内容时滚动
-            itemCount: _suggestions.length,
-            itemBuilder: (context, index) {
-              final suggestion = _suggestions[index];
-              return ListTile(
-                title: Text(suggestion),
-                onTap: () {
-                  _textController.text = suggestion;
-                  setState(() {
-                    _suggestions = [];
-                  });
-                },
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0), // 确保组件与其他表单项垂直对齐
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Autocomplete<String>(
+            optionsBuilder: (TextEditingValue textEditingValue) async {
+              if (textEditingValue.text.isEmpty) {
+                return const Iterable<String>.empty();
+              }
+              final suggestions = await widget.fetchSuggestions(textEditingValue.text);
+              return suggestions;
+            },
+            displayStringForOption: (String option) => option,
+            onSelected: (String selection) {
+              debugPrint('Selected: $selection');
+              _textController.text = selection;
+              // 调用父组件提供的回调
+              if (widget.onSelected != null) {
+                widget.onSelected!(selection);
+              }
+            },
+            fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+              // 同步传入的 textEditingController
+              textEditingController.text = _textController.text;
+              textEditingController.addListener(() {
+                if (textEditingController.text != _textController.text) {
+                  _textController.text = textEditingController.text;
+                  _textController.selection =
+                      TextSelection.collapsed(offset: _textController.text.length);
+                }
+              });
+
+              // 在 reset 时同步清空 textEditingController
+              _textController.addListener(() {
+                if (textEditingController.text != _textController.text) {
+                  textEditingController.text = _textController.text;
+                }
+              });
+
+              return Container(
+                width: 150, // 设置输入框宽度
+                height: 34, // 设置输入框高度
+                child: TextField(
+                  controller: textEditingController,
+                  focusNode: focusNode,
+                  style: TextStyle(fontSize: 14), // 设置内部文字大小
+                  decoration: InputDecoration(
+                    labelText: widget.labelText,
+                    hintText: widget.hintText,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6), // 增加内边距以防止文字被遮挡
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(2), // 设置圆角
+                      borderSide: BorderSide(color: Colors.grey, width: focusNode.hasFocus ? 1 : 0.5,), // 设置边框颜色
+                    ),
+                    filled: true,
+                    fillColor: Colors.white, // 设置填充颜色为浅灰色
+                  ),
+                ),
               );
             },
-          ),
-        if (_noOptions)
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              '无匹配选项',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ),
-        const SizedBox(height: 8.0),
-        ElevatedButton(
-          onPressed: _reset,
-          child: Text('Reset'),
-        ),
-      ],
+            optionsViewBuilder: (context, onSelected, options) {
+              return Align(
+                alignment: Alignment.topLeft,
+                child: Material(
+                  elevation: 4.0,
+                  color: Colors.transparent, // 确保 Material 不覆盖自定义背景色
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxHeight: 80),
+                    child: Container(
+                      width: 180, // 设置下拉选项宽度
+                      decoration: BoxDecoration(
+                        color: Colors.white, // 下拉选项背景颜色
+                        borderRadius: BorderRadius.circular(2), // 设置圆角
+                        border: Border.all(color: Colors.grey), // 设置边框颜色
+                      ),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: options.isNotEmpty ? options.length : 1,
+                        itemBuilder: (context, index) {
+                          if (options.isNotEmpty) {
+                            final option = options.elementAt(index);
+                            return ListTile(
+                              title: Text(option, style: TextStyle(fontSize: 14)), // 设置选项文字大小
+                              onTap: () {
+                                onSelected(option);
+                              },
+                              dense: true, // 减少 ListTile 内部的默认间距
+                              visualDensity: VisualDensity.compact, // 减少垂直间距
+                            );
+                          } else {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                '无匹配选项',
+                                style: TextStyle(color: Colors.grey, fontSize: 14), // 设置提示文字大小
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          )
+        ],
+      ),
     );
   }
 }
+

@@ -12,6 +12,7 @@ import 'package:admin_flutter/component/dialog.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../api/institution_api.dart';
+import '../../../../api/major_api.dart';
 import '../../../../component/table/table_data.dart';
 import '../../../../component/widget.dart';
 import 'student_add_form.dart';
@@ -25,8 +26,112 @@ class StudentLogic extends GetxController {
   var loading = false.obs;
   final searchText = ''.obs;
 
+  Rx<String> selectedInstitutionId = "0".obs;
+
+  final GlobalKey<CascadingDropdownFieldState> majorDropdownKey = GlobalKey<CascadingDropdownFieldState>();
   final GlobalKey<ProvinceCityDistrictSelectorState> provinceCityDistrictKey = GlobalKey<ProvinceCityDistrictSelectorState>();
   final GlobalKey<SuggestionTextFieldState> institutionTextFieldKey = GlobalKey<SuggestionTextFieldState>();
+
+  final ValueNotifier<dynamic> selectedLevel1 = ValueNotifier(null);
+  final ValueNotifier<dynamic> selectedLevel2 = ValueNotifier(null);
+  final ValueNotifier<dynamic> selectedLevel3 = ValueNotifier(null);
+
+  // 专业列表数据
+  List<Map<String, dynamic>> majorList = [];
+  Map<String, List<Map<String, dynamic>>> subMajorMap = {};
+  Map<String, List<Map<String, dynamic>>> subSubMajorMap = {};
+  List<Map<String, dynamic>> level1Items = [];
+  Map<String, List<Map<String, dynamic>>> level2Items = {};
+  Map<String, List<Map<String, dynamic>>> level3Items = {};
+  Rx<String> selectedMajorId = "0".obs;
+
+  // Maps for reverse lookup
+  Map<String, String> level3IdToLevel2Id = {};
+  Map<String, String> level2IdToLevel1Id = {};
+
+  Future<void> fetchMajors() async {
+    try {
+      var response =
+      await MajorApi.majorList(params: {'pageSize': 3000, 'page': 1});
+      if (response != null && response["total"] > 0) {
+        var dataList = response["list"] as List<dynamic>;
+
+        // Clear existing data to avoid duplicates
+        majorList.clear();
+        majorList.add({'id': '0', 'name': '全部专业'});
+        subMajorMap.clear();
+        subSubMajorMap.clear();
+        level1Items.clear();
+        level2Items.clear();
+        level3Items.clear();
+
+        // Track the generated IDs for first and second levels
+        Map<String, String> firstLevelIdMap = {};
+        Map<String, String> secondLevelIdMap = {};
+
+        for (var item in dataList) {
+          String firstLevelName = item["first_level_category"];
+          String secondLevelName = item["second_level_category"];
+          String thirdLevelId = item["id"].toString();
+          String thirdLevelName = item["major_name"];
+
+          // Generate unique IDs based on name for first-level and second-level categories
+          String firstLevelId = firstLevelIdMap.putIfAbsent(
+              firstLevelName, () => firstLevelIdMap.length.toString());
+          String secondLevelId = secondLevelIdMap.putIfAbsent(
+              secondLevelName, () => secondLevelIdMap.length.toString());
+
+          // Add first-level category if it doesn't exist
+          if (!majorList.any((m) => m['name'] == firstLevelName)) {
+            majorList.add({'id': firstLevelId, 'name': firstLevelName});
+            level1Items.add({'id': firstLevelId, 'name': firstLevelName});
+            subMajorMap[firstLevelId] = [];
+            level2Items[firstLevelId] = [];
+          }
+
+          // Add second-level category if it doesn't exist under this first-level category
+          if (subMajorMap[firstLevelId]
+              ?.any((m) => m['name'] == secondLevelName) !=
+              true) {
+            subMajorMap[firstLevelId]!
+                .add({'id': secondLevelId, 'name': secondLevelName});
+            level2Items[firstLevelId]
+                ?.add({'id': secondLevelId, 'name': secondLevelName});
+            subSubMajorMap[secondLevelId] = [];
+            level3Items[secondLevelId] = [];
+            level2IdToLevel1Id[secondLevelId] =
+                firstLevelId; // Populate reverse lookup map
+          }
+
+          // Add third-level major if it doesn't exist under this second-level category
+          if (subSubMajorMap[secondLevelId]
+              ?.any((m) => m['name'] == thirdLevelName) !=
+              true) {
+            subSubMajorMap[secondLevelId]!
+                .add({'id': thirdLevelId, 'name': thirdLevelName});
+            level3Items[secondLevelId]
+                ?.add({'id': thirdLevelId, 'name': thirdLevelName});
+            level3IdToLevel2Id[thirdLevelId] =
+                secondLevelId; // Populate reverse lookup map
+          }
+        }
+
+        // Debug output
+        print('majorList: $majorList');
+        print('subMajorMap: $subMajorMap');
+        print('subSubMajorMap: $subSubMajorMap');
+        print('level1Items: $level1Items');
+        print('level2Items: $level2Items');
+        print('level3Items: $level3Items');
+        print('level3IdToLevel2Id: $level3IdToLevel2Id');
+        print('level2IdToLevel1Id: $level2IdToLevel1Id');
+      } else {
+        "获取专业列表失败".toHint();
+      }
+    } catch (e) {
+      "获取专业列表失败: $e".toHint();
+    }
+  }
 
   // 当前编辑的题目数据
   var currentEditStudent = RxMap<String, dynamic>({}).obs;
@@ -83,8 +188,8 @@ class StudentLogic extends GetxController {
         "pageSize": size.value.toString(),
         "page": page.value.toString(),
         "keyword": searchText.value.toString() ?? "",
-        "province": selectedProvince.value,
-        "city": selectedCityId.value,
+        "major_id": selectedMajorId.value,
+        "institution_id": selectedInstitutionId.value,
       }).then((value) async {
         if (value != null && value["list"] != null) {
           total.value = value["total"] ?? 0;
@@ -313,12 +418,13 @@ class StudentLogic extends GetxController {
     }
   }
 
-  Future<List<String>> fetchInstructions(String name) async {
+  Future<List<String>> fetchInstructions(String query) async {
+    print("query:$query");
     try {
       final response = await InstitutionApi.institutionList(params: {
         "pageSize": 10,
         "page": 1,
-        "keyword": searchText.value.toString() ?? "",
+        "keyword": query ?? "",
       });
       var data = response['list'];
       print("response: $data");
@@ -328,12 +434,12 @@ class StudentLogic extends GetxController {
           // 检查每个 item 是否包含 'name' 和 'id' 字段
           if (item is Map && item.containsKey('name') &&
               item.containsKey('id')) {
-            return '${item['name']} - ${item['id']}';
+            return "${item['name']}（ID：${item['id']}）";
           } else {
             throw FormatException('Invalid item format: $item');
           }
         }).toList();
-        print("suggestions, $suggestions");
+        print("suggestions： $suggestions");
         return suggestions;
       } else {
         // Handle the case where data is not a List
@@ -537,6 +643,7 @@ class StudentLogic extends GetxController {
   void reset() {
     provinceCityDistrictKey.currentState?.reset();
     institutionTextFieldKey.currentState?.reset();
+    majorDropdownKey.currentState?.reset();
     searchText.value = '';
     selectedRows.clear();
 

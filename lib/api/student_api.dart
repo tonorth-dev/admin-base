@@ -19,8 +19,8 @@ class StudentApi {
         'page': '1',
         'pageSize': '15',
         'keyword': handleNullOrEmpty(''),
-        'province': handleNullOrEmpty(''),
-        'city': handleNullOrEmpty(''),
+        'institution_id': handleNullOrEmpty(''),
+        'major_id': handleNullOrEmpty(''),
       };
 
       // 合并默认参数和传入的参数

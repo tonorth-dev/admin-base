@@ -58,57 +58,69 @@ class StudentPage extends StatelessWidget {
                 height: 32, // 自定义高度
               ),
               SizedBox(width: 340), // 添加一些间距
-              SizedBox(
-                width: 500,
-                child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: ProvinceCityDistrictSelector(
-                    key: logic.provinceCityDistrictKey,
-                    onChanged: (province, city, district) {
-                      if (province != null) {
-                        logic.selectedProvince.value = province;
-                      } else {
-                        logic.selectedProvince.value = '';
-                      }
-                      if (city != null) {
-                        logic.selectedCityId.value = city;
-                      } else {
-                        logic.selectedCityId.value = '';
-                      }
-                      print("city: $city, province: $province");
-                    },
-                  ),
+              Padding(
+                padding: EdgeInsets.all(16.0),
+                child: FutureBuilder<void>(
+                  future: logic.fetchMajors(), // 调用 fetchMajors 方法
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(
+                          child: CircularProgressIndicator()); // 加载中显示进度条
+                    } else if (snapshot.hasError) {
+                      return Text('加载失败: ${snapshot.error}');
+                    } else {
+                      return CascadingDropdownField(
+                        key: logic.majorDropdownKey,
+                        width: 110,
+                        height: 34,
+                        hint1: '专业类目一',
+                        hint2: '专业类目二',
+                        hint3: '专业名称',
+                        level1Items: logic.level1Items,
+                        level2Items: logic.level2Items,
+                        level3Items: logic.level3Items,
+                        selectedLevel1: ValueNotifier(null),
+                        selectedLevel2: ValueNotifier(null),
+                        selectedLevel3: ValueNotifier(null),
+                        onChanged:
+                            (dynamic level1, dynamic level2, dynamic level3) {
+                          logic.selectedMajorId.value = level3.toString();
+                          // 这里可以处理选择的 id
+                        },
+                      );
+                    }
+                  },
                 ),
               ),
+              SizedBox(width: 10),
               SizedBox(
                 width: 120,
+                height: 50,
                 child: Padding(
                   padding: EdgeInsets.all(0),
                   child: SuggestionTextField(
-                    labelText: '',
+                    labelText: '机构选择',
+                    hintText: '输入机构名称',
                     key: logic.institutionTextFieldKey,
-                    suggestionsFetcher: logic.fetchInstructions,
-                    defaultValue: '',
-                    onSelected: (String selectedText) {
-                      print('Selected: $selectedText');
-                    },
-                  ),
-                  SuggestionTextField(
-                    labelText: 'Search',
-                    hintText: 'Enter a name',
-                    fetchSuggestions: (query) async {
-                      await Future.delayed(Duration(milliseconds: 300));
-                      final allSuggestions = ['Alice', 'Bob', 'Charlie', 'David', 'Eve'];
-                      return allSuggestions
-                          .where((item) => item.toLowerCase().contains(query.toLowerCase()))
-                          .toList();
+                    fetchSuggestions: logic.fetchInstructions,
+                    initialValue: '',
+                    onSelected: (value) {
+                      RegExp regExp = RegExp(r'ID：(\d+)');
+                      Match? match = regExp.firstMatch(value);
+                      if (match != null) {
+                        String id = match.group(1)!;
+                        logic.selectedInstitutionId.value = id;
+                      } else {
+                        print('SuggestionTextField未找到ID');
+                      }
                     },
                   ),
                 ),
               ),
+              SizedBox(width: 10),
               SearchBoxWidget(
                 key: Key('keywords'),
-                hint: '考生名称、负责人',
+                hint: '考生名称、电话',
                 onTextChanged: (String value) {
                   logic.searchText.value = value;
                 },
