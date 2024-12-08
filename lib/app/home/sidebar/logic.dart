@@ -78,7 +78,7 @@ class SidebarLogic extends GetxController {
 
   static List<SidebarTree> studentList = [
     InstitutionPage.newThis(),
-    ClassPage.newThis(),
+    ClassesPage.newThis(),
     StudentPage.newThis(),
     // BindPage.newThis(),
   ];

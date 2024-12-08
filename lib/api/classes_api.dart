@@ -20,7 +20,6 @@ class ClassesApi {
         'pageSize': '15',
         'keyword': handleNullOrEmpty(''),
         'institution_id': handleNullOrEmpty(''),
-        'major_id': handleNullOrEmpty(''),
       };
 
       // 合并默认参数和传入的参数
@@ -31,7 +30,7 @@ class ClassesApi {
       for (int attempt = 1; attempt <= maxRetries; attempt++) {
         try {
           // 发起请求
-          final response = await HttpUtil.get("/admin/classes/classes/list", params: finalParams);
+          final response = await HttpUtil.get("/admin/class/class/list", params: finalParams);
           return response;
         } catch (e) {
           if (attempt < maxRetries) {
@@ -70,7 +69,7 @@ class ClassesApi {
         }
       }
 
-      return await HttpUtil.post("/admin/classes/classes", params: params);
+      return await HttpUtil.post("/admin/class/class", params: params);
     } catch (e) {
       print('Error in classesCreate: $e');
       rethrow; // 重新抛出异常以便调用者处理
@@ -80,7 +79,7 @@ class ClassesApi {
   // 查看题目详细
   static Future<dynamic> classesDetail(String id) async {
     try {
-      return await HttpUtil.get("/admin/classes/classes/$id");
+      return await HttpUtil.get("/admin/class/class/$id");
     } catch (e) {
       print('Error in classesDetail: $e');
       rethrow; // 重新抛出异常以便调用者处理
@@ -98,7 +97,7 @@ class ClassesApi {
         }
       }
 
-      return await HttpUtil.put("/admin/classes/classes/$id", params: params);
+      return await HttpUtil.put("/admin/class/class/$id", params: params);
     } catch (e) {
       print('Error in classesCreate: $e');
       rethrow; // 重新抛出异常以便调用者处理
@@ -108,7 +107,7 @@ class ClassesApi {
   // 删除题目
   static Future<dynamic> classesDelete(String id) async {
     try {
-      return await HttpUtil.delete("/admin/classes/classes/$id");
+      return await HttpUtil.delete("/admin/class/class/$id");
     } catch (e) {
       print('Error in classesDelete: $e');
       rethrow; // 重新抛出异常以便调用者处理
@@ -149,7 +148,7 @@ class ClassesApi {
 
       // 调用上传接口
       Response response = await Dio().post(
-        "http://127.0.0.1:8888/admin/classes/classes/batch-import",
+        "http://127.0.0.1:8888/admin/class/class/batch-import",
         data: formData,
         options: Options(
           headers: {
@@ -182,7 +181,7 @@ class ClassesApi {
         'cate': cate,
         'classes_id': classes_id,
       };
-      return await HttpUtil.get("/admin/classes/classes/export", params: params);
+      return await HttpUtil.get("/admin/class/class/export", params: params);
     } catch (e) {
       print('Error in classesExport: $e');
       rethrow; // 重新抛出异常以便调用者处理
@@ -191,7 +190,7 @@ class ClassesApi {
 
   static Future<dynamic> auditClasses(int classesId, int status) async {
     try {
-      return await  HttpUtil.put('/admin/classes/classes/$classesId/audit_ret/$status');
+      return await  HttpUtil.put('/admin/class/class/$classesId/audit_ret/$status');
     } catch (e) {
       throw Exception('审核请求失败: $e');
     }
