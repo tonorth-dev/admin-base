@@ -1,26 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
-import 'package:admin_flutter/api/student_api.dart'; // 导入 student_api.dart
+import 'package:admin_flutter/api/classes_api.dart'; // 导入 classes_api.dart
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import '../../../../component/widget.dart';
 import 'logic.dart';
 
-class StudentAddForm extends StatefulWidget {
-  const StudentAddForm({super.key});
+class ClassesAddForm extends StatefulWidget {
+  const ClassesAddForm({super.key});
 
   @override
-  State<StudentAddForm> createState() => _StudentAddFormState();
+  State<ClassesAddForm> createState() => _ClassesAddFormState();
 }
 
-class _StudentAddFormState extends State<StudentAddForm> {
-  final logic = Get.put(StudentLogic());
+class _ClassesAddFormState extends State<ClassesAddForm> {
+  final logic = Get.put(ClassesLogic());
   final _formKey = GlobalKey<FormBuilderState>();
 
   Future<void> _submitForm() async {
     if (_formKey.currentState?.saveAndValidate() ?? false) {
-      final result = await logic.saveStudent();
+      final result = await logic.saveClasses();
       if (result) {
         Navigator.pop(context);
       }
@@ -44,7 +44,7 @@ class _StudentAddFormState extends State<StudentAddForm> {
                     width: 150,
                     child: Row(
                       children: const [
-                        Text('考生姓名'),
+                        Text('班级姓名'),
                         Text('*', style: TextStyle(color: Colors.red)),
                       ],
                     ),
@@ -116,7 +116,7 @@ class _StudentAddFormState extends State<StudentAddForm> {
                     height: 34,
                     labelText: '机构选择',
                     hintText: '输入机构名称',
-                    key: Key("add_student_institution_id"),
+                    key: Key("add_classes_institution_id"),
                     fetchSuggestions: logic.fetchInstructions,
                     initialValue: '',
                     onSelected: (value) {

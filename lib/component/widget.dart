@@ -1514,6 +1514,8 @@ class ProvinceCityDistrictSelectorState
 class SuggestionTextField extends StatefulWidget {
   final String labelText;
   final String hintText;
+  final double width; // 输入框宽度
+  final double height; // 输入框高度
   final String? initialValue; // 默认值
   final Future<List<String>> Function(String query) fetchSuggestions;
   final ValueChanged<String>? onSelected; // 选择后的回调
@@ -1523,6 +1525,8 @@ class SuggestionTextField extends StatefulWidget {
     Key? key,
     required this.labelText,
     required this.hintText,
+    required this.width, // 必须提供宽度
+    required this.height, // 必须提供高度
     required this.fetchSuggestions,
     this.initialValue, // 初始化默认值
     this.onSelected, // 可选的 onSelected 回调
@@ -1584,45 +1588,45 @@ class SuggestionTextFieldState extends State<SuggestionTextField> {
               // 同样地，调用 onChanged 回调来通知父组件新的值
               widget.onChanged?.call(selection);
             },
-        fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
-          // 同步外部的 _textController 和内部的 textEditingController
-          textEditingController.text = _textController.text;
-          textEditingController.addListener(() {
-            if (textEditingController.text != _textController.text) {
-              _textController.text = textEditingController.text;
-              _textController.selection =
-                  TextSelection.collapsed(offset: _textController.text.length);
-            }
-          });
-
-          _textController.addListener(() {
-            if (textEditingController.text != _textController.text) {
+            fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+              // 同步外部的 _textController 和内部的 textEditingController
               textEditingController.text = _textController.text;
-            }
-          });
+              textEditingController.addListener(() {
+                if (textEditingController.text != _textController.text) {
+                  _textController.text = textEditingController.text;
+                  _textController.selection =
+                      TextSelection.collapsed(offset: _textController.text.length);
+                }
+              });
 
-          return Container(
-            width: 150,
-            height: 34,
-            child: TextField(
-              controller: textEditingController,
-              focusNode: focusNode,
-              style: TextStyle(fontSize: 14),
-              decoration: InputDecoration(
-                labelText: widget.labelText,
-                hintText: widget.hintText,
-                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(2),
-                  borderSide: BorderSide(color: Colors.grey, width: focusNode.hasFocus ? 1 : 0.5),
+              _textController.addListener(() {
+                if (textEditingController.text != _textController.text) {
+                  textEditingController.text = _textController.text;
+                }
+              });
+
+              return Container(
+                width: widget.width, // 使用传入的宽度
+                height: widget.height, // 使用传入的高度
+                child: TextField(
+                  controller: textEditingController,
+                  focusNode: focusNode,
+                  style: TextStyle(fontSize: 14),
+                  decoration: InputDecoration(
+                    labelText: widget.labelText,
+                    hintText: widget.hintText,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(2),
+                      borderSide: BorderSide(color: Colors.grey, width: focusNode.hasFocus ? 1 : 0.5),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                  ),
                 ),
-                filled: true,
-                fillColor: Colors.white,
-              ),
-            ),
-          );
-        },
-        optionsViewBuilder: (context, onSelected, options) {
+              );
+            },
+            optionsViewBuilder: (context, onSelected, options) {
               return Align(
                 alignment: Alignment.topLeft,
                 child: Material(
@@ -1631,7 +1635,7 @@ class SuggestionTextFieldState extends State<SuggestionTextField> {
                   child: ConstrainedBox(
                     constraints: BoxConstraints(maxHeight: 80),
                     child: Container(
-                      width: 180, // 设置下拉选项宽度
+                      width: widget.width > 200 ? widget.width : widget.width+100, // 设置下拉选项宽度
                       decoration: BoxDecoration(
                         color: Colors.white, // 下拉选项背景颜色
                         borderRadius: BorderRadius.circular(2), // 设置圆角

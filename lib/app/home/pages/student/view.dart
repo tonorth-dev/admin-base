@@ -99,6 +99,8 @@ class StudentPage extends StatelessWidget {
                 child: Padding(
                   padding: EdgeInsets.all(0),
                   child: SuggestionTextField(
+                    width: 150,
+                    height: 34,
                     labelText: '机构选择',
                     hintText: '输入机构名称',
                     key: logic.institutionTextFieldKey,
