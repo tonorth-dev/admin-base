@@ -48,8 +48,9 @@ class CorresPage extends StatelessWidget {
 class JobTableView extends StatelessWidget {
   final String title;
   final JLogic logic;
+  final GlobalKey _tableKey = GlobalKey(); // 用于获取表格尺寸
 
-  const JobTableView({super.key, required this.title, required this.logic});
+  JobTableView({super.key, required this.title, required this.logic});
 
   @override
   Widget build(BuildContext context) {
@@ -85,11 +86,12 @@ class JobTableView extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Obx(() => ElevatedButton(
-                    onPressed: () => logic.isRowsSelectable.value
-                        ? logic.disableRowSelection()
-                        : logic.enableRowSelection(),
-                    child: Text(logic.isRowsSelectable.value ? '禁用选择' : '启用选择'),
-                  )),
+                        onPressed: () => logic.isRowsSelectable.value
+                            ? logic.disableRowSelection()
+                            : logic.enableRowSelection(),
+                        child: Text(
+                            logic.isRowsSelectable.value ? '禁用选择' : '启用选择'),
+                      )),
                   SizedBox(width: 10),
                   SearchBoxWidget(
                     key: Key('keywords'),
@@ -124,71 +126,69 @@ class JobTableView extends StatelessWidget {
         ThemeUtil.lineH(),
         ThemeUtil.height(),
         Expanded(
-          child: Obx(() => Stack(
-            children: [
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Container(
-                  width: 1000,
-                  height: Get.height,
-                  child: SfDataGrid(
-                    source: JobDataSource(logic: logic),
-                    headerGridLinesVisibility: GridLinesVisibility.values[1],
-                    columnWidthMode: ColumnWidthMode.fill,
-                    headerRowHeight: 50,
-                    gridLinesVisibility: GridLinesVisibility.both,
-                    columns: [
-                      GridColumn(
-                        width: 80,
-                        columnName: 'Select',
-                        label: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.indigo[50],
-                          ),
-                          child: Center(
-                            child: Obx(() => Checkbox(
-                              value: logic.isRowsSelectable.value && logic.selectedRows.length == logic.list.length,
-                              onChanged: (value) {
-                                if (logic.isRowsSelectable.value) {
-                                  logic.toggleSelectAll();
-                                }
-                              },
-                              activeColor: Colors.teal,
-                            )),
-                          ),
-                        ),
-                      ),
-                      ...logic.columns.map((column) => GridColumn(
-                        width: column.width,
-                        columnName: column.key,
-                        label: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.indigo[50],
-                          ),
-                          child: Center(
-                            child: Text(
-                              column.title,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.indigo[800],
-                              ),
+          child: Obx(() {
+            return Stack(
+              children: [
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Container(
+                    key: _tableKey, // 绑定 GlobalKey
+                    width: 1000,
+                    child: SfDataGrid(
+                      source: JobDataSource(logic: logic),
+                      headerGridLinesVisibility: GridLinesVisibility.values[1],
+                      columnWidthMode: ColumnWidthMode.fill,
+                      headerRowHeight: 50,
+                      gridLinesVisibility: GridLinesVisibility.both,
+                      columns: [
+                        GridColumn(
+                          width: 80,
+                          columnName: 'Select',
+                          label: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.indigo[50],
+                            ),
+                            child: Center(
+                              child: Obx(() => Checkbox(
+                                    value: logic.isRowsSelectable.value &&
+                                        logic.selectedRows.length ==
+                                            logic.list.length,
+                                    onChanged: (value) {
+                                      if (logic.isRowsSelectable.value) {
+                                        logic.toggleSelectAll();
+                                      }
+                                    },
+                                    activeColor: Colors.teal,
+                                  )),
                             ),
                           ),
                         ),
-                      )),
-                    ],
+                        ...logic.columns.map((column) => GridColumn(
+                              width: column.width,
+                              columnName: column.key,
+                              label: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.indigo[50],
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    column.title,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.indigo[800],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              if (!logic.isRowsSelectable.value)
-                Positioned.fill(
-                  child: Container(
-                    color: Colors.grey.withOpacity(0.2),
-                  ),
-                ),
-            ],
-          )),
+              ],
+            );
+          }),
         ),
         Obx(() {
           return PaginationPage(
@@ -201,7 +201,6 @@ class JobTableView extends StatelessWidget {
     );
   }
 }
-
 
 class JobDataSource extends DataGridSource {
   final JLogic logic;
@@ -428,7 +427,7 @@ class MajorTableView extends StatelessWidget {
                             child: Center(
                               child: Checkbox(
                                 value: logic.selectedRows.isNotEmpty,
-                                onChanged: (value) => logic.toggleSelectAll(),
+                                onChanged: null,
                               ),
                             ),
                           ),
@@ -571,78 +570,79 @@ class MajorDataSource extends DataGridSource {
             ),
           );
         }),
-          MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ValueListenableBuilder<bool>(
-                  valueListenable: logic.blueButtonStates[id]!,
-                  builder: (context, isEnabled, child) {
-                    return TextButton(
-                      onPressed: () {
-                        // 按钮操作逻辑
-                        logic.blueButtonAction(id);
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: isEnabled ? Colors.blue : Colors.grey,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: Colors.grey.shade400,
-                        disabledForegroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(3.0),
-                        ),
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ValueListenableBuilder<bool>(
+                valueListenable: logic.blueButtonStates[id]!,
+                builder: (context, isEnabled, child) {
+                  return TextButton(
+                    onPressed: () {
+                      // 按钮操作逻辑
+                      logic.blueButtonAction(id);
+                    },
+                    style: TextButton.styleFrom(
+                      backgroundColor: isEnabled ? Colors.blue : Colors.grey,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey.shade400,
+                      disabledForegroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(3.0),
                       ),
-                      child: Text("关联岗位"),
-                    );
-                  },
-                ),
-                SizedBox(width: 20),
-                ValueListenableBuilder<bool>(
-                  valueListenable: logic.grayButtonStates[id]!,
-                  builder: (context, isEnabled, child) {
-                    return TextButton(
-                      onPressed: () {
-                        // 按钮操作逻辑
-                        logic.grayButtonAction(id);
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: isEnabled ? Colors.grey[400] : Colors.grey,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: Colors.grey.shade400,
-                        disabledForegroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(3.0),
-                        ),
+                    ),
+                    child: Text("关联岗位"),
+                  );
+                },
+              ),
+              SizedBox(width: 20),
+              ValueListenableBuilder<bool>(
+                valueListenable: logic.grayButtonStates[id]!,
+                builder: (context, isEnabled, child) {
+                  return TextButton(
+                    onPressed: () {
+                      // 按钮操作逻辑
+                      logic.grayButtonAction(id);
+                    },
+                    style: TextButton.styleFrom(
+                      backgroundColor:
+                          isEnabled ? Colors.grey[400] : Colors.grey,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey.shade400,
+                      disabledForegroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(3.0),
                       ),
-                      child: Text("取消"),
-                    );
-                  },
-                ),
-                SizedBox(width: 20),
-                ValueListenableBuilder<bool>(
-                  valueListenable: logic.redButtonStates[id]!,
-                  builder: (context, isEnabled, child) {
-                    return TextButton(
-                      onPressed: () {
-                        logic.redButtonAction(id);
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: isEnabled ? Colors.red : Colors.grey,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: Colors.grey.shade400,
-                        disabledForegroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(3.0),
-                        ),
+                    ),
+                    child: Text("取消"),
+                  );
+                },
+              ),
+              SizedBox(width: 20),
+              ValueListenableBuilder<bool>(
+                valueListenable: logic.redButtonStates[id]!,
+                builder: (context, isEnabled, child) {
+                  return TextButton(
+                    onPressed: () {
+                      logic.redButtonAction(id);
+                    },
+                    style: TextButton.styleFrom(
+                      backgroundColor: isEnabled ? Colors.red : Colors.grey,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey.shade400,
+                      disabledForegroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(3.0),
                       ),
-                      child: Text("保存关联"),
-                    );
-                  },
-                ),
-              ],
-            ),
-          )
+                    ),
+                    child: Text("保存关联"),
+                  );
+                },
+              ),
+            ],
+          ),
+        )
       ],
     );
   }

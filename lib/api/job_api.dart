@@ -118,7 +118,7 @@ class JobApi {
         'major_id': majorId,
       };
 
-      return await HttpUtil.post("/admin/job/update-major", params: params);
+      return await HttpUtil.post("/admin/job/job/update-major", params: params);
     } catch (e) {
       print('更新岗位专业时发生错误: $e');
       rethrow; // 重新抛出异常以便调用者处理

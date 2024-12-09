@@ -105,6 +105,28 @@ class StudentApi {
     }
   }
 
+  static Future<dynamic> studentUpdateClasses(List<int> studentIds, int classId) async {
+    try {
+      // 必传字段校验
+      if (studentIds == null || studentIds.isEmpty) {
+        throw ArgumentError('缺少必填字段: student_id');
+      }
+      if (classId == null) {
+        throw ArgumentError('缺少必填字段: class_id');
+      }
+
+      Map<String, dynamic> params = {
+        'student_ids': studentIds,
+        'class_id': classId,
+      };
+
+      return await HttpUtil.post("/admin/student/student/update-class", params: params);
+    } catch (e) {
+      print('更新岗位专业时发生错误: $e');
+      rethrow; // 重新抛出异常以便调用者处理
+    }
+  }
+
   // 删除题目
   static Future<dynamic> studentDelete(String id) async {
     try {

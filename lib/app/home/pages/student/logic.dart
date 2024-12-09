@@ -26,8 +26,6 @@ class StudentLogic extends GetxController {
   var loading = false.obs;
   final searchText = ''.obs;
 
-  Rx<String> selectedInstitutionId = "0".obs;
-
   final GlobalKey<CascadingDropdownFieldState> majorDropdownKey = GlobalKey<CascadingDropdownFieldState>();
   final GlobalKey<ProvinceCityDistrictSelectorState> provinceCityDistrictKey = GlobalKey<ProvinceCityDistrictSelectorState>();
   final GlobalKey<SuggestionTextFieldState> institutionTextFieldKey = GlobalKey<SuggestionTextFieldState>();
@@ -44,6 +42,7 @@ class StudentLogic extends GetxController {
   Map<String, List<Map<String, dynamic>>> level2Items = {};
   Map<String, List<Map<String, dynamic>>> level3Items = {};
   Rx<String> selectedMajorId = "0".obs;
+  Rx<String> selectedInstitutionId = "0".obs;
 
   // Maps for reverse lookup
   Map<String, String> level3IdToLevel2Id = {};
