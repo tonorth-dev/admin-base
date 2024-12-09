@@ -43,7 +43,7 @@ class SidebarLogic extends GetxController {
       children: jobList,
     ),
     SidebarTree(
-      name: "考生管理",
+      name: "考生信息",
       icon: Icons.expand,
       children: studentList,
     ),

@@ -151,24 +151,41 @@ class _StudentAddFormState extends State<StudentAddForm> {
                     width: 150,
                     child: Row(
                       children: const [
-                        Text('班级ID'),
+                        Text('机构ID'),
                         Text('*', style: TextStyle(color: Colors.red)),
                       ],
                     ),
                   ),
                   SizedBox(
                     width: 600,
-                    child: TextInputWidget(
-                      width: 240,
+                    child: SuggestionTextField(
+                      width: 600,
                       height: 34,
-                      maxLines: 8,
-                      hint: "输入班级ID",
-                      text: logic.classId,
-                      onTextChanged: (value) {
-                        logic.classId.value = value;
+                      labelText: '班级选择',
+                      hintText: '输入班级名称',
+                      key: Key("add_student_class_id"),
+                      fetchSuggestions: logic.fetchClasses,
+                      initialValue: '',
+                      onSelected: (value) {
+                        if (value == '') {
+                          logic.classId.value = "";
+                          return;
+                        }
+                        RegExp regExp = RegExp(r'ID：(\d+)');
+                        Match? match = regExp.firstMatch(value);
+                        if (match != null) {
+                          String id = match.group(1)!;
+                          logic.classId.value = id;
+                        } else {
+                          logic.classId.value = "";
+                        }
                       },
-                      validator:
-                          FormBuilderValidators.required(errorText: '班级ID不能为空'),
+                      onChanged: (value) {
+                        if (value == null || value.isEmpty) {
+                          logic.classId.value = ""; // 确保清空
+                        }
+                        print("onChanged selectedInstitutionId value: ${logic.classId.value}");
+                      },
                     ),
                   ),
                 ],
@@ -180,7 +197,7 @@ class _StudentAddFormState extends State<StudentAddForm> {
                     width: 150,
                     child: Row(
                       children: const [
-                        Text('推荐人'),
+                        Text('专业选择'),
                         Text('*', style: TextStyle(color: Colors.red)),
                       ],
                     ),
@@ -196,8 +213,6 @@ class _StudentAddFormState extends State<StudentAddForm> {
                       onTextChanged: (value) {
                         logic.referrer.value = value;
                       },
-                      validator:
-                          FormBuilderValidators.required(errorText: '推荐人不能为空'),
                     ),
                   ),
                 ],
@@ -209,7 +224,7 @@ class _StudentAddFormState extends State<StudentAddForm> {
                     width: 150,
                     child: Row(
                       children: const [
-                        Text('职位代码'),
+                        Text('岗位代码'),
                         Text('*', style: TextStyle(color: Colors.red)),
                       ],
                     ),
@@ -220,13 +235,39 @@ class _StudentAddFormState extends State<StudentAddForm> {
                       width: 240,
                       height: 34,
                       maxLines: 8,
-                      hint: "输入职位代码",
+                      hint: "输入岗位代码",
                       text: logic.jobCode,
                       onTextChanged: (value) {
                         logic.jobCode.value = value;
                       },
                       validator:
-                          FormBuilderValidators.required(errorText: '职位代码不能为空'),
+                          FormBuilderValidators.required(errorText: '岗位代码不能为空'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 150,
+                    child: Row(
+                      children: const [
+                        Text('推荐人'),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    width: 600,
+                    child: TextInputWidget(
+                      width: 240,
+                      height: 34,
+                      maxLines: 8,
+                      hint: "输入推荐人",
+                      text: logic.referrer,
+                      onTextChanged: (value) {
+                        logic.referrer.value = value;
+                      },
                     ),
                   ),
                 ],

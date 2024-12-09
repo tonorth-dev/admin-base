@@ -92,7 +92,6 @@ class StudentPage extends StatelessWidget {
                   },
                 ),
               ),
-              SizedBox(width: 10),
               SizedBox(
                 width: 120,
                 height: 50,
@@ -131,6 +130,44 @@ class StudentPage extends StatelessWidget {
                 ),
               ),
               SizedBox(width: 10),
+              SizedBox(
+                width: 120,
+                height: 50,
+                child: Padding(
+                  padding: EdgeInsets.all(0),
+                  child: SuggestionTextField(
+                    width: 150,
+                    height: 34,
+                    labelText: '班级选择',
+                    hintText: '输入班级名称',
+                    key: logic.classesTextFieldKey,
+                    fetchSuggestions: logic.fetchClasses,
+                    initialValue: '',
+                    onSelected: (value) {
+                      if (value == '') {
+                        logic.selectedClassesId.value = "";
+                        return;
+                      }
+                      RegExp regExp = RegExp(r'ID：(\d+)');
+                      Match? match = regExp.firstMatch(value);
+                      if (match != null) {
+                        String id = match.group(1)!;
+                        logic.selectedClassesId.value = id;
+                      } else {
+                        logic.selectedClassesId.value = "";
+                      }
+                      print("selectedInstitutionId value: ${logic.selectedClassesId.value}");
+                    },
+                    onChanged: (value) {
+                      if (value == null || value.isEmpty) {
+                        logic.selectedClassesId.value = ""; // 确保清空
+                      }
+                      print("onChanged selectedInstitutionId value: ${logic.selectedClassesId.value}");
+                    },
+                  ),
+                ),
+              ),
+              SizedBox(width: 10),
               SearchBoxWidget(
                 key: Key('keywords'),
                 hint: '考生名称、电话',
@@ -151,7 +188,7 @@ class StudentPage extends StatelessWidget {
               ResetButtonWidget(
                 key: Key('reset'),
                 onPressed: () {
-                  print('reset sr');
+                  print('reset');
                   logic.reset();
                   logic.find(logic.size.value, logic.page.value);
                 },

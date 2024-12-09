@@ -1,3 +1,4 @@
+import 'package:admin_flutter/api/classes_api.dart';
 import 'package:admin_flutter/ex/ex_list.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -27,8 +28,8 @@ class StudentLogic extends GetxController {
   final searchText = ''.obs;
 
   final GlobalKey<CascadingDropdownFieldState> majorDropdownKey = GlobalKey<CascadingDropdownFieldState>();
-  final GlobalKey<ProvinceCityDistrictSelectorState> provinceCityDistrictKey = GlobalKey<ProvinceCityDistrictSelectorState>();
   final GlobalKey<SuggestionTextFieldState> institutionTextFieldKey = GlobalKey<SuggestionTextFieldState>();
+  final GlobalKey<SuggestionTextFieldState> classesTextFieldKey = GlobalKey<SuggestionTextFieldState>();
 
   final ValueNotifier<dynamic> selectedLevel1 = ValueNotifier(null);
   final ValueNotifier<dynamic> selectedLevel2 = ValueNotifier(null);
@@ -43,6 +44,7 @@ class StudentLogic extends GetxController {
   Map<String, List<Map<String, dynamic>>> level3Items = {};
   Rx<String> selectedMajorId = "0".obs;
   Rx<String> selectedInstitutionId = "0".obs;
+  Rx<String> selectedClassesId = "0".obs;
 
   // Maps for reverse lookup
   Map<String, String> level3IdToLevel2Id = {};
@@ -189,6 +191,7 @@ class StudentLogic extends GetxController {
         "keyword": searchText.value.toString() ?? "",
         "major_id": selectedMajorId.value,
         "institution_id": selectedInstitutionId.value,
+        "class_id": selectedClassesId.value,
       }).then((value) async {
         if (value != null && value["list"] != null) {
           total.value = value["total"] ?? 0;
@@ -451,6 +454,41 @@ class StudentLogic extends GetxController {
     }
   }
 
+  Future<List<String>> fetchClasses(String query) async {
+    print("query:$query");
+    try {
+      final response = await ClassesApi.classesList(params: {
+        "pageSize": 10,
+        "page": 1,
+        // "institution_id": selectedInstitutionId.value,
+        "keyword": query ?? "",
+      });
+      var data = response['list'];
+      print("response: $data");
+      // 检查数据是否为 List
+      if (data is List) {
+        final List<String> suggestions = data.map((item) {
+          // 检查每个 item 是否包含 'name' 和 'id' 字段
+          if (item is Map && item.containsKey('class_name') &&
+              item.containsKey('id')) {
+            return "${item['class_name']}（ID：${item['id']}）";
+          } else {
+            throw FormatException('Invalid item format: $item');
+          }
+        }).toList();
+        print("suggestions： $suggestions");
+        return suggestions;
+      } else {
+        // Handle the case where data is not a List
+        return [];
+      }
+    } catch (e) {
+      // Handle any exceptions that are thrown
+      print('Error fetching classes: $e');
+      return [];
+    }
+  }
+
   void delete(Map<String, dynamic> d, int index) {
     try {
       StudentApi.studentDelete(d["id"].toString()).then((value) {
@@ -640,8 +678,8 @@ class StudentLogic extends GetxController {
   }
 
   void reset() {
-    provinceCityDistrictKey.currentState?.reset();
     institutionTextFieldKey.currentState?.reset();
+    classesTextFieldKey.currentState?.reset();
     majorDropdownKey.currentState?.reset();
     searchText.value = '';
     selectedRows.clear();

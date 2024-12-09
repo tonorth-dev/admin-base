@@ -90,7 +90,7 @@ class ClassesApi {
   static Future<dynamic> classesUpdate(int id, Map<String, dynamic> params) async {
     try {
       // 必传字段校验
-      List<String> requiredFields = ['name', 'city', 'leader'];
+      List<String> requiredFields = ['class_name', 'institution_id', 'teacher'];
       for (var field in requiredFields) {
         if (!params.containsKey(field) || params[field] == null) {
           throw ArgumentError('Missing required field: $field');

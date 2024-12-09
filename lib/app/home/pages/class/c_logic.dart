@@ -30,7 +30,9 @@ class CLogic extends GetxController {
   final searchText = ''.obs;
   final sLogic = Get.put(SLogic());
 
-  final GlobalKey<SuggestionTextFieldState> institutionTextFieldKey = GlobalKey<SuggestionTextFieldState>();
+  final GlobalKey<SuggestionTextFieldState> institutionTextFieldKey =
+      GlobalKey<SuggestionTextFieldState>();
+
   // 当前编辑的题目数据
   var currentEditClasses = RxMap<String, dynamic>({}).obs;
   RxList<int> selectedRows = <int>[].obs;
@@ -44,6 +46,7 @@ class CLogic extends GetxController {
 
   final uName = ''.obs;
   final uInstitutionId = ''.obs;
+  final uInstitutionName = ''.obs;
   final uTeacher = ''.obs;
   final uCreateTime = ''.obs;
 
@@ -71,17 +74,17 @@ class CLogic extends GetxController {
           loading.value = false;
         } else {
           loading.value = false;
-          "未获取到岗位数据".toHint();
+          "未获取到班级数据".toHint();
         }
       }).catchError((error) {
         loading.value = false;
-        print("获取岗位列表失败: $error");
-        "获取岗位列表失败: $error".toHint();
+        print("获取班级列表失败: $error");
+        "获取班级列表失败: $error".toHint();
       });
     } catch (e) {
       loading.value = false;
-      print("获取岗位列表失败: $e");
-      "获取岗位列表失败: $e".toHint();
+      print("获取班级列表失败: $e");
+      "获取班级列表失败: $e".toHint();
     }
   }
 
@@ -90,7 +93,8 @@ class CLogic extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    find(size.value, page.value);// Fetch and populate classes data on initialization
+    find(size.value,
+        page.value); // Fetch and populate classes data on initialization
 
     columns = [
       ColumnData(title: "ID", key: "id", width: 60),
@@ -115,7 +119,8 @@ class CLogic extends GetxController {
       if (data is List) {
         final List<String> suggestions = data.map((item) {
           // 检查每个 item 是否包含 'name' 和 'id' 字段
-          if (item is Map && item.containsKey('name') &&
+          if (item is Map &&
+              item.containsKey('name') &&
               item.containsKey('id')) {
             return "${item['name']}（ID：${item['id']}）";
           } else {
@@ -188,7 +193,6 @@ class CLogic extends GetxController {
     final uClassNameSubmit = uName.value;
     final uInstitutionIdSubmit = uInstitutionId.value;
     final uTeacherSubmit = uTeacher.value;
-    final uCreateTimeSubmit = uCreateTime.value;
 
     bool isValid = true;
     String errorMessage = "";
@@ -205,18 +209,13 @@ class CLogic extends GetxController {
       isValid = false;
       errorMessage += "教师不能为空\n";
     }
-    if (uCreateTimeSubmit.isEmpty) {
-      isValid = false;
-      errorMessage += "创建时间不能为空\n";
-    }
 
     if (isValid) {
       try {
         Map<String, dynamic> params = {
           "class_name": uClassNameSubmit,
-          "institution_name": uInstitutionIdSubmit,
+          "institution_id": int.parse(uInstitutionIdSubmit),
           "teacher": uTeacherSubmit,
-          "create_time": uCreateTimeSubmit,
         };
 
         dynamic result = await ClassesApi.classesUpdate(classesId, params);
@@ -309,8 +308,9 @@ class CLogic extends GetxController {
       title: '录入考生',
       child: ClassesEditForm(
         classesId: classes["id"],
-        initialName: classes["name"],
-        initialInstitutionId: classes["institution_id"],
+        initialName: classes["class_name"],
+        initialInstitutionId: classes["institution_id"].toString(),
+        initialInstitutionName: classes["institution_name"].toString(),
         initialTeacher: classes["teacher"],
       ),
       onSubmit: (formData) {
@@ -377,7 +377,7 @@ class CLogic extends GetxController {
 
           // 解析 CSV 内容
           List<List<dynamic>> rows =
-          const CsvToListConverter().convert(content);
+              const CsvToListConverter().convert(content);
           rows.removeAt(0); // 移除表头
 
           // 调用 API 执行批量导入
@@ -487,9 +487,13 @@ class CLogic extends GetxController {
     List<String> hasClassesStudents = [];
     for (var id in sLogic.selectedRows) {
       // 找到与 id 匹配的岗位数据
-      var student = sLogic.list.firstWhere((student) => student['id'] == id, orElse: () => {});
-      if (student.isNotEmpty && student['class_id'] > 0 && student['class_id'] != classId) {
-        hasClassesStudents.add("学生姓名：${student['name']}，学生ID：${student['id']}"); // 记录classes_id > 0的数据
+      var student = sLogic.list
+          .firstWhere((student) => student['id'] == id, orElse: () => {});
+      if (student.isNotEmpty &&
+          student['class_id'] > 0 &&
+          student['class_id'] != classId) {
+        hasClassesStudents.add(
+            "学生姓名：${student['name']}，学生ID：${student['id']}"); // 记录classes_id > 0的数据
       }
     }
 
@@ -505,7 +509,8 @@ class CLogic extends GetxController {
             padding: EdgeInsets.all(16.0),
             child: AlertDialog(
               title: Text("确认"),
-              content: Text("${hasClassesStudents.join("，")}，已经绑定在其它班级上，是否继续执行？"),
+              content:
+                  Text("${hasClassesStudents.join("，")}，已经绑定在其它班级上，是否继续执行？"),
               actions: <Widget>[
                 TextButton(
                   child: Text("取消"),
@@ -518,13 +523,15 @@ class CLogic extends GetxController {
                   onPressed: () async {
                     // 用户确认后执行的操作
                     try {
-                      await StudentApi.studentUpdateClasses(sLogic.selectedRows, classId);
+                      await StudentApi.studentUpdateClasses(
+                          sLogic.selectedRows, classId);
                       "绑定成功".toHint();
                       sLogic.disableRowSelection();
                       blueButtonStates[classId]!.value = true;
                       grayButtonStates[classId]!.value = false;
                       redButtonStates[classId]!.value = false;
-                      sLogic.findForClasses(sLogic.size.value, sLogic.page.value);
+                      sLogic.findForClasses(
+                          sLogic.size.value, sLogic.page.value);
                     } catch (e) {
                       print('Error: $e');
                       "绑定时发生错误：$e".toHint();
@@ -555,5 +562,4 @@ class CLogic extends GetxController {
       sLogic.disableRowSelection();
     }
   }
-
 }

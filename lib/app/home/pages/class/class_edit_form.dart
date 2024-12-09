@@ -10,12 +10,14 @@ class ClassesEditForm extends StatefulWidget {
   final int classesId;
   final String initialName;
   final String initialInstitutionId;
+  final String initialInstitutionName;
   final String initialTeacher;
 
   ClassesEditForm({
     required this.classesId,
     required this.initialName,
     required this.initialInstitutionId,
+    required this.initialInstitutionName,
     required this.initialTeacher,
   });
 
@@ -43,6 +45,7 @@ class _ClassesEditFormState extends State<ClassesEditForm> {
 
     logic.uName.value = widget.initialName;
     logic.uInstitutionId.value = widget.initialInstitutionId;
+    logic.uInstitutionName.value = "${widget.initialInstitutionName}（ID：${widget.initialInstitutionId}）";
     logic.uTeacher.value = widget.initialTeacher;
   }
 
@@ -99,17 +102,35 @@ class _ClassesEditFormState extends State<ClassesEditForm> {
                   ),
                   SizedBox(
                     width: 600,
-                    child: TextInputWidget(
-                      width: 240,
+                    child: SuggestionTextField(
+                      width: 600,
                       height: 34,
-                      maxLines: 1,
-                      hint: "输入机构ID",
-                      text: logic.uInstitutionId,
-                      onTextChanged: (value) {
-                        logic.uInstitutionId.value = value;
+                      labelText: '请选择机构',
+                      hintText: '输入机构名称',
+                      key: Key("add_student_institution_id"),
+                      fetchSuggestions: logic.fetchInstructions,
+                      initialValue: logic.uInstitutionName.value,
+                      onSelected: (value) {
+                        if (value == '') {
+                          logic.uInstitutionId.value = "";
+                          return;
+                        }
+                        RegExp regExp = RegExp(r'ID：(\d+)');
+                        Match? match = regExp.firstMatch(value);
+                        if (match != null) {
+                          String id = match.group(1)!;
+                          logic.uInstitutionId.value = id;
+                        } else {
+                          logic.uInstitutionId.value = "";
+                        }
+                        print("selectedInstitutionId value: ${logic.selectedInstitutionId.value}");
                       },
-                      validator:
-                      FormBuilderValidators.required(errorText: '机构ID不能为空'),
+                      onChanged: (value) {
+                        if (value == null || value.isEmpty) {
+                          logic.uInstitutionId.value = ""; // 确保清空
+                        }
+                        print("onChanged selectedInstitutionId value: ${logic.selectedInstitutionId.value}");
+                      },
                     ),
                   ),
                 ],

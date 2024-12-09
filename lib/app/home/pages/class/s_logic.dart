@@ -74,6 +74,7 @@ class SLogic extends GetxController {
         "page": page.value.toString(),
         "keyword": searchText.value.toString() ?? "",
         "class_id": (selectedClassesId.value.toString() ?? ""),
+        "institution_id": (selectedInstitutionId.value.toString() ?? ""),
         "all": all ?? "0",
       });
 
