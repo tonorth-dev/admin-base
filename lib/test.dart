@@ -1,173 +1,148 @@
 import 'package:flutter/material.dart';
 
-import 'package:flutter/material.dart';
+class TagInputField extends StatefulWidget {
+  final List<String> defaultTags;
+  final ValueChanged<String> onChange;
+  final ValueChanged<List<String>>? onTagsUpdated; // 回调：获取全部标签
+  final String? Function(String)? onTagModify;
 
-class SuggestionTextField extends StatefulWidget {
-  final String labelText;
-  final String hintText;
-  final String? initialValue; // 默认值
-  final Future<List<String>> Function(String query) fetchSuggestions;
-  final ValueChanged<String>? onSelected; // 选择后的回调
-
-  SuggestionTextField({
+  const TagInputField({
     Key? key,
-    required this.labelText,
-    required this.hintText,
-    required this.fetchSuggestions,
-    this.initialValue, // 初始化默认值
-    this.onSelected, // 可选的 onSelected 回调
+    this.defaultTags = const [],
+    required this.onChange,
+    this.onTagsUpdated,
+    this.onTagModify,
   }) : super(key: key);
 
   @override
-  SuggestionTextFieldState createState() => SuggestionTextFieldState();
+  _TagInputFieldState createState() => _TagInputFieldState();
 }
 
-class SuggestionTextFieldState extends State<SuggestionTextField> {
-  late TextEditingController _textController;
+class _TagInputFieldState extends State<TagInputField> {
+  final TextEditingController _controller = TextEditingController();
+  late List<String> _tags;
 
   @override
   void initState() {
     super.initState();
-    // 初始化 TextEditingController 并设置默认值
-    _textController = TextEditingController(text: widget.initialValue ?? '');
+    _tags = List.from(widget.defaultTags);
+    _updateTags();
   }
 
-  void _reset() {
-    setState(() {
-      _textController.clear();
-    });
+  void _addTag(String value) {
+    final trimmedValue = value.trim();
+    if (trimmedValue.isEmpty) return;
+
+    try {
+      // 调用回调修改标签内容
+      final modifiedTag = widget.onTagModify != null
+          ? widget.onTagModify!(trimmedValue)
+          : trimmedValue;
+
+      if (modifiedTag == null) {
+        // 如果返回 null，中断操作
+        _showErrorMessage("标签不符合预期");
+        return;
+      }
+
+      if (!_tags.contains(modifiedTag)) {
+        setState(() {
+          _tags.add(modifiedTag);
+        });
+        _updateTags();
+      }
+      _controller.clear();
+    } catch (e) {
+      _showErrorMessage(e.toString());
+    }
   }
+
+// 显示错误信息的方法
+  void _showErrorMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  void _removeTag(String tag) {
+    setState(() {
+      _tags.remove(tag);
+    });
+    _updateTags();
+  }
+
+  void _updateTags() {
+    if (widget.onTagsUpdated != null) {
+      widget.onTagsUpdated!(_tags);
+    }
+  }
+
+  List<String> get tags => _tags; // Getter: 获取所有标签
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Autocomplete<String>(
-          optionsBuilder: (TextEditingValue textEditingValue) async {
-            if (textEditingValue.text.isEmpty) {
-              return const Iterable<String>.empty();
-            }
-            final suggestions = await widget.fetchSuggestions(textEditingValue.text);
-            return suggestions;
-          },
-          displayStringForOption: (String option) => option,
-          onSelected: (String selection) {
-            debugPrint('Selected: $selection');
-            _textController.text = selection;
-            // 调用父组件提供的回调
-            if (widget.onSelected != null) {
-              widget.onSelected!(selection);
+        TextField(
+          controller: _controller,
+          decoration: InputDecoration(
+            labelText: 'Enter tags',
+            hintText: 'Type and press comma or Enter',
+            border: OutlineInputBorder(),
+          ),
+          onChanged: (value) {
+            widget.onChange(value); // 实时回调当前输入值
+            if (value.contains(',')) {
+              final parts = value.split(',');
+              parts.forEach(_addTag);
             }
           },
-          fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
-            // 同步传入的 textEditingController
-            textEditingController.text = _textController.text;
-            textEditingController.addListener(() {
-              if (textEditingController.text != _textController.text) {
-                _textController.text = textEditingController.text;
-                _textController.selection =
-                    TextSelection.collapsed(offset: _textController.text.length);
-              }
-            });
-
-            // 在 reset 时同步清空 textEditingController
-            _textController.addListener(() {
-              if (textEditingController.text != _textController.text) {
-                textEditingController.text = _textController.text;
-              }
-            });
-
-            return TextField(
-              controller: textEditingController,
-              focusNode: focusNode,
-              decoration: InputDecoration(
-                labelText: widget.labelText,
-                hintText: widget.hintText,
-                border: OutlineInputBorder(),
-              ),
+          onSubmitted: _addTag,
+        ),
+        SizedBox(height: 8.0),
+        Wrap(
+          spacing: 8.0,
+          runSpacing: 4.0,
+          children: _tags.map((tag) {
+            return Chip(
+              label: Text(tag),
+              onDeleted: () => _removeTag(tag),
+              deleteIcon: Icon(Icons.close, size: 18),
             );
-          },
-          optionsViewBuilder: (context, onSelected, options) {
-            if (options.isEmpty) {
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  '无匹配选项',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              );
-            }
-            return Align(
-              alignment: Alignment.topLeft,
-              child: Material(
-                elevation: 4.0,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(maxHeight: 200),
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: options.length,
-                    itemBuilder: (context, index) {
-                      final option = options.elementAt(index);
-                      return ListTile(
-                        title: Text(option),
-                        onTap: () {
-                          onSelected(option);
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ),
-            );
-          },
+          }).toList(),
         ),
       ],
     );
   }
 }
 
-
-void main() => runApp(App());
-
-class App extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'CustomFieldSuggestion Demo',
-      home: HomePage(),
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('SuggestionTextField Demo')),
+void main() {
+  runApp(MaterialApp(
+    home: Scaffold(
+      appBar: AppBar(title: Text('Tag Input Example')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            SuggestionTextField(
-              labelText: 'Search',
-              hintText: 'Enter a name',
-              initialValue: 'Alice', // 设置默认值
-              fetchSuggestions: (query) async {
-                await Future.delayed(Duration(milliseconds: 300));
-                final allSuggestions = ['Alice', 'Bob', 'Charlie', 'David', 'Eve'];
-                return allSuggestions
-                    .where((item) => item.toLowerCase().contains(query.toLowerCase()))
-                    .toList();
-              },
-              onSelected: (value) {
-                debugPrint('User selected: $value');
-              },
-            ),
-          ],
+        child: TagInputField(
+          defaultTags: ['Flutter', 'Dart'],
+          onChange: (value) {
+            print('Current input: $value');
+          },
+          onTagsUpdated: (tags) {
+            print('All tags: $tags');
+          },
+          onTagModify: (tag) {
+            // 示例：限制标签长度为 10，并要求只包含字母
+            if (tag.length > 10) {
+              return null; // 或抛出异常：throw Exception('标签长度不能超过10个字符');
+            }
+            if (!RegExp(r'^[a-zA-Z]+$').hasMatch(tag)) {
+              throw Exception('标签只能包含字母');
+            }
+            return tag.toUpperCase(); // 修改为大写
+          },
         ),
       ),
-    );
-  }
+    ),
+  ));
 }
-

@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import 'package:admin_flutter/app/home/head/logic.dart';
+import 'package:admin_flutter/ex/ex_hint.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -1677,4 +1679,158 @@ class SuggestionTextFieldState extends State<SuggestionTextField> {
     );
   }
 }
+
+class TagInputField extends StatefulWidget {
+  final List<String> defaultTags;
+  final Future<String?> Function(String)? onTagModifyAsync;
+  final void Function(List<String> tags)? onTagsUpdated;
+  final String hintText;
+  final double? width;
+  final double? height;
+
+  const TagInputField({
+    Key? key,
+    this.defaultTags = const [],
+    this.onTagModifyAsync,
+    this.onTagsUpdated,
+    this.hintText = '请输入专业ID，按回车或逗号确认，最多可一次性添加三个',
+    this.width,
+    this.height,
+  }) : super(key: key);
+
+  @override
+  _TagInputFieldState createState() => _TagInputFieldState();
+}
+
+class _TagInputFieldState extends State<TagInputField> {
+  final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+  final List<String> _tags = [];
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _tags.addAll(widget.defaultTags);
+  }
+
+  Future<void> _addTag(String value) async {
+    final trimmedValue = value.trim();
+    if (trimmedValue.isEmpty) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      String? modifiedTag = trimmedValue;
+
+      // 调用异步方法修改标签
+      if (widget.onTagModifyAsync != null) {
+        modifiedTag = await widget.onTagModifyAsync!(trimmedValue);
+      }
+
+      if (modifiedTag == null || modifiedTag.isEmpty) {
+        _showErrorMessage("请输入正确的专业ID");
+      } else if (!_tags.contains(modifiedTag)) {
+        setState(() {
+          _tags.add(modifiedTag!);
+        });
+        _updateTags();
+      }
+
+      _controller.clear();
+    } catch (e) {
+      _showErrorMessage(e.toString());
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<bool> _updateTags() async {
+    if (widget.onTagsUpdated != null) {
+      try {
+        // 调用 onTagsUpdated 并等待其执行
+        widget.onTagsUpdated!(_tags);
+
+        // 假设 onTagsUpdated 执行成功，不返回 null 或错误
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  void _showErrorMessage(String message) {
+    message.toHint();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: widget.width ?? double.infinity,
+          height: widget.height ?? 50.0,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey), // 灰色边框
+            borderRadius: BorderRadius.circular(2.0),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    hintText: widget.hintText,
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF999999),
+                      fontSize: 12,
+                      fontFamily: 'PingFang SC',
+                      fontWeight: FontWeight.w400,
+                    ),
+                    isCollapsed: true, // 确保内容对齐
+                    contentPadding: EdgeInsets.symmetric(
+                      vertical: (widget.height ?? 50.0) / 2 - 10,
+                      horizontal: 3.0,
+                    ),
+                  ),
+                  onSubmitted: _addTag,
+                  textInputAction: TextInputAction.done,
+                ),
+              ),
+              if (_isLoading) const CircularProgressIndicator(strokeWidth: 2),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8.0),
+        Wrap(
+          spacing: 8.0,
+          runSpacing: 8.0,
+          children: _tags
+              .map((tag) => Chip(
+            label: Text(tag),
+            onDeleted: () {
+              setState(() {
+                _tags.remove(tag);
+                _updateTags();
+              });
+            },
+          ))
+              .toList(),
+        ),
+      ],
+    );
+  }
+}
+
+
+
 

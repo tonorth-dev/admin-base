@@ -1,3 +1,5 @@
+import 'package:admin_flutter/app/home/head/logic.dart';
+import 'package:admin_flutter/ex/ex_hint.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
@@ -204,17 +206,40 @@ class _StudentAddFormState extends State<StudentAddForm> {
                   ),
                   SizedBox(
                     width: 600,
-                    child: TextInputWidget(
-                      width: 240,
+                    child: TagInputField(
                       height: 34,
-                      maxLines: 8,
-                      hint: "输入推荐人",
-                      text: logic.referrer,
-                      onTextChanged: (value) {
-                        logic.referrer.value = value;
+                      width: 600,
+                      // defaultTags: ['Flutter', 'Dart'],
+                      // onChange: (value) {
+                      //   print('Current input: $value');
+                      // },
+                      onTagsUpdated: (tags) {
+                        if (tags.length > 3) {
+                          "最多只能选择三个专业".toHint();
+                          return;
+                        }
+                        final RegExp idPattern = RegExp(r'ID：(\d+)');
+
+                        // 抽取所有ID并转换为整数列表
+                        List<String> ids = tags
+                            .map((item) => idPattern.firstMatch(item)?.group(1))
+                            .whereType<String>() // 过滤掉可能的null值
+                            .toList();
+
+                        // 将ID列表连接成一个由逗号分隔的字符串
+                        logic.majorIds.value = ids.join(',');
                       },
-                    ),
-                  ),
+                      onTagModifyAsync: (tag) async {
+                        if (!RegExp(r'^[0-9]+$').hasMatch(tag)) {
+                          return null;
+                        }
+                        tag = await logic.fetchMajor(tag);
+                        if (tag.isEmpty) {
+                          return null;
+                        }
+                        return tag;
+                      },
+                    ),),
                 ],
               ),
               const SizedBox(height: 10),
@@ -291,7 +316,6 @@ class _StudentAddFormState extends State<StudentAddForm> {
                       items: [
                         {'id': '1', 'name': '未生效'},
                         {'id': '2', 'name': '生效中'},
-                        {'id': '5', 'name': '已过期'},
                       ],
                       hint: '',
                       label: true,

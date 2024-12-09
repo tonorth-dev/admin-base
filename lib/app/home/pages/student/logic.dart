@@ -294,11 +294,9 @@ class StudentLogic extends GetxController {
     final classIdSubmit = classId.value;
     final referrerSubmit = referrer.value;
     final jobCodeSubmit = jobCode.value;
-    final jobDescSubmit = jobDesc.value;
     final majorIdsSubmit = majorIds.value;
-    final majorNamesSubmit = majorNames.value;
     final statusSubmit = status.value;
-    final expireTimeSubmit = expireTime.value;
+    // final expireTimeSubmit = expireTime.value;
 
     bool isValid = true;
     String errorMessage = "";
@@ -311,21 +309,35 @@ class StudentLogic extends GetxController {
       isValid = false;
       errorMessage += "电话不能为空\n";
     }
+    if (classIdSubmit.isEmpty) {
+      isValid = false;
+      errorMessage += "班级ID不能为空\n";
+    }
+    if (jobCodeSubmit.isEmpty) {
+      isValid = false;
+      errorMessage += "岗位代码不能为空\n";
+    }
+    if (majorIdsSubmit.isEmpty) {
+      isValid = false;
+      errorMessage += "专业ID不能为空\n";
+    }
+    if (statusSubmit.isEmpty) {
+      isValid = false;
+      errorMessage += "考生状态不能为空\n";
+    }
+
 
     if (isValid) {
       try {
         Map<String, dynamic> params = {
           "name": nameSubmit,
           "phone": phoneSubmit,
-          "institution_id": institutionIdSubmit,
-          "class_id": classIdSubmit,
+          "institution_id": int.parse(institutionIdSubmit),
+          "class_id": int.parse(classIdSubmit),
           "referrer": referrerSubmit,
           "job_code": jobCodeSubmit,
-          "job_desc": jobDescSubmit,
           "major_ids": majorIdsSubmit,
-          "major_names": majorNamesSubmit,
           "status_name": statusSubmit,
-          "expire_time": expireTimeSubmit,
           "status": int.parse(statusSubmit),
         };
 
@@ -486,6 +498,22 @@ class StudentLogic extends GetxController {
       // Handle any exceptions that are thrown
       print('Error fetching classes: $e');
       return [];
+    }
+  }
+
+  Future<String> fetchMajor(String id) async {
+    try {
+      final response = await MajorApi.majorDetail(id);
+      if (response['id'] > 0) {
+        return "${response['major_name']}(ID：${response['id']})";
+      } else {
+        // Handle the case where data is not a List
+        return "";
+      }
+    } catch (e) {
+      // Handle any exceptions that are thrown
+      print('Error fetching classes: $e');
+      return "";
     }
   }
 
