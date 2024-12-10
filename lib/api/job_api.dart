@@ -75,6 +75,19 @@ class JobApi {
       rethrow; // 重新抛出异常以便调用者处理
     }
   }
+  static Future<dynamic> jobDetailByCode(String code) async {
+    try {
+      // 构建最终参数，并确保 null 值替换为 ''
+      final Map<String, String> finalParams = {
+        'code': code,
+      };
+
+      return await HttpUtil.get("/admin/job/job/list", params: finalParams);
+    } catch (e) {
+      print('获取题目列表时发生错误: $e');
+      rethrow; // 重新抛出异常以便调用者处理
+    }
+  }
 
   // 更新题目
   static Future<dynamic> jobUpdate(int id, Map<String, dynamic> params) async {
@@ -187,7 +200,4 @@ class JobApi {
       throw Exception('审核请求失败: $e');
     }
   }
-
-
-
 }

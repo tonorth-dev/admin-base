@@ -218,36 +218,6 @@ class MajorPage extends StatelessWidget {
     );
   }
 
-  double _getColumnWidth(String key) {
-    switch (key) {
-      case 'id':
-        return 0;
-      case 'code':
-        return 80;
-      case 'name':
-        return 120;
-      case 'cate':
-        return 80;
-      case 'company_code':
-        return 80;
-      case 'company_name':
-        return 120;
-      case 'course_desc':
-        return 200;
-      case 'major_name':
-        return 200;
-      case 'source':
-      case 'city':
-      case 'ext':
-      case 'status':
-      case 'major_id':
-      case 'create_time':
-        return 0;
-      default:
-        return 100; // 默认宽度
-    }
-  }
-
   static SidebarTree newThis() {
     return SidebarTree(
       name: "专业管理",

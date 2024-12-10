@@ -214,9 +214,9 @@ class _StudentAddFormState extends State<StudentAddForm> {
                       //   print('Current input: $value');
                       // },
                       onTagsUpdated: (tags) {
+                        print('Selected tags: $tags');
                         if (tags.length > 3) {
-                          "最多只能选择三个专业".toHint();
-                          return;
+                          return Future.error("专业数量超出限制");
                         }
                         final RegExp idPattern = RegExp(r'ID：(\d+)');
 
@@ -225,9 +225,11 @@ class _StudentAddFormState extends State<StudentAddForm> {
                             .map((item) => idPattern.firstMatch(item)?.group(1))
                             .whereType<String>() // 过滤掉可能的null值
                             .toList();
-
                         // 将ID列表连接成一个由逗号分隔的字符串
-                        logic.majorIds.value = ids.join(',');
+                        print('选中的ID列表：${ids.join(",")}');
+
+                        logic.majorIds.value = ids.join(",");
+                        return Future.value(); // 返回成功
                       },
                       onTagModifyAsync: (tag) async {
                         if (!RegExp(r'^[0-9]+$').hasMatch(tag)) {
@@ -256,19 +258,41 @@ class _StudentAddFormState extends State<StudentAddForm> {
                   ),
                   SizedBox(
                     width: 600,
-                    child: TextInputWidget(
-                      width: 240,
+                    child: TagInputField(
                       height: 34,
-                      maxLines: 8,
-                      hint: "输入岗位代码",
-                      text: logic.jobCode,
-                      onTextChanged: (value) {
-                        logic.jobCode.value = value;
+                      width: 600,
+                      // defaultTags: ['Flutter', 'Dart'],
+                      // onChange: (value) {
+                      //   print('Current input: $value');
+                      // },
+                      onTagsUpdated: (tags) {
+                        if (tags.length > 1) {
+                          return Future.error("只能对应一个岗位");
+                        }
+                        final RegExp idPattern = RegExp(r'ID：(\d+)');
+
+                        // 抽取所有ID并转换为整数列表
+                        List<String> ids = tags
+                            .map((item) => idPattern.firstMatch(item)?.group(1))
+                            .whereType<String>() // 过滤掉可能的null值
+                            .toList();
+
+                        // 将ID列表连接成一个由逗号分隔的字符串
+                        print('选中的ID列表：${ids.join(",")}');
+                        logic.jobCode.value = ids.join(",");
+                        return Future.value(); // 返回成功
                       },
-                      validator:
-                          FormBuilderValidators.required(errorText: '岗位代码不能为空'),
-                    ),
-                  ),
+                      onTagModifyAsync: (tag) async {
+                        if (!RegExp(r'^[0-9]+$').hasMatch(tag)) {
+                          return null;
+                        }
+                        tag = await logic.fetchJob(tag);
+                        if (tag.isEmpty) {
+                          return null;
+                        }
+                        return tag;
+                      },
+                    ),),
                 ],
               ),
               const SizedBox(height: 10),

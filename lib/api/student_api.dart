@@ -91,7 +91,7 @@ class StudentApi {
   static Future<dynamic> studentUpdate(int id, Map<String, dynamic> params) async {
     try {
       // 必传字段校验
-      List<String> requiredFields = ['name', 'city', 'leader'];
+      List<String> requiredFields = ['name', 'phone', 'status'];
       for (var field in requiredFields) {
         if (!params.containsKey(field) || params[field] == null) {
           throw ArgumentError('Missing required field: $field');

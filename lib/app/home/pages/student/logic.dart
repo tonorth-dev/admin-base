@@ -1,4 +1,5 @@
 import 'package:admin_flutter/api/classes_api.dart';
+import 'package:admin_flutter/api/job_api.dart';
 import 'package:admin_flutter/ex/ex_list.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -174,6 +175,9 @@ class StudentLogic extends GetxController {
   final RxString uStatus = ''.obs;
   final RxString uExpireTime = ''.obs;
   final RxString uUpdateTime = ''.obs;
+  final RxList<String> formattedMajorNames = <String>[].obs;
+  final RxList<String> formattedJobNames = <String>[].obs;
+
 
 
 
@@ -263,20 +267,16 @@ class StudentLogic extends GetxController {
         studentId: student["id"],
         initialName: student["name"],
         initialPhone: student["phone"],
-        initialPassword: student["password"],
-        initialProvince: student["province"],
-        initialCity: student["city"],
-        initialLeader: student["leader"],
-        initialInstitutionId: student["institution_id"],
+        initialInstitutionId: student["institution_id"].toString(),
         initialInstitutionName: student["institution_name"],
-        initialClassId: student["class_id"],
+        initialClassId: student["class_id"].toString(),
         initialClassName: student["class_name"],
         initialReferrer: student["referrer"],
         initialJobCode: student["job_code"],
         initialJobName: student["job_name"],
         initialJobDesc: student["job_desc"],
-        initialMajorIds: student["major_ids"],
-        initialMajorNames: student["major_names"],
+        initialMajorIds: List<String>.from(student["major_ids"]),
+        initialMajorNames: List<String>.from(student["major_names"]),
         initialExpireTime: student["expire_time"],
         initialStatus: student["status"].toString(),
       ),
@@ -365,7 +365,6 @@ class StudentLogic extends GetxController {
   Future<bool> updateStudent(int studentId) async {
     final uNameSubmit = uName.value;
     final uPhoneSubmit = uPhone.value;
-    final uPasswordSubmit = uPassword.value;
     final uInstitutionIdSubmit = uInstitutionId.value;
     final uInstitutionNameSubmit = uInstitutionName.value;
     final uClassIdSubmit = uClassId.value;
@@ -391,20 +390,15 @@ class StudentLogic extends GetxController {
       isValid = false;
       errorMessage += "电话不能为空\n";
     }
-    if (uPasswordSubmit.isEmpty) {
-      isValid = false;
-      errorMessage += "密码不能为空\n";
-    }
 
     if (isValid) {
       try {
         Map<String, dynamic> params = {
           "name": uNameSubmit,
           "phone": uPhoneSubmit,
-          "password": uPasswordSubmit,
-          "institution_id": uInstitutionIdSubmit,
+          "institution_id": int.parse(uInstitutionIdSubmit),
           "institution_name": uInstitutionNameSubmit,
-          "class_id": uClassIdSubmit,
+          "class_id": int.parse(uClassIdSubmit),
           "class_name": uClassNameSubmit,
           "referrer": uReferrerSubmit,
           "job_code": uJobCodeSubmit,
@@ -513,6 +507,23 @@ class StudentLogic extends GetxController {
     } catch (e) {
       // Handle any exceptions that are thrown
       print('Error fetching classes: $e');
+      return "";
+    }
+  }
+
+  Future<String> fetchJob(String code) async {
+    try {
+      final response = await JobApi.jobDetailByCode(code);
+      if (response != null && response["list"].length > 0) {
+          var data = response["list"][0];
+        return "${data['name']}(ID：${data['code']})";
+      } else {
+        // Handle the case where data is not a List
+        return "";
+      }
+    } catch (e) {
+      // Handle any exceptions that are thrown
+      print('Error fetching jobs: $e');
       return "";
     }
   }

@@ -1683,7 +1683,7 @@ class SuggestionTextFieldState extends State<SuggestionTextField> {
 class TagInputField extends StatefulWidget {
   final List<String> defaultTags;
   final Future<String?> Function(String)? onTagModifyAsync;
-  final void Function(List<String> tags)? onTagsUpdated;
+  final Future<void> Function(List<String> tags)? onTagsUpdated;
   final String hintText;
   final double? width;
   final double? height;
@@ -1732,11 +1732,32 @@ class _TagInputFieldState extends State<TagInputField> {
 
       if (modifiedTag == null || modifiedTag.isEmpty) {
         _showErrorMessage("请输入正确的专业ID");
-      } else if (!_tags.contains(modifiedTag)) {
+        return;
+      }
+
+      // 检查标签是否已存在，避免重复
+      if (_tags.contains(modifiedTag)) {
+        _showErrorMessage("标签已存在");
+        return;
+      }
+
+      // 临时生成一个新标签列表，包含当前标签
+      final List<String> tempTags = List.from(_tags)..add(modifiedTag);
+
+      // 在添加之前验证标签数量
+      if (widget.onTagsUpdated != null) {
+        await widget.onTagsUpdated!(tempTags).then((_) {
+          setState(() {
+            _tags.add(modifiedTag!);
+          });
+        }).catchError((error) {
+          _showErrorMessage(error.toString());
+        });
+      } else {
+        // 如果没有 onTagsUpdated 回调，直接添加
         setState(() {
           _tags.add(modifiedTag!);
         });
-        _updateTags();
       }
 
       _controller.clear();
@@ -1752,19 +1773,22 @@ class _TagInputFieldState extends State<TagInputField> {
   Future<bool> _updateTags() async {
     if (widget.onTagsUpdated != null) {
       try {
-        // 调用 onTagsUpdated 并等待其执行
-        widget.onTagsUpdated!(_tags);
-
-        // 假设 onTagsUpdated 执行成功，不返回 null 或错误
+        // 调用 onTagsUpdated，并等待其执行
+        await widget.onTagsUpdated!(_tags);
+        // 如果 onTagsUpdated 执行成功，返回 true
         return true;
       } catch (e) {
+        // 如果执行失败，返回 false
+        _showErrorMessage("添加失败：${e.toString()}");
         return false;
       }
     }
+    // 默认返回 true，表示没有更新逻辑
     return true;
   }
 
   void _showErrorMessage(String message) {
+    // 使用扩展方法或其他方式显示错误信息
     message.toHint();
   }
 
@@ -1830,6 +1854,8 @@ class _TagInputFieldState extends State<TagInputField> {
     );
   }
 }
+
+
 
 
 
