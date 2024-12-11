@@ -577,6 +577,9 @@ class LectureLogic extends GetxController {
       }
     }
   }
+
+  void deleteDirectory(int id) async {
+  }
 }
 
 

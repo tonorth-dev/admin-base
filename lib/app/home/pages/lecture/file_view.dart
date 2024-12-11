@@ -36,12 +36,76 @@ class LectureFileView extends StatelessWidget {
       controller: treeview.TreeViewController(
         children: _buildTreeNodes(logic.directoryTree),
       ),
-      onNodeTap: (key) {
-        final node = _findNodeByKey(key, logic.directoryTree);
-        if (node != null) {
-          _showContextMenu(context, node);
-        }
+      nodeBuilder: (BuildContext context, treeview.Node<dynamic> node) {
+        return _buildTreeNode(context, node as treeview.Node<DirectoryNode>);
       },
+      onExpansionChanged: (key, expanded) {
+        // Handle expansion changes if needed
+      },
+    );
+  }
+
+  Widget _buildTreeNode(BuildContext context, treeview.Node<DirectoryNode> node) {
+    final DirectoryNode dirNode = node.data!;
+    return Row(
+      children: [
+        Expanded(
+          child: GestureDetector(
+            onTap: () => _toggleExpansion(node.key),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Text(dirNode.name),
+            ),
+          ),
+        ),
+        SizedBox(width: 8), // Some spacing between text and buttons
+        TextButton(
+          onPressed: () => _addSubdirectory(context, dirNode),
+          child: Text('+', style: TextStyle(fontSize: 16)),
+        ),
+        TextButton(
+          onPressed: () => _importFile(context, dirNode),
+          child: Text('↑', style: TextStyle(fontSize: 16)), // Upload symbol
+        ),
+        TextButton(
+          onPressed: () => logic.importFileAsSubdirectory(context, dirNode),
+          child: Text('📁', style: TextStyle(fontSize: 16)), // Folder open symbol
+        ),
+        TextButton(
+          onPressed: () => _confirmDelete(context, dirNode),
+          child: Text('-', style: TextStyle(fontSize: 16, color: Colors.red)), // Delete symbol
+        ),
+      ],
+    );
+  }
+
+  void _toggleExpansion(String key) {
+    // Assuming you have access to the TreeViewController
+    // You may need to pass it down or use a stateful widget to manage the controller.
+    // For simplicity, here we just print the key for now.
+    print('Toggle expansion for key: $key');
+  }
+
+  void _confirmDelete(BuildContext context, DirectoryNode node) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Confirm Deletion"),
+        content: Text("Are you sure you want to delete '${node.name}'?"),
+        actions: [
+          TextButton(
+            child: Text("Cancel"),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          TextButton(
+            child: Text("Delete", style: TextStyle(color: Colors.red)),
+            onPressed: () {
+              logic.deleteDirectory(node.id); // Call your delete method here
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -49,91 +113,11 @@ class LectureFileView extends StatelessWidget {
     return nodes.map((node) {
       return treeview.Node<DirectoryNode>(
         key: node.id.toString(),
-        label: _buildNodeLabel(node),
+        label: node.name, // Use string label here
         children: _buildTreeNodes(node.children),
         data: node,
       );
     }).toList();
-  }
-
-  Widget _buildNodeLabel(DirectoryNode node) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(node.name),
-        ),
-        IconButton(
-          icon: Icon(Icons.add),
-          tooltip: 'Add Subdirectory',
-          onPressed: () => _addSubdirectory(Get.context!, node),
-        ),
-        IconButton(
-          icon: Icon(Icons.file_upload),
-          tooltip: 'Upload File',
-          onPressed: () => _importFile(Get.context!, node),
-        ),
-        IconButton(
-          icon: Icon(Icons.folder_open),
-          tooltip: 'Import File as Subdirectory',
-          onPressed: () => logic.importFileAsSubdirectory(Get.context!, node),
-        ),
-      ],
-    );
-  }
-
-  treeview.Node<DirectoryNode>? _findNodeByKey(String key, List<DirectoryNode> nodes) {
-    for (var node in nodes) {
-      if (node.id.toString() == key) {
-        return treeview.Node<DirectoryNode>(
-          key: node.id.toString(),
-          label: node.name,
-          children: _buildTreeNodes(node.children),
-          data: node,
-        );
-      }
-      final foundNode = _findNodeByKey(key, node.children);
-      if (foundNode != null) {
-        return foundNode;
-      }
-    }
-    return null;
-  }
-
-  void _showContextMenu(BuildContext context, treeview.Node<DirectoryNode> node) {
-    final DirectoryNode dirNode = node.data!;
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            _buildListTile(
-              icon: Icons.create_new_folder,
-              text: 'Add Subdirectory',
-              onTap: () {
-                Navigator.pop(context);
-                _addSubdirectory(context, dirNode);
-              },
-            ),
-            _buildListTile(
-              icon: Icons.file_upload,
-              text: 'Import File',
-              onTap: () {
-                Navigator.pop(context);
-                _importFile(context, dirNode);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  ListTile _buildListTile({required IconData icon, required String text, required VoidCallback onTap}) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(text),
-      onTap: onTap,
-    );
   }
 
   void _addSubdirectory(BuildContext context, DirectoryNode parent) {
