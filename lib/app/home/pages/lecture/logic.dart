@@ -455,7 +455,7 @@ class LectureLogic extends GetxController {
   void deleteDirectory(int id) {
     try {
       LectureApi.deleteDirectory(id.toString()).then((value) {
-        loadDirectoryTree(selectedLectureId.value);
+        loadDirectoryTree(selectedLectureId.value, true);
       }).catchError((error) {
         "删除失败: $error".toHint();
       });
@@ -518,19 +518,24 @@ class LectureLogic extends GetxController {
         'parent_id': parentId,
         'name': name,
       });
-      loadDirectoryTree(selectedLectureId.value); // Refresh the directory tree
+      loadDirectoryTree(selectedLectureId.value, true); // Refresh the directory tree
     } catch (e) {
       print("Failed to add directory: $e");
       // Handle error
     }
   }
 
-  void loadDirectoryTree(String lectureId) async {
+  void loadDirectoryTree(String lectureId, bool isRefresh) async {
+    if(selectedLectureId.value == lectureId && !isRefresh) {
+      return; // No need to reload if the selected lecture hasn't changed'
+    }
+
     selectedLectureId.value = lectureId;
     try {
       final treeData = await LectureApi.getLectureDirectoryTree(lectureId);
       print(treeData);
       directoryTree.value = _buildTreeFromAPIResponse(treeData);
+      updatePdfUrl("");
     } catch (e) {
       print("Failed to load directory tree: $e");
       // Handle error, possibly show to user or log
@@ -562,7 +567,7 @@ class LectureLogic extends GetxController {
   void importFileToNode(File file, int nodeId) async {
     try {
       await LectureApi.importFileToNode(nodeId, file);
-      loadDirectoryTree(selectedLectureId.value); // Refresh the directory tree after import
+      loadDirectoryTree(selectedLectureId.value, true); // Refresh the directory tree after import
     } catch (e) {
       print("Failed to import file: $e");
       // Handle error
@@ -581,9 +586,14 @@ Future<void> importFileToDir(File file, int lectureId, int nodeId) async {
     }
   }
 
-  final selectedPdfUrl = RxnString();
+  final selectedPdfUrl = RxnString("");
 
   void updatePdfUrl(String url) {
+    if(url.isEmpty) {
+      selectedPdfUrl.value = "";
+      debugPrint('Selected PDF URL updated: ${selectedPdfUrl.value}');
+      return;
+    }
     if (selectedPdfUrl.value != "http://127.0.0.1:9000/hongshi$url") {
       selectedPdfUrl.value = "http://127.0.0.1:9000/hongshi$url";
       debugPrint('Selected PDF URL updated: ${selectedPdfUrl.value}');

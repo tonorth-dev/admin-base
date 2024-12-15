@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:pdfx/pdfx.dart';
 import 'package:http/http.dart' as http;
 
+import '../../../../component/table/ex.dart';
+import '../../../../theme/theme_util.dart';
 import 'logic.dart';
 
 class PdfPreView extends StatefulWidget {
@@ -13,7 +15,6 @@ class PdfPreView extends StatefulWidget {
   @override
   _PdfPreViewState createState() => _PdfPreViewState();
 }
-
 class _PdfPreViewState extends State<PdfPreView> {
   final LectureLogic pdfLogic = Get.put(LectureLogic());
   PdfControllerPinch? _pdfController;
@@ -79,11 +80,39 @@ class _PdfPreViewState extends State<PdfPreView> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(widget.title, style: Theme.of(context).textTheme.titleLarge),
+        TableEx.actions(
+          children: [
+            SizedBox(width: 30), // 添加一些间距
+            Container(
+              height: 50,
+              width: 100,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.blue.shade700, Colors.blue.shade300],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Center(
+                child: Text(
+                  "文件预览",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        ThemeUtil.lineH(),
+        ThemeUtil.height(),
         Obx(() {
           final selectedPdfUrl = pdfLogic.selectedPdfUrl.value;
-          if (selectedPdfUrl == null) {
-            return Center(child: Text("Select a PDF to preview"));
+          if (selectedPdfUrl!.isEmpty) {
+            return Center(child: Text("请选择一个文件"));
           }
           return Expanded(
             child: _pdfController != null

@@ -26,13 +26,36 @@ class LectureTableView extends StatelessWidget {
           TableEx.actions(
             children: [
               SizedBox(width: 30), // 添加一些间距
+              Container(
+                height: 50,
+                width: 100,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.blue.shade700, Colors.blue.shade300],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Center(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 8), // 添加一些间距
               CustomButton(
                 onPressed: () => logic.add(context),
                 text: '新增',
                 width: 70, // 自定义宽度
                 height: 32, // 自定义高度
               ),
-              SizedBox(width: 240), // 添加一些间距
+              SizedBox(width: 120), // 添加一些间距
               // Padding(
               //   padding: EdgeInsets.all(16.0),
               //   child: FutureBuilder<void>(
@@ -337,7 +360,7 @@ class LectureDataSource extends DataGridSource {
               text: "管理",
               onTap: () {
                 print(item);
-                logic.loadDirectoryTree(item['id'].toString());
+                logic.loadDirectoryTree(item['id'].toString(), false);
               },
             ),
             SizedBox(width: 5),
