@@ -50,7 +50,22 @@ class LectureFileView extends StatelessWidget {
         Expanded(
           child: Obx(() {
             if (logic.directoryTree.isEmpty) {
-              return Center(child: Text("点击讲义列表的管理按钮，进行文件管理"));
+              return Container(
+                padding: EdgeInsets.all(16.0), // 设置内边距
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100, // 设置背景色
+                ),
+                child: Center(
+                  child: Text(
+                    "点击讲义列表的管理按钮，进行文件管理",
+                    style: TextStyle(
+                      fontSize: 16.0, // 设置字体大小
+                      color: Colors.blue.shade700, // 设置字体颜色
+                      fontWeight: FontWeight.bold, // 设置字体粗细
+                    ),
+                  ),
+                ),
+              );
             } else {
               return _buildTreeView(context);
             }
@@ -98,12 +113,11 @@ class LectureFileView extends StatelessWidget {
     final bool isExpanded = node.expanded ?? false;
 
     return GestureDetector(
+      behavior: HitTestBehavior.translucent,
       onTap: () {
         if (isFileNode && isLeafNode) {
-          // 如果是叶子节点并且文件路径不为空，则调用 logic.updatePdfUrl
           logic.updatePdfUrl(dirNode.filePath!);
         } else {
-          // 否则展开/收起节点
           _toggleExpansion(node.key, !isExpanded);
         }
       },
@@ -123,7 +137,6 @@ class LectureFileView extends StatelessWidget {
             Expanded(
               child: Text(dirNode.name),
             ),
-            // 将按钮区域隔离开来
             SizedBox(width: 16), // 添加一些间距
             _buildOperationButtons(context, dirNode),
           ],
@@ -179,7 +192,6 @@ class LectureFileView extends StatelessWidget {
     );
   }
 
-  // 确保 _buildIconButton 正确处理禁用状态
   Widget _buildIconButton(
       IconData icon,
       String tooltip,
@@ -192,14 +204,18 @@ class LectureFileView extends StatelessWidget {
       child: MouseRegion(
         cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
         child: GestureDetector(
-          onTap: isEnabled ? onPressed : null, // 如果按钮禁用，则不绑定点击事件
+          onTap: isEnabled ? onPressed : null, // 如果禁用，则不绑定点击事件
           child: Container(
             padding: const EdgeInsets.all(4.0),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(4.0),
               color: Colors.transparent,
             ),
-            child: Icon(icon, size: 16, color: isEnabled ? (color ?? Colors.black) : Colors.grey),
+            child: Icon(
+              icon,
+              size: 16,
+              color: isEnabled ? (color ?? Colors.black) : Colors.grey,
+            ),
           ),
         ),
       ),
@@ -256,7 +272,7 @@ class LectureFileView extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("添加目录"),
+        title: Text("添加节点"),
         content: TextField(
           onChanged: (value) => newDirName = value,
           decoration: InputDecoration(hintText: "目录名称"),
@@ -303,15 +319,37 @@ class LectureFileView extends StatelessWidget {
     }
   }
 
-  void _updateDir(BuildContext context, DirectoryNode node) async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
+  void _updateDir(BuildContext context, DirectoryNode node) {
+    TextEditingController controller = TextEditingController(text: node.name);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("修改节点名称"),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(hintText: "节点名称"),
+        ),
+        actions: [
+          TextButton(
+            child: Text("取消"),
+            onPressed: () {
+              Navigator.of(context).pop();
+              controller.dispose(); // 释放控制器
+            },
+          ),
+          TextButton(
+            child: Text("更新"),
+            onPressed: () {
+              final newDirName = controller.text;
+              if (newDirName.isNotEmpty) {
+                logic.updateDirectory(newDirName, node.id);
+                Navigator.of(context).pop();
+                controller.dispose(); // 释放控制器
+              }
+            },
+          ),
+        ],
+      ),
     );
-    if (result != null) {
-      File file = File(result.files.single.path!);
-      logic.importFileToDir(
-          file, int.parse(logic.selectedLectureId.value), node.id);
-    }
   }
 }

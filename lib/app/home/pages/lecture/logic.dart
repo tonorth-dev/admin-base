@@ -525,6 +525,18 @@ class LectureLogic extends GetxController {
     }
   }
 
+  void updateDirectory(String name, int id) async {
+    try {
+      await LectureApi.updateDirectory(selectedLectureId.value, {
+        'name': name,
+      });
+      loadDirectoryTree(selectedLectureId.value, true); // Refresh the directory tree
+    } catch (e) {
+      print("Failed to add directory: $e");
+      // Handle error
+    }
+  }
+
   void loadDirectoryTree(String lectureId, bool isRefresh) async {
     if(selectedLectureId.value == lectureId && !isRefresh) {
       return; // No need to reload if the selected lecture hasn't changed'

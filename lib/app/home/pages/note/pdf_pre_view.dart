@@ -16,7 +16,7 @@ class PdfPreView extends StatefulWidget {
   _PdfPreViewState createState() => _PdfPreViewState();
 }
 class _PdfPreViewState extends State<PdfPreView> {
-  final LectureLogic pdfLogic = Get.put(LectureLogic());
+  final NoteLogic pdfLogic = Get.put(NoteLogic());
   PdfControllerPinch? _pdfController;
   String? _currentUrl;
 
@@ -109,34 +109,18 @@ class _PdfPreViewState extends State<PdfPreView> {
         ),
         ThemeUtil.lineH(),
         ThemeUtil.height(),
-        Expanded( // 使用 Expanded 包裹 Obx 部分
-          child: Obx(() {
-            final selectedPdfUrl = pdfLogic.selectedPdfUrl.value;
-            if (selectedPdfUrl!.isEmpty) {
-              return Container(
-                padding: EdgeInsets.all(16.0), // 设置内边距
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100, // 设置背景色
-                ),
-                child: Center(
-                  child: Text(
-                    "请选择一个文件",
-                    style: TextStyle(
-                      fontSize: 16.0, // 设置字体大小
-                      color: Colors.blue.shade700, // 设置字体颜色
-                      fontWeight: FontWeight.bold, // 设置字体粗细
-                    ),
-                  ),
-                ),
-              );
-            }
-            return _pdfController != null
+        Obx(() {
+          final selectedPdfUrl = pdfLogic.selectedPdfUrl.value;
+          if (selectedPdfUrl!.isEmpty) {
+            return Center(child: Text("请选择一个文件"));
+          }
+          return Expanded(
+            child: _pdfController != null
                 ? PdfViewPinch(controller: _pdfController!)
-                : Center(child: CircularProgressIndicator());
-          }),
-        ),
+                : Center(child: CircularProgressIndicator()),
+          );
+        }),
       ],
     );
   }
-
 }

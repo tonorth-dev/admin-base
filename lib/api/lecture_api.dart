@@ -120,6 +120,28 @@ class LectureApi {
     }
   }
 
+  static Future<dynamic> updateDirectory(String id, Map<String, dynamic> params) async {
+    try {
+      // 必传字段校验
+      List<String> requiredFields = [
+        'name',
+      ];
+      for (var field in requiredFields) {
+        if (!params.containsKey(field) || params[field] == null) {
+          throw ArgumentError('Missing required field: $field');
+        }
+      }
+
+      // 发送POST请求
+      dynamic response = await HttpUtil.put("/admin/lecture/directory/$id", params: params);
+
+      return response;
+    } catch (e) {
+      print('Error in updateDirectory: $e');
+      rethrow; // 重新抛出异常以便调用者处理
+    }
+  }
+
   // 删除目录
   static Future<dynamic> deleteDirectory(String id) async {
     try {

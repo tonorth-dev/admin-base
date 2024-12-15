@@ -25,6 +25,7 @@ import 'package:admin_flutter/app/home/pages/student/view.dart';
 import '../pages/book/book.dart';
 import '../pages/execute/view.dart';
 import '../pages/lecture/view.dart';
+import '../pages/note/view.dart';
 import '../pages/plan/view.dart';
 import '../pages/student_question/view.dart';
 import '../pages/topic/view.dart';
@@ -94,6 +95,7 @@ class SidebarLogic extends GetxController {
 
   static List<SidebarTree> lectureList = [
     LecturePage.newThis(),
+    NotePage.newThis(),
   ];
 
   static List<SidebarTree> topicList = [

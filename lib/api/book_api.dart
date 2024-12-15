@@ -76,6 +76,22 @@ class BookApi {
     }
   }
 
+  static Future<dynamic> generateBook(int bookId, {bool isTeacher = false}) async {
+    try {
+      // 构建查询参数
+      final Map<String, String> queryParams = {
+        'is_teacher': isTeacher ? '1' : '0',
+      };
+
+      // 发送GET请求
+      dynamic response = await HttpUtil.get("/admin/book/book/gen/$bookId", params: queryParams);
+      return response;
+    } catch (e) {
+      print('Error in generateBookData: $e');
+      rethrow; // 重新抛出异常以便调用者处理
+    }
+  }
+
   // 删除题目
   static Future<dynamic> bookDelete(String id) async {
     try {

@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
@@ -312,35 +313,46 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   }
 
   Future<void> _exportPdf({required bool isTeacherVersion}) async {
-    final pdf = pw.Document();
+    try {
+      // 调用 generateBookData 方法
+      final response = await BookApi.generateBook(widget.id, isTeacher: isTeacherVersion);
 
-    // 加载字体
-    final font = await rootBundle.load("assets/fonts/OPPOSans-Regular.ttf");
-    final ttf = pw.Font.ttf(font);
+      // 检查响应状态码
+      if (!response['url'].isEmpty) {
+        // 获取 PDF 文件的 URL
+        final pdfUrl = "http://127.0.0.1:9000/hongshi${response['url']}";
 
-    pdf.addPage(pw.MultiPage(
-      pageFormat: PdfPageFormat.a4,
-      build: (pw.Context context) {
-        return <pw.Widget>[
-          pw.Header(level: 0, child: pw.Text(_data!['name'], style: pw.TextStyle(font: ttf, fontSize: 20))),
-          pw.Paragraph(text: '专业：${_data?['major_name']}', style: pw.TextStyle(font: ttf, fontSize: 9)),
-          pw.Paragraph(text: '难度：${_data?['level_name']}', style: pw.TextStyle(font: ttf, fontSize: 9)),
-          pw.Paragraph(text: '试题套数：${_data?['unit_number']}', style: pw.TextStyle(font: ttf, fontSize: 9)),
-          pw.Paragraph(text: '试题总数：${_data?['questions_number']}', style: pw.TextStyle(font: ttf, fontSize: 9)),
-          pw.Paragraph(text: '试题组成：${(_data?['component_desc'] as List?)?.join(", ")}', style: pw.TextStyle(font: ttf, fontSize: 9)),
-          pw.Divider(),
-          ...(_buildPdfTables(isTeacherVersion: isTeacherVersion, font: ttf)),
-        ];
-      },
-    ));
+        // 下载 PDF 文件
+        await _downloadAndOpenPdf(pdfUrl);
+      } else {
+        throw Exception('Failed to generate PDF: ${response['msg']}');
+      }
+    } catch (e) {
+      print('Error in _exportPdf: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('导出失败：$e')),
+      );
+    }
+  }
 
-    final bytes = await pdf.save();
+  Future<void> _downloadAndOpenPdf(String pdfUrl) async {
+    try {
+      // 获取应用的临时目录
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath = '${directory.path}/output.pdf';
 
-    final dir = await getApplicationDocumentsDirectory();
-    final file = File('${dir.path}/${_data!['name']}.pdf');
-    await file.writeAsBytes(bytes);
+      // 使用 Dio 下载文件
+      final dio = Dio();
+      await dio.download(pdfUrl, filePath);
 
-    OpenFile.open(file.path);
+      // 打开下载的 PDF 文件
+      await OpenFile.open(filePath);
+    } catch (e) {
+      print('Error in _downloadAndOpenPdf: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('下载或打开文件失败：$e')),
+      );
+    }
   }
 
   List<pw.Widget> _buildPdfTables({required bool isTeacherVersion, required pw.Font font}) {

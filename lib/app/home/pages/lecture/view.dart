@@ -17,27 +17,36 @@ class LecturePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(
+        SizedBox(
+          width: 720,
           child: Container(
-            width: 500,
             padding: const EdgeInsets.all(16.0),
             child: LectureTableView(
-                key: const Key("lectureT_table"), title: "讲义列表", logic: logic),
+              key: const Key("lectureT_table"),
+              title: "讲义列表",
+              logic: logic,
+            ),
           ),
         ),
-        Expanded(
+        SizedBox(
+          width: 550,
           child: Container(
-            width: 500,
             padding: const EdgeInsets.all(16.0),
             child: LectureFileView(
-                key: const Key("file_table"), title: "文件管理", logic: logic),
+              key: const Key("file_table"),
+              title: "文件管理",
+              logic: logic,
+            ),
           ),
         ),
-        Expanded(
-          child: Padding(
+        SizedBox(
+          width: 900,
+          child: Container(
             padding: const EdgeInsets.all(16.0),
             child: PdfPreView(
-                key: const Key("pdf_review"), title: "文件预览"),
+              key: const Key("pdf_review"),
+              title: "文件预览",
+            ),
           ),
         ),
       ],
