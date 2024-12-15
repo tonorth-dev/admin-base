@@ -66,17 +66,29 @@ class LectureFileView extends StatelessWidget {
   Widget _buildTreeNode(
       BuildContext context, treeview.Node<DirectoryNode> node) {
     final DirectoryNode dirNode = node.data!;
+    final bool isFileNode = dirNode.filePath != null && dirNode.filePath!.isNotEmpty;
+    final bool isLeafNode = node.children.isEmpty;
     final bool isExpanded = node.expanded ?? false;
 
     return GestureDetector(
-      onTap: () => _toggleExpansion(node.key, !isExpanded),
+      onTap: () {
+        if (isFileNode && isLeafNode) {
+          // 如果是叶子节点并且文件路径不为空，则调用 logic.updatePdfUrl
+          logic.updatePdfUrl(dirNode.filePath!);
+        } else {
+          // 否则展开/收起节点
+          _toggleExpansion(node.key, !isExpanded);
+        }
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: Row(
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4.0),
-              child: Text(
+              child: (isFileNode && isLeafNode)
+                  ? SizedBox(width: 16) // 叶子文件节点不显示 +/-
+                  : Text(
                 isExpanded ? '-' : '+',
                 style: TextStyle(fontSize: 14),
               ),
@@ -84,7 +96,6 @@ class LectureFileView extends StatelessWidget {
             Expanded(
               child: Text(dirNode.name),
             ),
-            // Remove SizedBox and reduce spacing between buttons
             _buildOperationButtons(context, dirNode),
           ],
         ),

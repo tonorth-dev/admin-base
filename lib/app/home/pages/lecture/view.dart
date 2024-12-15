@@ -37,7 +37,7 @@ class LecturePage extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: PdfPreView(
-                key: const Key("pdf_review"), title: "文件预览", logic: logic),
+                key: const Key("pdf_review"), title: "文件预览"),
           ),
         ),
       ],

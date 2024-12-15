@@ -580,6 +580,15 @@ Future<void> importFileToDir(File file, int lectureId, int nodeId) async {
       isLoading.value = false; // 操作完成后设置 isLoading 为 false
     }
   }
+
+  final selectedPdfUrl = RxnString();
+
+  void updatePdfUrl(String url) {
+    if (selectedPdfUrl.value != "http://127.0.0.1:9000/hongshi$url") {
+      selectedPdfUrl.value = "http://127.0.0.1:9000/hongshi$url";
+      debugPrint('Selected PDF URL updated: ${selectedPdfUrl.value}');
+    }
+  }
 }
 
 
