@@ -131,13 +131,28 @@ class LectureApi {
   }
 
   // 导入目录，要求文件为word或pdf
-  static Future<dynamic> importDirectory(String id, int parentId, File file) async {
+  static Future<dynamic> importFileToNode(int nodeId, File file) async {
     try {
       FormData formData = FormData.fromMap({
         'file': await MultipartFile.fromFile(file.path),
       });
 
-      dynamic response = await HttpUtil.uploadFile("/admin/lecture/directory/import/$id/$parentId", formData);
+      dynamic response = await HttpUtil.uploadFile("/admin/lecture/directory/file_import/$nodeId", formData);
+
+      return response;
+    } catch (e) {
+      print('Error in importDirectory : $e');
+      rethrow; // 重新抛出异常以便调用者处理
+    }
+  }
+
+    static Future<dynamic> importFileToDir(int lectureId,int nodeId, File file) async {
+    try {
+      FormData formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(file.path),
+      });
+
+      dynamic response = await HttpUtil.uploadFile("/admin/lecture/directory/dir_import/$lectureId/$nodeId", formData);
 
       return response;
     } catch (e) {

@@ -1,3 +1,4 @@
+import 'package:admin_flutter/app/home/pages/lecture/pdf_pre_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -17,26 +18,28 @@ class LecturePage extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: Padding(
+          child: Container(
+            width: 500,
             padding: const EdgeInsets.all(16.0),
             child: LectureTableView(
                 key: const Key("lectureT_table"), title: "讲义列表", logic: logic),
           ),
         ),
         Expanded(
-          child: Padding(
+          child: Container(
+            width: 500,
             padding: const EdgeInsets.all(16.0),
             child: LectureFileView(
                 key: const Key("file_table"), title: "文件管理", logic: logic),
           ),
         ),
-        // Expanded(
-        //   child: Padding(
-        //     padding: const EdgeInsets.all(16.0),
-        //     child: LectureFilePreview(
-        //         key: const Key("student_table"), title: "考生列表", logic: logic),
-        //   ),
-        // ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: PdfPreView(
+                key: const Key("pdf_review"), title: "文件预览", logic: logic),
+          ),
+        ),
       ],
     );
   }

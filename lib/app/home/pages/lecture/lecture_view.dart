@@ -32,76 +32,45 @@ class LectureTableView extends StatelessWidget {
                 width: 70, // 自定义宽度
                 height: 32, // 自定义高度
               ),
-              SizedBox(width: 8), // 添加一些间距
-              // CustomButton(
-              //   onPressed: () async {
-              //     final shouldDelete = await showDialog<bool>(
-              //       context: context,
-              //       builder: (context) {
-              //         return AlertDialog(
-              //           title: Text("确认删除"),
-              //           content: Text("你确定要删除这项吗？"),
-              //           actions: [
-              //             TextButton(
-              //               child: Text("取消"),
-              //               onPressed: () => Navigator.of(context).pop(false),
-              //             ),
-              //             TextButton(
-              //               child: Text("确定"),
-              //               onPressed: () => Navigator.of(context).pop(true),
-              //             ),
-              //           ],
+              SizedBox(width: 240), // 添加一些间距
+              // Padding(
+              //   padding: EdgeInsets.all(16.0),
+              //   child: FutureBuilder<void>(
+              //     future: logic.fetchMajors(), // 调用 fetchMajors 方法
+              //     builder: (context, snapshot) {
+              //       if (snapshot.connectionState == ConnectionState.waiting) {
+              //         return Center(
+              //             child: CircularProgressIndicator()); // 加载中显示进度条
+              //       } else if (snapshot.hasError) {
+              //         return Text('加载失败: ${snapshot.error}');
+              //       } else {
+              //         return CascadingDropdownField(
+              //           key: logic.majorDropdownKey,
+              //           width: 100,
+              //           height: 34,
+              //           hint1: '专业类目一',
+              //           hint2: '专业类目二',
+              //           hint3: '专业名称',
+              //           level1Items: logic.level1Items,
+              //           level2Items: logic.level2Items,
+              //           level3Items: logic.level3Items,
+              //           selectedLevel1: ValueNotifier(null),
+              //           selectedLevel2: ValueNotifier(null),
+              //           selectedLevel3: ValueNotifier(null),
+              //           onChanged:
+              //               (dynamic level1, dynamic level2, dynamic level3) {
+              //             logic.selectedMajorId.value = level3.toString();
+              //             // 这里可以处理选择的 id
+              //           },
               //         );
-              //       },
-              //     );
-              //
-              //     if (shouldDelete == true) {
-              //       logic.batchDelete(logic.selectedRows);
-              //     }
-              //   },
-              //   text: '批量删除',
-              //   width: 90, // 自定义宽度
-              //   height: 32, // 自定义高度
+              //       }
+              //     },
+              //   ),
               // ),
-              SizedBox(width: 100), // 添加一些间距
-              Padding(
-                padding: EdgeInsets.all(16.0),
-                child: FutureBuilder<void>(
-                  future: logic.fetchMajors(), // 调用 fetchMajors 方法
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(
-                          child: CircularProgressIndicator()); // 加载中显示进度条
-                    } else if (snapshot.hasError) {
-                      return Text('加载失败: ${snapshot.error}');
-                    } else {
-                      return CascadingDropdownField(
-                        key: logic.majorDropdownKey,
-                        width: 110,
-                        height: 34,
-                        hint1: '专业类目一',
-                        hint2: '专业类目二',
-                        hint3: '专业名称',
-                        level1Items: logic.level1Items,
-                        level2Items: logic.level2Items,
-                        level3Items: logic.level3Items,
-                        selectedLevel1: ValueNotifier(null),
-                        selectedLevel2: ValueNotifier(null),
-                        selectedLevel3: ValueNotifier(null),
-                        onChanged:
-                            (dynamic level1, dynamic level2, dynamic level3) {
-                          logic.selectedMajorId.value = level3.toString();
-                          // 这里可以处理选择的 id
-                        },
-                      );
-                    }
-                  },
-                ),
-              ),
               SearchBoxWidget(
                 key: Key('keywords'),
                 hint: '讲义名称、创建者',
-                width: 140,
+                width: 100,
                 onTextChanged: (String value) {
                   logic.searchText.value = value;
                 },
@@ -135,7 +104,8 @@ class LectureTableView extends StatelessWidget {
                     child: SizedBox(
                       width: 1700,
                       child: SfDataGrid(
-                        source: LectureDataSource(logic: logic, context: context),
+                        source:
+                            LectureDataSource(logic: logic, context: context),
                         headerGridLinesVisibility:
                             GridLinesVisibility.values[1],
                         gridLinesVisibility: GridLinesVisibility.values[1],
@@ -368,7 +338,8 @@ class LectureDataSource extends DataGridSource {
               onTap: () {
                 print(item);
                 logic.loadDirectoryTree(item['id'].toString());
-                },),
+              },
+            ),
             SizedBox(width: 5),
             HoverTextButton(
               text: "删除",

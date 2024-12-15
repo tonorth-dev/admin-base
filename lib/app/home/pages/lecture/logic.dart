@@ -21,9 +21,13 @@ class LectureLogic extends GetxController {
   var page = 1.obs;
   var loading = false.obs;
   final searchText = ''.obs;
+  final RxString selectedKey = ''.obs; // 初始化为空字符串
+  final RxList<String> expandedKeys = <String>[].obs;
 
   final RxString selectedLectureId = '0'.obs; // To track which lecture's directory we are viewing
   final RxList<DirectoryNode> directoryTree = RxList<DirectoryNode>([]);
+
+  var isLoading = false.obs;
 
 
   final GlobalKey<CascadingDropdownFieldState> majorDropdownKey =
@@ -448,6 +452,17 @@ class LectureLogic extends GetxController {
     }
   }
 
+  void deleteDirectory(int id) {
+    try {
+      LectureApi.deleteDirectory(id.toString()).then((value) {
+        loadDirectoryTree(selectedLectureId.value);
+      }).catchError((error) {
+        "删除失败: $error".toHint();
+      });
+    } catch (e) {
+      "删除失败: $e".toHint();
+    }
+  }
   void batchDelete(List<int> ids) {
     try {
       List<String> idsStr = ids.map((id) => id.toString()).toList();
@@ -544,9 +559,9 @@ class LectureLogic extends GetxController {
     return tree;
   }
 
-  void importFileToDirectory(File file, int parentId) async {
+  void importFileToNode(File file, int nodeId) async {
     try {
-      await LectureApi.importDirectory(selectedLectureId.value, parentId, file);
+      await LectureApi.importFileToNode(nodeId, file);
       loadDirectoryTree(selectedLectureId.value); // Refresh the directory tree after import
     } catch (e) {
       print("Failed to import file: $e");
@@ -554,31 +569,16 @@ class LectureLogic extends GetxController {
     }
   }
 
-  void importFileAsSubdirectory(BuildContext context, DirectoryNode parent) async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'docx'],
-    );
-    if (result != null) {
-      File file = File(result.files.single.path!);
-      String directoryName = file.path.split('/').last.split('.').first; // 用文件名作为子目录名
-      try {
-        // 添加子目录
-        int newDirId = await LectureApi.addDirectory(selectedLectureId.value, {
-          'parent_id': parent.id,
-          'name': directoryName,
-        });
-        // 上传文件到新子目录
-        await LectureApi.importDirectory(selectedLectureId.value, newDirId, file);
-        // 刷新树
-        loadDirectoryTree(selectedLectureId.value);
-      } catch (e) {
-        print("Failed to import file as subdirectory: $e");
-      }
+Future<void> importFileToDir(File file, int lectureId, int nodeId) async {
+    isLoading.value = true; // 操作开始前设置 isLoading 为 true
+    try {
+      await LectureApi.importFileToDir(lectureId, nodeId, file);
+    } catch (e) {
+      // 处理错误
+      print('Error importing file to directory: $e');
+    } finally {
+      isLoading.value = false; // 操作完成后设置 isLoading 为 false
     }
-  }
-
-  void deleteDirectory(int id) async {
   }
 }
 

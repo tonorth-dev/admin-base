@@ -56,6 +56,7 @@ dependencies:
   printing: ^5.13.4
   field_suggestion: ^0.2.6
   flutter_treeview: ^1.0.7+1
+  pdfx: ^2.8.0
 
 dev_dependencies:
   flutter_test:
@@ -70,9 +71,9 @@ flutter:
     - assets/images/
     - assets/messages/
   fonts:
-  - family: OPPOSans
-    fonts:
-      - asset: assets/fonts/OPPOSans-Bold.ttf
-      - asset: assets/fonts/OPPOSans-Medium.ttf
-      - asset: assets/fonts/OPPOSans-Regular.ttf
+    - family: OPPOSans
+      fonts:
+        - asset: assets/fonts/OPPOSans-Bold.ttf
+        - asset: assets/fonts/OPPOSans-Medium.ttf
+        - asset: assets/fonts/OPPOSans-Regular.ttf
 
