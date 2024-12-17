@@ -23,6 +23,7 @@ import 'package:admin_flutter/app/home/pages/institution/view.dart';
 import 'package:admin_flutter/app/home/pages/student/view.dart';
 
 import '../pages/book/book.dart';
+import '../pages/exam/exam_view.dart';
 import '../pages/execute/view.dart';
 import '../pages/lecture/view.dart';
 import '../pages/note/view.dart';
@@ -57,7 +58,7 @@ class SidebarLogic extends GetxController {
     SidebarTree(
       name: "心理测试",
       icon: Icons.expand,
-      children: demoList,
+      // children: demoList,
     ),
     SidebarTree(
       name: "讲义信息",
@@ -89,8 +90,7 @@ class SidebarLogic extends GetxController {
   static List<SidebarTree> questionList = [
     QuestionPage.newThis(),
     StudentQuestionPage.newThis(),
-    PlanPage.newThis(),
-    ExecutePage.newThis(),
+    ExamPage.newThis(),
   ];
 
   static List<SidebarTree> lectureList = [

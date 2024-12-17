@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:admin_flutter/component/pagination/view.dart';
 import 'package:admin_flutter/component/table/ex.dart';
 import 'package:admin_flutter/app/home/sidebar/logic.dart';
-import 'package:admin_flutter/app/home/pages/student/logic.dart';
+import 'package:admin_flutter/app/home/pages/student_question/stu_logic.dart';
+import 'package:admin_flutter/app/home/pages/student_question/que_logic.dart';
 import 'package:admin_flutter/theme/theme_util.dart';
-
-import 'logic.dart';
+import '../../../../component/widget.dart';
 
 class StudentQuestionPage extends StatelessWidget {
-  final studentQuestionLogic = Get.put(StudentQuestionLogic());
-  final studentLogic = Get.put(StudentLogic());
+  final sLogic = Get.put(StuLogic());
+  final qLogic = Get.put(QueLogic());
 
   @override
   Widget build(BuildContext context) {
@@ -20,13 +21,15 @@ class StudentQuestionPage extends StatelessWidget {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: StudentTableView(key: const Key("student_table"), title: "专业", logic: studentLogic),
+            child: StudentTableView(
+                key: const Key("student_table"), title: "考生列表", logic: sLogic),
           ),
         ),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: StudentQuestionTableView(key: const Key("studentQuestion_table"), title: "岗位", logic: studentQuestionLogic),
+            child: QuestionTableView(
+                key: const Key("question_table"), title: "试题列表", logic: qLogic),
           ),
         ),
       ],
@@ -42,11 +45,11 @@ class StudentQuestionPage extends StatelessWidget {
   }
 }
 
-class StudentQuestionTableView extends StatelessWidget {
+class QuestionTableView extends StatelessWidget {
   final String title;
-  final StudentQuestionLogic logic;
+  final QueLogic logic;
 
-  const StudentQuestionTableView({super.key, required this.title, required this.logic});
+  const QuestionTableView({super.key, required this.title, required this.logic});
 
   @override
   Widget build(BuildContext context) {
@@ -54,144 +57,162 @@ class StudentQuestionTableView extends StatelessWidget {
       children: [
         TableEx.actions(
           children: [
-            ThemeUtil.width(width: 50),
-            SizedBox(
-              width: 260,
-              child: TextField(
-                key: const Key('search_box'),
-                decoration: InputDecoration(
-                  hintText: '搜索',
-                  prefixIcon: Icon(Icons.search, color: Colors.teal),
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.teal),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.teal, width: 2),
+            SizedBox(width: 30),
+            Container(
+              height: 50,
+              width: 100,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.blue.shade700, Colors.blue.shade400],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Center(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                onSubmitted: (value) => logic.search(value),
               ),
             ),
-            ThemeUtil.width(),
-            ElevatedButton(
-              onPressed: () => logic.search(""),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal,
-                foregroundColor: Colors.white,
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  SearchBoxWidget(
+                    key: Key('keywords'),
+                    hint: '试题标题',
+                    onTextChanged: (String value) {
+                      logic.searchText.value = value;
+                    },
+                    searchText: logic.searchText,
+                  ),
+                  SizedBox(width: 10),
+                  SearchButtonWidget(
+                    key: Key('search'),
+                    onPressed: () {
+                      logic.selectedRows.clear();
+                      logic.findForStudent(logic.size.value, logic.page.value);
+                    },
+                  ),
+                  SizedBox(width: 8),
+                  ResetButtonWidget(
+                    key: Key('reset'),
+                    onPressed: () {
+                      logic.reset();
+                      logic.findForStudent(logic.size.value, logic.page.value);
+                    },
+                  ),
+                  ThemeUtil.width(width: 30),
+                ],
               ),
-              child: const Text("搜索"),
             ),
-            ThemeUtil.width(width: 30),
           ],
         ),
         ThemeUtil.lineH(),
         ThemeUtil.height(),
         Expanded(
-          child: Obx(() => logic.loading.value
-              ? const Center(child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
-          ))
-              : SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Container(
-              width: 1000,
-              height: Get.height,
-              child: SfDataGrid(
-                source: StudentQuestionDataSource(logic: logic),
-                headerGridLinesVisibility: GridLinesVisibility.values[1],
-                columnWidthMode: ColumnWidthMode.fill,
-                headerRowHeight: 50,
-                gridLinesVisibility: GridLinesVisibility.both,
-                columns: [
-                  GridColumn(
-                    width: 0,
-                    columnName: 'Select',
-                    label: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.indigo[50],
-                      ),
-                      child: Center(
-                        child: Checkbox(
-                          value: logic.selectedRows.length == logic.list.length,
-                          onChanged: (value) => logic.toggleSelectAll(),
-                          activeColor: Colors.teal,
-                        ),
+          child: Obx(() => Stack(
+                children: [
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Container(
+                      width: 1000,
+                      height: Get.height,
+                      child: SfDataGrid(
+                        source: QuestionDataSource(logic: logic),
+                        headerGridLinesVisibility:
+                            GridLinesVisibility.values[1],
+                        columnWidthMode: ColumnWidthMode.fill,
+                        headerRowHeight: 50,
+                        gridLinesVisibility: GridLinesVisibility.both,
+                        columns: [
+                          GridColumn(
+                            width: 80,
+                            columnName: 'Select',
+                            label: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.indigo[50],
+                              ),
+                              child: Center(
+                                child: Obx(() => Checkbox(
+                                      value: logic.isRowsSelectable.value &&
+                                          logic.selectedRows.length ==
+                                              logic.list.length,
+                                      onChanged: (value) {
+                                        if (logic.isRowsSelectable.value) {
+                                          logic.toggleSelectAll();
+                                        }
+                                      },
+                                      activeColor: Colors.teal,
+                                    )),
+                              ),
+                            ),
+                          ),
+                          ...logic.columns.map((column) => GridColumn(
+                                width: column.width,
+                                columnName: column.key,
+                                label: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.indigo[50],
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      column.title,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.indigo[800],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )),
+                        ],
                       ),
                     ),
                   ),
-                  ...logic.columns.map((column) => GridColumn(
-                    width: _getColumnWidth(column.key),
-                    columnName: column.key,
-                    label: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.indigo[50],
-                      ),
-                      child: Center(
-                        child: Text(
-                          column.title,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.indigo[800],
-                          ),
-                        ),
-                      ),
-                    ),
-                  )),
                 ],
-              ),
-            ),
-          )),
+              )),
         ),
         Obx(() {
           return PaginationPage(
-            uniqueId: 'question2_pagination',
+            uniqueId: 'classes1_pagination',
             total: logic.total.value,
-            changed: (size, page) => logic.find(size, page),
+            changed: (size, page) => logic.findForStudent(size, page),
           );
         })
       ],
     );
   }
-
-  double _getColumnWidth(String key) {
-    switch (key) {
-      case 'id':
-        return 80;
-      case 'name':
-        return 100;
-      case 'create_time':
-        return 0;
-      case 'major_desc':
-        return 200;
-    // 添加其他列的case
-      default:
-        return 150;  // 默认宽度
-    }
-  }
 }
 
-class StudentQuestionDataSource extends DataGridSource {
-  final StudentQuestionLogic logic;
+class QuestionDataSource extends DataGridSource {
+  final QueLogic logic;
   List<DataGridRow> _rows = [];
 
-  StudentQuestionDataSource({required this.logic}) {
+  QuestionDataSource({required this.logic}) {
     _buildRows();
   }
 
   void _buildRows() {
     _rows = logic.list
         .map((item) => DataGridRow(
-      cells: [
-        DataGridCell(
-            columnName: 'Select',
-            value: logic.selectedRows.contains(item['id'])),
-        ...logic.columns.map((column) => DataGridCell(
-          columnName: column.key,
-          value: item[column.key],
-        )),
-      ],
-    ))
+              cells: [
+                DataGridCell(
+                    columnName: 'Select',
+                    value: logic.selectedRows.contains(item['id'])),
+                ...logic.columns.map((column) => DataGridCell(
+                      columnName: column.key,
+                      value: item[column.key],
+                    )),
+              ],
+            ))
         .toList();
   }
 
@@ -204,47 +225,72 @@ class StudentQuestionDataSource extends DataGridSource {
     final isSelected = logic.selectedRows.contains(rowId);
     final rowIndex = _rows.indexOf(row);
 
+    // 定义不同的蒙层颜色
+    final disabledOverlayColor = Colors.grey.withOpacity(0.1);
+    final selectedDisabledOverlayColor = Colors.teal.withOpacity(0.3); // 更明显的蒙层
+
     return DataGridRowAdapter(
-      color: isSelected ? Colors.teal[100] : (rowIndex.isEven ? Colors.teal[50] : Colors.white),
-      cells: row.getCells().map((cell) {
-        if (cell.columnName == 'Select') {
-          return Container(
-            alignment: Alignment.center,
-            child: Checkbox(
-              value: isSelected,
-              onChanged: (value) => _toggleRowSelection(rowId),
-              activeColor: Colors.teal,
-            ),
-          );
-        } else {
-          return GestureDetector(
-            onTap: () => _toggleRowSelection(rowId),
-            child: Container(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              alignment: cell.columnName == 'id' ? Alignment.center : Alignment.centerLeft,
-              child: Text(
-                cell.value?.toString() ?? '',
-                style: TextStyle(
-                  color: Colors.teal[800],
-                  fontWeight: FontWeight.w500,
+      color: logic.isRowsSelectable.value
+          ? (isSelected
+              ? Colors.teal.withOpacity(0.6) // 选中颜色
+              : (rowIndex.isEven
+                  ? Colors.teal.withOpacity(0.05)
+                  : Colors.white)) // 交替行颜色
+          : (isSelected
+              ? selectedDisabledOverlayColor // 如果行被选择过，使用更明显的蒙层
+              : disabledOverlayColor), // 禁用选择时的浅色蒙层
+      cells: [
+        Obx(() => MouseRegion(
+              cursor: logic.isRowsSelectable.value
+                  ? SystemMouseCursors.click
+                  : SystemMouseCursors.basic,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Checkbox(
+                  value: isSelected,
+                  onChanged: logic.isRowsSelectable.value
+                      ? (value) => logic.toggleSelect(rowId) // 点击行时触发选择
+                      : null,
+                  activeColor: Colors.teal,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                 ),
               ),
-            ),
-          );
-        }
-      }).toList(),
+            )),
+        ...row.getCells().skip(1).map((cell) {
+          final columnName = cell.columnName;
+          final value = cell.value.toString();
+          return Obx(() => MouseRegion(
+                cursor: logic.isRowsSelectable.value
+                    ? SystemMouseCursors.click
+                    : SystemMouseCursors.basic,
+                child: GestureDetector(
+                  onTap: logic.isRowsSelectable.value
+                      ? () => logic.toggleSelect(rowId)
+                      : null, // 点击行时触发选择
+                  behavior: HitTestBehavior.opaque, // 确保点击整个区域都能响应
+                  child: Container(
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.all(8.0),
+                    width: double.infinity, // 确保单元格充满整个宽度
+                    child: Text(
+                      value,
+                      textAlign: TextAlign.center, // 文字居中
+                      style: TextStyle(fontSize: 14),
+                    ),
+                  ),
+                ),
+              ));
+        }),
+      ],
     );
-  }
-
-  void _toggleRowSelection(dynamic rowId) {
-    logic.toggleSelect(rowId);
-    notifyListeners();
   }
 }
 
 class StudentTableView extends StatelessWidget {
   final String title;
-  final StudentLogic logic;
+  final StuLogic logic;
 
   const StudentTableView({super.key, required this.title, required this.logic});
 
@@ -254,73 +300,100 @@ class StudentTableView extends StatelessWidget {
       children: [
         TableEx.actions(
           children: [
-            // 机构下拉列表
-            SizedBox(
-              width: 200,
-              child: DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: '机构',
-                  border: OutlineInputBorder(),
+            SizedBox(width: 30), // 添加一些间距
+            Container(
+              height: 50,
+              width: 100,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.red.shade700, Colors.red.shade300],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                 ),
-                items: ['机构1', '机构2', '机构3'].map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  // 处理机构选择
-                },
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Center(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
-            ThemeUtil.width(),
-
-            // 班级下拉列表
-            SizedBox(
-              width: 200,
-              child: DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: '班级',
-                  border: OutlineInputBorder(),
-                ),
-                items: ['班级1', '班级2', '班级3'].map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  // 处理班级选择
-                },
-              ),
-            ),
-            ThemeUtil.width(),
-
-            // 学生搜索框
-            SizedBox(
-              width: 200,
-              child: TextField(
-                decoration: InputDecoration(
-                  labelText: '搜索学生',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.search),
-                ),
-                onChanged: (value) {
-                  // 处理学生搜索
-                },
-              ),
-            ),
-            ThemeUtil.width(),
-
-            // 保存考生专业按钮
-            ElevatedButton(
-              child: Text('保存考生专业', style: TextStyle(color: Colors.white)),
-              onPressed: () {
-                // 处理保存考生专业
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+            SizedBox(width: 8), // 添加一些间距
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  SizedBox(
+                    width: 120,
+                    height: 50,
+                    child: Padding(
+                      padding: EdgeInsets.all(0),
+                      child: SuggestionTextField(
+                        width: 150,
+                        height: 34,
+                        labelText: '机构选择',
+                        hintText: '输入机构名称',
+                        key: logic.institutionTextFieldKey,
+                        fetchSuggestions: logic.fetchInstructions,
+                        initialValue: '',
+                        onSelected: (value) {
+                          if (value == '') {
+                            logic.selectedInstitutionId.value = "";
+                            return;
+                          }
+                          RegExp regExp = RegExp(r'ID：(\d+)');
+                          Match? match = regExp.firstMatch(value);
+                          if (match != null) {
+                            String id = match.group(1)!;
+                            logic.selectedInstitutionId.value = id;
+                          } else {
+                            logic.selectedInstitutionId.value = "";
+                          }
+                          print(
+                              "selectedInstitutionId value: ${logic.selectedInstitutionId.value}");
+                        },
+                        onChanged: (value) {
+                          if (value == null || value.isEmpty) {
+                            logic.selectedInstitutionId.value = ""; // 确保清空
+                          }
+                          print(
+                              "onChanged selectedInstitutionId value: ${logic.selectedInstitutionId.value}");
+                        },
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  SearchBoxWidget(
+                    key: Key('keywords'),
+                    hint: '班级名称、教师姓名',
+                    onTextChanged: (String value) {
+                      logic.searchText.value = value;
+                    },
+                    searchText: logic.searchText,
+                  ),
+                  SizedBox(width: 10),
+                  SearchButtonWidget(
+                    key: Key('search'),
+                    onPressed: () {
+                      logic.selectedRows.clear();
+                      logic.find(logic.size.value, logic.page.value);
+                    },
+                  ),
+                  SizedBox(width: 8),
+                  ResetButtonWidget(
+                    key: Key('reset'),
+                    onPressed: () {
+                      logic.reset();
+                      logic.find(logic.size.value, logic.page.value);
+                    },
+                  ),
+                  ThemeUtil.width(width: 30),
+                ],
               ),
             ),
           ],
@@ -331,48 +404,77 @@ class StudentTableView extends StatelessWidget {
           child: Obx(() => logic.loading.value
               ? const Center(child: CircularProgressIndicator())
               : SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: SizedBox(
-              width: 800,
-              height: Get.height,
-              child: SfDataGrid(
-                source: StudentDataSource(logic: logic),
-                headerGridLinesVisibility: GridLinesVisibility.both,
-                columnWidthMode: ColumnWidthMode.fill,
-                headerRowHeight: 50,
-                gridLinesVisibility: GridLinesVisibility.both,
-                selectionMode: SelectionMode.single,
-                columns: [
-                  GridColumn(
-                    columnName: 'Select',
-                    label: Container(
-                      padding: EdgeInsets.all(8.0),
-                      alignment: Alignment.center,
-                      child: Text(
-                        '选择',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                  scrollDirection: Axis.horizontal,
+                  child: SizedBox(
+                    width: 900,
+                    height: Get.height,
+                    child: SfDataGrid(
+                      source: StudentDataSource(logic: logic, context: context),
+                      headerGridLinesVisibility: GridLinesVisibility.values[1],
+                      columnWidthMode: ColumnWidthMode.fill,
+                      headerRowHeight: 50,
+                      columns: [
+                        GridColumn(
+                          width: 80,
+                          columnName: 'Select',
+                          label: Container(
+                            decoration: BoxDecoration(
+                              color: Color(0xfff8e6dd),
+                            ),
+                            child: Center(
+                              child: Checkbox(
+                                value: logic.selectedRows.isNotEmpty,
+                                onChanged: null,
+                              ),
+                            ),
+                          ),
+                        ),
+                        ...logic.columns.map((column) => GridColumn(
+                              width: column.width,
+                              columnName: column.key,
+                              label: Container(
+                                decoration: BoxDecoration(
+                                  color: Color(0xfff8e6dd),
+                                ),
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    column.title,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey[800],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )),
+                        GridColumn(
+                          columnName: 'Actions',
+                          label: Container(
+                            decoration: BoxDecoration(
+                              color: Color(0xfff8e6dd),
+                            ),
+                            child: Center(
+                              child: Text(
+                                '操作',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey[800],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  ...logic.columns.map((column) => GridColumn(
-                    columnName: column.key,
-                    label: Container(
-                      padding: EdgeInsets.all(8.0),
-                      alignment: Alignment.center,
-                      child: Text(
-                        column.title,
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  )),
-                ],
-              ),
-            ),
-          )),
+                )),
         ),
         Obx(() {
           return PaginationPage(
-            uniqueId: 'plan_pagination',
+            uniqueId: 'classes_pagination',
             total: logic.total.value,
             changed: (size, page) => logic.find(size, page),
           );
@@ -380,45 +482,35 @@ class StudentTableView extends StatelessWidget {
       ],
     );
   }
-
-  double _getColumnWidth(String key) {
-    switch (key) {
-      case 'id':
-        return 80;
-      case 'password':
-      case 'enabled':
-      case 'institution_id':
-      case 'class_id':
-      case 'create_time':
-      case 'referrer':
-        return 0;
-    // 添加其他列的case
-      default:
-        return 150;  // 默认宽度
-    }
-  }
 }
 
 class StudentDataSource extends DataGridSource {
-  final StudentLogic logic;
+  final StuLogic logic;
+  final BuildContext context; // 新增 context 字段
   List<DataGridRow> _rows = [];
-  int? _selectedRowIndex;
 
-  StudentDataSource({required this.logic}) {
+  StudentDataSource({required this.logic, required this.context}) {
+    // 修改构造函数
     _buildRows();
   }
 
   void _buildRows() {
-    _rows = logic.list.asMap().entries.map((entry) {
-      int index = entry.key;
-      var item = entry.value;
+    _rows = logic.list.map((item) {
+      final id = item['id'];
+      // 初始化按钮状态
+      logic.blueButtonStates[id] = ValueNotifier<bool>(true);
+      logic.grayButtonStates[id] = ValueNotifier<bool>(false);
+      logic.redButtonStates[id] = ValueNotifier<bool>(false);
+
       return DataGridRow(
         cells: [
-          DataGridCell(columnName: 'Select', value: index),
+          DataGridCell(
+              columnName: 'Select', value: logic.selectedRows.contains(id)),
           ...logic.columns.map((column) => DataGridCell(
-            columnName: column.key,
-            value: item[column.key],
-          )),
+                columnName: column.key,
+                value: item[column.key],
+              )),
+          DataGridCell(columnName: 'Actions', value: item),
         ],
       );
     }).toList();
@@ -429,49 +521,138 @@ class StudentDataSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
+    final isSelected = row.getCells().first.value as bool;
     final rowIndex = _rows.indexOf(row);
-    final isSelected = rowIndex == _selectedRowIndex;
+    final item = row.getCells().last.value;
+    final id = item['id'];
 
     return DataGridRowAdapter(
-      color: isSelected ? Colors.teal[200] : (rowIndex.isEven ? Colors.teal[50] : Colors.white),
-      cells: row.getCells().map((cell) {
-        if (cell.columnName == 'Select') {
-          return Container(
-            alignment: Alignment.center,
+      color: isSelected
+          ? Colors.red.shade100 // 选中颜色
+          : (rowIndex.isEven ? Color(0x06FF5733) : Colors.white), // 交替行颜色
+      cells: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
             child: Checkbox(
               value: isSelected,
-              onChanged: (value) {
-                _toggleRowSelection(rowIndex);
-              },
-              activeColor: Colors.teal,
+              onChanged: (value) => logic.toggleSelect(id),
+              fillColor: MaterialStateProperty.resolveWith<Color>((states) {
+                return states.contains(MaterialState.selected)
+                    ? Color(0xFFD43030)
+                    : Colors.white;
+              }),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
             ),
-          );
-        } else {
-          return GestureDetector(
-            onTap: () => _toggleRowSelection(rowIndex),
-            child: Container(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              alignment: cell.columnName == 'id' ? Alignment.center : Alignment.centerLeft,
-              child: Text(
-                cell.value?.toString() ?? '',
-                style: TextStyle(
-                  color: Colors.teal[800],
-                  fontWeight: FontWeight.w500,
+          ),
+        ),
+        ...row.getCells().skip(1).take(row.getCells().length - 2).map((cell) {
+          final value = cell.value.toString();
+          return MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: () => logic.toggleSelect(id), // 点击行时触发选择
+              behavior: HitTestBehavior.opaque, // 确保点击整个区域都能响应
+              child: Container(
+                alignment: Alignment.center,
+                padding: const EdgeInsets.all(8.0),
+                width: double.infinity, // 确保单元格充满整个宽度
+                child: Text(
+                  value,
+                  textAlign: TextAlign.center, // 文字居中
+                  style: TextStyle(fontSize: 14),
                 ),
               ),
             ),
           );
-        }
-      }).toList(),
+        }),
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // ValueListenableBuilder<bool>(
+              //   valueListenable: logic.blueButtonStates[id]!,
+              //   builder: (context, isEnabled, child) {
+              //     return TextButton(
+              //       onPressed: () {
+              //         // 按钮操作逻辑
+              //         logic.blueButtonAction(id);
+              //       },
+              //       style: TextButton.styleFrom(
+              //         backgroundColor: isEnabled ? Colors.blue : Colors.grey,
+              //         foregroundColor: Colors.white,
+              //         disabledBackgroundColor: Colors.grey.shade400,
+              //         disabledForegroundColor: Colors.white,
+              //         shape: RoundedRectangleBorder(
+              //           borderRadius: BorderRadius.circular(3.0),
+              //         ),
+              //       ),
+              //       child: Text("出入班"),
+              //     );
+              //   },
+              // ),
+              // SizedBox(width: 10),
+              // ValueListenableBuilder<bool>(
+              //   valueListenable: logic.grayButtonStates[id]!,
+              //   builder: (context, isEnabled, child) {
+              //     return TextButton(
+              //       onPressed: () {
+              //         // 按钮操作逻辑
+              //         logic.grayButtonAction(id);
+              //       },
+              //       style: TextButton.styleFrom(
+              //         backgroundColor:
+              //             isEnabled ? Colors.grey[400] : Colors.grey,
+              //         foregroundColor: Colors.white,
+              //         disabledBackgroundColor: Colors.grey.shade400,
+              //         disabledForegroundColor: Colors.white,
+              //         shape: RoundedRectangleBorder(
+              //           borderRadius: BorderRadius.circular(3.0),
+              //         ),
+              //       ),
+              //       child: Text("取消"),
+              //     );
+              //   },
+              // ),
+              // SizedBox(width: 10),
+              ValueListenableBuilder<bool>(
+                valueListenable: logic.redButtonStates[id]!,
+                builder: (context, isEnabled, child) {
+                  return TextButton(
+                    onPressed: () {
+
+                    },
+                    style: TextButton.styleFrom(
+                      backgroundColor: isEnabled ? Colors.red : Colors.grey,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey.shade400,
+                      disabledForegroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(3.0),
+                      ),
+                    ),
+                    child: Text("保存考生"),
+                  );
+                },
+              ),
+              // SizedBox(width: 10),
+            ],
+          ),
+        )
+      ],
     );
   }
 
-  void _toggleRowSelection(int rowIndex) {
-    if (_selectedRowIndex == rowIndex) {
-      _selectedRowIndex = null;
-    } else {
-      _selectedRowIndex = rowIndex;
-    }
-    notifyListeners();
+  @override
+  void dispose() {
+    // 清理 ValueNotifier
+    logic.blueButtonStates.values.forEach((notifier) => notifier.dispose());
+    logic.grayButtonStates.values.forEach((notifier) => notifier.dispose());
+    logic.redButtonStates.values.forEach((notifier) => notifier.dispose());
+    super.dispose();
   }
 }
