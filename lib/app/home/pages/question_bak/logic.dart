@@ -10,22 +10,25 @@ import 'package:csv/csv.dart';
 import 'package:admin_flutter/component/form/enum.dart';
 import 'package:admin_flutter/component/form/form_data.dart';
 
-import '../../../../api/student_question_api.dart';
-
-class StudentQuestionLogic extends GetxController {
+class QuestionLogic extends GetxController {
   var list = <Map<String, dynamic>>[].obs;
   var total = 0.obs;
   var size = 0;
   var page = 0;
   var loading = false.obs;
   RxList<int> selectedRows = <int>[].obs;
+  Rx<String?> selectedMajor = '全部专业'.obs;
+  Rx<String?> selectedQuestionType = '全部题型'.obs;
+  List<String> majorList = ['全部专业', '计算机科学与技术', '国际关系', '教育学'];  // 根据实际情况填充
+  List<String> questionTypeList = ['全部题型', '综合', '专业方向', '基础方向'];  // 根据实际情况填充
+  void applyFilters() { /* 实现筛选逻辑 */ }
 
   void find(int size, int page) {
     this.size = size;
     this.page = page;
     list.clear();
     loading.value = true;
-    StudentQuestionApi.questionList(params: {
+    QuestionApi.questionList(params: {
       "size": size,
       "page": page,
     }).then((value) async {
@@ -50,9 +53,6 @@ class StudentQuestionLogic extends GetxController {
       ColumnData(title: "专业ID", key: "specialty_id"),
       ColumnData(title: "问题类型", key: "question_type"),
       ColumnData(title: "录入人", key: "entry_person"),
-      ColumnData(title: "回答次数", key: "answer_count"),
-      ColumnData(title: "正确次数", key: "correctly_count"),
-      ColumnData(title: "错误次数", key: "incorrectly_count"),
       ColumnData(title: "创建时间", key: "created_time"),
     ];
   }
@@ -95,7 +95,7 @@ class StudentQuestionLogic extends GetxController {
     form.add(
         reset: true,
         submit: (data) => {
-          StudentQuestionApi.questionInsert(params: data).then((value) {
+          QuestionApi.questionInsert(params: data).then((value) {
             "插入成功!".toHint();
             find(size, page);
             Get.back();
@@ -107,7 +107,7 @@ class StudentQuestionLogic extends GetxController {
     form.data = d;
     form.edit(
         submit: (data) => {
-          StudentQuestionApi.questionUpdate(params: data).then((value) {
+          QuestionApi.questionUpdate(params: data).then((value) {
             "更新成功!".toHint();
             list.removeAt(index);
             list.insert(index, data);
@@ -117,13 +117,13 @@ class StudentQuestionLogic extends GetxController {
   }
 
   void delete(Map<String, dynamic> d, int index) {
-    StudentQuestionApi.questionDelete(params: {"id": d["id"]}).then((value) {
+    QuestionApi.questionDelete(params: {"id": d["id"]}).then((value) {
       list.removeAt(index);
     });
   }
 
   void search(String key) {
-    StudentQuestionApi.questionSearch(params: {"key": key}).then((value) {
+    QuestionApi.questionSearch(params: {"key": key}).then((value) {
       refresh();
     });
   }
@@ -157,7 +157,7 @@ class StudentQuestionLogic extends GetxController {
     int pageSize = 100;
 
     while (true) {
-      var response = await StudentQuestionApi.questionList(params: {
+      var response = await QuestionApi.questionList(params: {
         "size": pageSize,
         "page": currentPage,
       });
@@ -194,7 +194,7 @@ class StudentQuestionLogic extends GetxController {
         for (int i = 0; i < columns.length; i++) {
           data[columns[i].key] = row[i];
         }
-        StudentQuestionApi.questionInsert(params: data).then((value) {
+        QuestionApi.questionInsert(params: data).then((value) {
           "导入成功!".toHint();
           find(size, page);
         }).catchError((error) {
