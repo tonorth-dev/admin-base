@@ -426,7 +426,7 @@ class StudentLogic extends GetxController {
     }
   }
 
-  Future<List<String>> fetchInstructions(String query) async {
+  Future<List<Map<String, dynamic>>> fetchInstructions(String query) async {
     print("query:$query");
     try {
       final response = await InstitutionApi.institutionList(params: {
@@ -438,11 +438,13 @@ class StudentLogic extends GetxController {
       print("response: $data");
       // 检查数据是否为 List
       if (data is List) {
-        final List<String> suggestions = data.map((item) {
+        final List<Map<String, dynamic>> suggestions = data.map((item) {
           // 检查每个 item 是否包含 'name' 和 'id' 字段
-          if (item is Map && item.containsKey('name') &&
-              item.containsKey('id')) {
-            return "${item['name']}（ID：${item['id']}）";
+          if (item is Map && item.containsKey('name') && item.containsKey('id')) {
+            return {
+              'name': item['name'],
+              'id': item['id'].toString(),
+            };
           } else {
             throw FormatException('Invalid item format: $item');
           }
@@ -460,24 +462,26 @@ class StudentLogic extends GetxController {
     }
   }
 
-  Future<List<String>> fetchClasses(String query) async {
+
+  Future<List<Map<String, dynamic>>> fetchClasses(String query) async {
     print("query:$query");
     try {
       final response = await ClassesApi.classesList(params: {
         "pageSize": 10,
         "page": 1,
-        // "institution_id": selectedInstitutionId.value,
         "keyword": query ?? "",
       });
       var data = response['list'];
       print("response: $data");
       // 检查数据是否为 List
       if (data is List) {
-        final List<String> suggestions = data.map((item) {
-          // 检查每个 item 是否包含 'name' 和 'id' 字段
-          if (item is Map && item.containsKey('class_name') &&
-              item.containsKey('id')) {
-            return "${item['class_name']}（ID：${item['id']}）";
+        final List<Map<String, dynamic>> suggestions = data.whereType<Map>().map((item) {
+          // 检查每个 item 是否包含 'class_name' 和 'id' 字段
+          if (item.containsKey('class_name') && item.containsKey('id')) {
+            return {
+              'name': item['class_name'],
+              'id': item['id'].toString(),
+            };
           } else {
             throw FormatException('Invalid item format: $item');
           }

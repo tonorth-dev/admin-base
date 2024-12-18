@@ -334,35 +334,25 @@ class StudentTableView extends StatelessWidget {
                     child: Padding(
                       padding: EdgeInsets.all(0),
                       child: SuggestionTextField(
-                        width: 150,
+                        width: 600,
                         height: 34,
-                        labelText: '机构选择',
+                        labelText: '请选择机构',
                         hintText: '输入机构名称',
                         key: logic.institutionTextFieldKey,
                         fetchSuggestions: logic.fetchInstructions,
-                        initialValue: '',
+                        initialValue: {},
                         onSelected: (value) {
-                          if (value == '') {
+                          if (value.isEmpty) {
                             logic.selectedInstitutionId.value = "";
                             return;
                           }
-                          RegExp regExp = RegExp(r'ID：(\d+)');
-                          Match? match = regExp.firstMatch(value);
-                          if (match != null) {
-                            String id = match.group(1)!;
-                            logic.selectedInstitutionId.value = id;
-                          } else {
-                            logic.selectedInstitutionId.value = "";
-                          }
-                          print(
-                              "selectedInstitutionId value: ${logic.selectedInstitutionId.value}");
+                          logic.selectedInstitutionId.value = value['id']!;
                         },
                         onChanged: (value) {
                           if (value == null || value.isEmpty) {
                             logic.selectedInstitutionId.value = ""; // 确保清空
                           }
-                          print(
-                              "onChanged selectedInstitutionId value: ${logic.selectedInstitutionId.value}");
+                          print("onChanged selectedInstitutionId value: ${logic.selectedInstitutionId.value}");
                         },
                       ),
                     ),

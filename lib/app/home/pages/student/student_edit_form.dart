@@ -73,12 +73,14 @@ class _StudentEditFormState extends State<StudentEditForm> {
     // 组装 major names
     List<String> formattedMajorNames = [];
     for (int i = 0; i < widget.initialMajorIds.length; i++) {
-      formattedMajorNames.add('${widget.initialMajorNames[i]}（ID：${widget.initialMajorIds[i]}）');
+      formattedMajorNames.add(
+          '${widget.initialMajorNames[i]}（ID：${widget.initialMajorIds[i]}）');
     }
     logic.formattedMajorNames.value = formattedMajorNames;
 
     List<String> formattedJobNames = [];
-    formattedJobNames.add("${widget.initialJobName}（ID：${widget.initialJobCode}）");
+    formattedJobNames
+        .add("${widget.initialJobName}（ID：${widget.initialJobCode}）");
     logic.formattedJobNames.value = formattedJobNames;
   }
 
@@ -126,7 +128,7 @@ class _StudentEditFormState extends State<StudentEditForm> {
                         logic.uName.value = value;
                       },
                       validator:
-                      FormBuilderValidators.required(errorText: '考生名称不能为空'),
+                          FormBuilderValidators.required(errorText: '考生名称不能为空'),
                     ),
                   ),
                 ],
@@ -156,7 +158,8 @@ class _StudentEditFormState extends State<StudentEditForm> {
                       label: true,
                       width: 100,
                       height: 34,
-                      selectedValue: ValueNotifier<String?>(logic.uStatus.value),
+                      selectedValue:
+                          ValueNotifier<String?>(logic.uStatus.value),
                       onChanged: (dynamic newValue) {
                         logic.uStatus.value = newValue;
                       },
@@ -190,8 +193,10 @@ class _StudentEditFormState extends State<StudentEditForm> {
                       validator: FormBuilderValidators.compose([
                         FormBuilderValidators.required(errorText: '手机号不能为空'),
                         FormBuilderValidators.numeric(errorText: '请输入有效的手机号'),
-                        FormBuilderValidators.minLength(11, errorText: '手机号至少11位'),
-                        FormBuilderValidators.maxLength(11, errorText: '手机号最多11位'),
+                        FormBuilderValidators.minLength(11,
+                            errorText: '手机号至少11位'),
+                        FormBuilderValidators.maxLength(11,
+                            errorText: '手机号最多11位'),
                       ]),
                     ),
                   ),
@@ -214,29 +219,27 @@ class _StudentEditFormState extends State<StudentEditForm> {
                     child: SuggestionTextField(
                       width: 600,
                       height: 34,
-                      labelText: '机构选择',
+                      labelText: '请选择机构',
                       hintText: '输入机构名称',
-                      key: Key("edit_student_institution_id"),
+                      key: Key("add_student_institution_id"),
                       fetchSuggestions: logic.fetchInstructions,
-                      initialValue: logic.uInstitutionName.value,
+                      initialValue: {
+                        'name': logic.uInstitutionName.value,
+                        'id': logic.uInstitutionId.value,
+                      },
                       onSelected: (value) {
-                        if (value == '') {
-                          logic.uInstitutionId.value = "";
+                        if (value.isEmpty) {
+                          logic.institutionId.value = "";
                           return;
                         }
-                        RegExp regExp = RegExp(r'ID：(\d+)');
-                        Match? match = regExp.firstMatch(value);
-                        if (match != null) {
-                          String id = match.group(1)!;
-                          logic.uInstitutionId.value = id;
-                        } else {
-                          logic.uInstitutionId.value = "";
-                        }
+                        logic.institutionId.value = value['id']!;
                       },
                       onChanged: (value) {
                         if (value == null || value.isEmpty) {
-                          logic.uInstitutionId.value = ""; // 确保清空
+                          logic.institutionId.value = ""; // 确保清空
                         }
+                        print(
+                            "onChanged selectedInstitutionId value: ${logic.selectedInstitutionId.value}");
                       },
                     ),
                   ),
@@ -263,20 +266,16 @@ class _StudentEditFormState extends State<StudentEditForm> {
                       hintText: '输入班级名称',
                       key: Key("edit_student_class_id"),
                       fetchSuggestions: logic.fetchClasses,
-                      initialValue: logic.uClassName.value,
+                      initialValue: {
+                        'name': logic.uClassName.value,
+                        'id': logic.uClassId.value,
+                      },
                       onSelected: (value) {
-                        if (value == '') {
+                        if (value.isEmpty) {
                           logic.uClassId.value = "";
                           return;
                         }
-                        RegExp regExp = RegExp(r'ID：(\d+)');
-                        Match? match = regExp.firstMatch(value);
-                        if (match != null) {
-                          String id = match.group(1)!;
-                          logic.uClassId.value = id;
-                        } else {
-                          logic.uClassId.value = "";
-                        }
+                          logic.uClassId.value = value['id']!;
                       },
                       onChanged: (value) {
                         if (value == null || value.isEmpty) {
@@ -414,7 +413,8 @@ class _StudentEditFormState extends State<StudentEditForm> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    style: TextButton.styleFrom(foregroundColor: Colors.grey[700]),
+                    style:
+                        TextButton.styleFrom(foregroundColor: Colors.grey[700]),
                     child: const Text('取消'),
                   ),
                   const SizedBox(width: 10),
@@ -423,7 +423,8 @@ class _StudentEditFormState extends State<StudentEditForm> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF25B7E8),
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                     child: const Text('保存'),
                   ),

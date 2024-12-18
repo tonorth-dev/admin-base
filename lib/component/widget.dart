@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:admin_flutter/app/home/head/logic.dart';
@@ -10,7 +11,7 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-
+import 'package:searchfield/searchfield.dart';
 import '../api/config_api.dart';
 
 class CustomButton extends StatefulWidget {
@@ -270,6 +271,7 @@ class CascadingDropdownField extends StatefulWidget {
   final ValueNotifier<dynamic> selectedLevel2;
   final ValueNotifier<dynamic> selectedLevel3;
   final void Function(dynamic, dynamic, dynamic)? onChanged;
+  final Axis axis; // 新增参数，控制布局方向
 
   const CascadingDropdownField({
     Key? key,
@@ -285,6 +287,7 @@ class CascadingDropdownField extends StatefulWidget {
     required this.selectedLevel2,
     required this.selectedLevel3,
     this.onChanged,
+    this.axis = Axis.horizontal, // 默认横向排列
   }) : super(key: key);
 
   @override
@@ -375,38 +378,51 @@ class CascadingDropdownFieldState extends State<CascadingDropdownField> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _buildTypeAheadField(
-          controller: _level1Controller,
-          focusNode: _level1FocusNode,
-          hint: widget.hint1,
-          items: widget.level1Items,
-          onSuggestionSelected: _onLevel1Changed,
-        ),
-        SizedBox(width: 8),
-        _buildTypeAheadField(
-          controller: _level2Controller,
-          focusNode: _level2FocusNode,
-          hint: widget.hint2,
-          items: widget.selectedLevel1.value != null
-              ? widget.level2Items[widget.selectedLevel1.value.toString()] ?? []
-              : [],
-          onSuggestionSelected: _onLevel2Changed,
-        ),
-        SizedBox(width: 8),
-        _buildTypeAheadField(
-          controller: _level3Controller,
-          focusNode: _level3FocusNode,
-          hint: widget.hint3,
-          items: widget.selectedLevel2.value != null
-              ? widget.level3Items[widget.selectedLevel2.value.toString()] ?? []
-              : [],
-          onSuggestionSelected: _onLevel3Changed,
-        ),
-      ],
-    );
+    return widget.axis == Axis.horizontal
+        ? Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: _buildDropdownFields(),
+          )
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: _buildDropdownFields(),
+          );
+  }
+
+  List<Widget> _buildDropdownFields() {
+    return [
+      _buildTypeAheadField(
+        controller: _level1Controller,
+        focusNode: _level1FocusNode,
+        hint: widget.hint1,
+        items: widget.level1Items,
+        onSuggestionSelected: _onLevel1Changed,
+      ),
+      SizedBox(
+          width: widget.axis == Axis.horizontal ? 8 : 0,
+          height: widget.axis == Axis.vertical ? 8 : 0),
+      _buildTypeAheadField(
+        controller: _level2Controller,
+        focusNode: _level2FocusNode,
+        hint: widget.hint2,
+        items: widget.selectedLevel1.value != null
+            ? widget.level2Items[widget.selectedLevel1.value.toString()] ?? []
+            : [],
+        onSuggestionSelected: _onLevel2Changed,
+      ),
+      SizedBox(
+          width: widget.axis == Axis.horizontal ? 8 : 0,
+          height: widget.axis == Axis.vertical ? 8 : 0),
+      _buildTypeAheadField(
+        controller: _level3Controller,
+        focusNode: _level3FocusNode,
+        hint: widget.hint3,
+        items: widget.selectedLevel2.value != null
+            ? widget.level3Items[widget.selectedLevel2.value.toString()] ?? []
+            : [],
+        onSuggestionSelected: _onLevel3Changed,
+      ),
+    ];
   }
 
   Widget _buildTypeAheadField({
@@ -423,11 +439,42 @@ class CascadingDropdownFieldState extends State<CascadingDropdownField> {
         textFieldConfiguration: TextFieldConfiguration(
           controller: controller,
           focusNode: focusNode,
+          style: const TextStyle(
+            color: Color(0xFF505050),
+            fontSize: 14,
+            fontFamily: 'PingFang SC',
+            fontWeight: FontWeight.w400,
+          ),
           decoration: InputDecoration(
             labelText: hint,
+            labelStyle: const TextStyle(
+              color: Color(0xFF505050),
+              fontSize: 14,
+              fontFamily: 'PingFang SC',
+              fontWeight: FontWeight.w400,
+            ),
+            hintStyle: const TextStyle(
+              color: Color(0xFF505050),
+              fontSize: 14,
+              fontFamily: 'PingFang SC',
+              fontWeight: FontWeight.w400,
+            ),
             border: OutlineInputBorder(),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(3),
+              borderSide:
+                  const BorderSide(color: Colors.grey, width: 1.0), // 非聚焦边框
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(3),
+              borderSide:
+                  const BorderSide(color: Colors.grey, width: 1.0), // 聚焦边框
+            ),
+            filled: true,
+            fillColor: Colors.white,
+            // 背景填充色
             contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           ),
         ),
         suggestionsCallback: (pattern) {
@@ -438,10 +485,30 @@ class CascadingDropdownFieldState extends State<CascadingDropdownField> {
               .toList();
         },
         itemBuilder: (context, suggestion) {
-          return ListTile(title: Text(suggestion['name']));
+          return ListTile(
+            title: Text(
+              suggestion['name'],
+              style: const TextStyle(
+                color: Color(0xFF505050),
+                fontSize: 14,
+                fontFamily: 'PingFang SC',
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          );
         },
         onSuggestionSelected: onSuggestionSelected,
-        noItemsFoundBuilder: (context) => Center(child: Text('No items found')),
+        noItemsFoundBuilder: (context) => const Center(
+          child: Text(
+            'No items found',
+            style: TextStyle(
+              color: Color(0xFF505050),
+              fontSize: 14,
+              fontFamily: 'PingFang SC',
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -758,6 +825,12 @@ class _TextInputWidgetState extends State<TextInputWidget> {
         return TextFormField(
           key: const Key('text_input_box'),
           // 唯一Key
+          style: TextStyle(
+            color: Color(0xFF505050),
+            fontSize: 14,
+            fontFamily: 'PingFang SC',
+            fontWeight: FontWeight.w400,
+          ),
           controller: _controller,
           decoration: InputDecoration(
             hintText: widget.hint,
@@ -768,10 +841,7 @@ class _TextInputWidgetState extends State<TextInputWidget> {
               fontFamily: 'PingFang SC',
               fontWeight: FontWeight.w400,
             ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(3), // 圆角
-              borderSide: const BorderSide(color: Colors.grey, width: 1.0),
-            ),
+            border: OutlineInputBorder(),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(3),
               borderSide:
@@ -1273,7 +1343,8 @@ class _HoverTextButtonState extends State<HoverTextButton> {
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
-      cursor: widget.enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      cursor:
+          widget.enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       child: InkWell(
@@ -1281,22 +1352,26 @@ class _HoverTextButtonState extends State<HoverTextButton> {
         child: Container(
           padding: const EdgeInsets.all(4.0),
           decoration: BoxDecoration(
-            color: _isHovered && widget.enabled ? Colors.grey[200] : Colors.transparent,
+            color: _isHovered && widget.enabled
+                ? Colors.grey[200]
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(10.0), // 可以根据需要调整圆角
           ),
           child: Text(
             widget.text,
-            style: widget.style ?? TextStyle(
-              color: _isHovered && widget.enabled ? Colors.red : Color(0xFFFD941D),
-              fontSize: 14,
-            ),
+            style: widget.style ??
+                TextStyle(
+                  color: _isHovered && widget.enabled
+                      ? Colors.red
+                      : Color(0xFFFD941D),
+                  fontSize: 14,
+                ),
           ),
         ),
       ),
     );
   }
 }
-
 
 class ProvinceCityDistrictSelector extends StatefulWidget {
   final String? defaultProvince;
@@ -1526,12 +1601,13 @@ class SuggestionTextField extends StatefulWidget {
   final String hintText;
   final double width; // 输入框宽度
   final double height; // 输入框高度
-  final String? initialValue; // 默认值
-  final Future<List<String>> Function(String query) fetchSuggestions;
-  final ValueChanged<String>? onSelected; // 选择后的回调
-  final ValueChanged<String?>? onChanged; // 输入或重置后的回调
+  final Map? initialValue; // 默认值
+  final Future<List<Map<String, dynamic>>> Function(String query)
+      fetchSuggestions; // 支持 Map 类型
+  final ValueChanged<Map>? onSelected; // 选择后的回调
+  final ValueChanged<Map?>? onChanged; // 输入或重置后的回调
 
-  SuggestionTextField({
+  const SuggestionTextField({
     Key? key,
     required this.labelText,
     required this.hintText,
@@ -1549,25 +1625,37 @@ class SuggestionTextField extends StatefulWidget {
 
 class SuggestionTextFieldState extends State<SuggestionTextField> {
   late TextEditingController _textController;
+  List<Map<String, dynamic>> _suggestions = [];
+  Timer? _debounceTimer;
 
   @override
   void initState() {
     super.initState();
-    _textController = TextEditingController(text: widget.initialValue ?? '');
-    _textController.addListener(_onTextFieldChange);
+    _textController =
+        TextEditingController(text: widget.initialValue?['name'] ?? '');
+    if (widget.initialValue != null && widget.initialValue!['name'] != null) {
+      _textController.text = widget.initialValue!['name']!;
+    } else {
+      _textController.text = ''; // 或者设置一个默认值
+    }
+    _fetchSuggestions('');
   }
 
-  /// 监听文本框变化
-  void _onTextFieldChange() {
-    final currentText = _textController.text;
-    // 如果内容被清空，确保调用 onChanged(null)
-    widget.onChanged?.call(currentText.isEmpty ? null : currentText);
+  Future<void> _fetchSuggestions(String query) async {
+    if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
+
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () async {
+      final results = await widget.fetchSuggestions(query);
+      setState(() {
+        _suggestions = results;
+      });
+    });
   }
 
-  /// 重置输入框内容并通知父组件
   void reset() {
     setState(() {
       _textController.clear();
+      _suggestions = [];
     });
 
     // 调用 onChanged 回调，传递 null 表示已重置
@@ -1577,114 +1665,83 @@ class SuggestionTextFieldState extends State<SuggestionTextField> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0), // 确保组件与其他表单项垂直对齐
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Autocomplete<String>(
-            optionsBuilder: (TextEditingValue textEditingValue) async {
-              if (textEditingValue.text.isEmpty) {
-                return const Iterable<String>.empty();
-              }
-              final suggestions = await widget.fetchSuggestions(textEditingValue.text);
-              return suggestions;
-            },
-            displayStringForOption: (String option) => option,
-            onSelected: (String selection) {
-              debugPrint('Selected: $selection');
-              _textController.text = selection;
-              // 调用父组件提供的回调
-              widget.onSelected?.call(selection);
-              // 同样地，调用 onChanged 回调来通知父组件新的值
-              widget.onChanged?.call(selection);
-            },
-            fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
-              // 同步外部的 _textController 和内部的 textEditingController
-              textEditingController.text = _textController.text;
-              textEditingController.addListener(() {
-                if (textEditingController.text != _textController.text) {
-                  _textController.text = textEditingController.text;
-                  _textController.selection =
-                      TextSelection.collapsed(offset: _textController.text.length);
-                }
-              });
+      padding: const EdgeInsets.only(left: 0, right: 0, top: 8, bottom: 8),
+      child: SizedBox(
+        height: 34, // 设置输入框的固定高度(
+        child: SearchField(
+          dynamicHeight: true,
+          controller: _textController,
+          itemHeight: widget.height,
+          scrollbarDecoration: ScrollbarDecoration(
+            thickness: 2,
+          ),
 
-              _textController.addListener(() {
-                if (textEditingController.text != _textController.text) {
-                  textEditingController.text = _textController.text;
-                }
-              });
+          searchInputDecoration: SearchInputDecoration(
+            // contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+            // maintainHintHeight:true,
+            // contentPadding: EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+            cursorHeight: 14,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(3),
+              borderSide: const BorderSide(color: Colors.grey, width: 1.0),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(3), // 圆角
+              borderSide: BorderSide(color: Colors.grey, width: 1.0), // 失焦状态边框颜色
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(3), // 圆角
+              borderSide: BorderSide(color: Colors.grey, width: 1.0), // 聚焦状态边框颜色
+            ),
+            filled: true,
+            fillColor: Colors.white,
+            searchStyle: const TextStyle(
+              color: Color(0xFF505050),
+              fontSize: 14,
+              fontFamily: 'PingFang SC',
+              fontWeight: FontWeight.w400,
+            ),
+            contentPadding: EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+          ),
+          suggestions: _suggestions.map((item) {
+            return SearchFieldListItem(item['name'], item: item);
+          }).toList(),
+          suggestionState: Suggestion.expand,
+          textInputAction: TextInputAction.search,
+          onSuggestionTap: (SearchFieldListItem selection) {
+            debugPrint('Selected: ${selection.item}');
+            _textController.text = selection.item['name'] as String;
 
-              return Container(
-                width: widget.width, // 使用传入的宽度
-                height: widget.height, // 使用传入的高度
-                child: TextField(
-                  controller: textEditingController,
-                  focusNode: focusNode,
-                  style: TextStyle(fontSize: 14),
-                  decoration: InputDecoration(
-                    labelText: widget.labelText,
-                    hintText: widget.hintText,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(2),
-                      borderSide: BorderSide(color: Colors.grey, width: focusNode.hasFocus ? 1 : 0.5),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                ),
-              );
-            },
-            optionsViewBuilder: (context, onSelected, options) {
-              return Align(
-                alignment: Alignment.topLeft,
-                child: Material(
-                  elevation: 4.0,
-                  color: Colors.transparent, // 确保 Material 不覆盖自定义背景色
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(maxHeight: 80),
-                    child: Container(
-                      width: widget.width > 200 ? widget.width : widget.width+100, // 设置下拉选项宽度
-                      decoration: BoxDecoration(
-                        color: Colors.white, // 下拉选项背景颜色
-                        borderRadius: BorderRadius.circular(2), // 设置圆角
-                        border: Border.all(color: Colors.grey), // 设置边框颜色
-                      ),
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: options.isNotEmpty ? options.length : 1,
-                        itemBuilder: (context, index) {
-                          if (options.isNotEmpty) {
-                            final option = options.elementAt(index);
-                            return ListTile(
-                              title: Text(option, style: TextStyle(fontSize: 14)), // 设置选项文字大小
-                              onTap: () {
-                                onSelected(option);
-                              },
-                              dense: true, // 减少 ListTile 内部的默认间距
-                              visualDensity: VisualDensity.compact, // 减少垂直间距
-                            );
-                          } else {
-                            return Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                '无匹配选项',
-                                style: TextStyle(color: Colors.grey, fontSize: 14), // 设置提示文字大小
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
-          )
-        ],
+            // 调用父组件提供的回调
+            widget.onSelected?.call(selection.item);
+            widget.onChanged?.call(selection.item);
+          },
+          onSubmit: (_) async {
+            await _fetchSuggestions(_textController.text);
+          },
+          onSearchTextChanged: (String value) {
+            // 防抖处理
+            _fetchSuggestions(value);
+
+            if (value.isEmpty) {
+              widget.onChanged?.call(null);
+            } else {
+              widget.onChanged?.call({'name': value});
+            }
+          },
+          onTap: () async {
+            _fetchSuggestions("");
+          },
+        ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    _debounceTimer?.cancel();
+    super.dispose();
   }
 }
 
@@ -1828,7 +1885,8 @@ class _TagInputFieldState extends State<TagInputField> {
                       fontFamily: 'PingFang SC',
                       fontWeight: FontWeight.w400,
                     ),
-                    isCollapsed: true, // 确保内容对齐
+                    isCollapsed: true,
+                    // 确保内容对齐
                     contentPadding: EdgeInsets.symmetric(
                       vertical: (widget.height ?? 50.0) / 2 - 10,
                       horizontal: 3.0,
@@ -1848,23 +1906,17 @@ class _TagInputFieldState extends State<TagInputField> {
           runSpacing: 8.0,
           children: _tags
               .map((tag) => Chip(
-            label: Text(tag),
-            onDeleted: () {
-              setState(() {
-                _tags.remove(tag);
-                _updateTags();
-              });
-            },
-          ))
+                    label: Text(tag),
+                    onDeleted: () {
+                      setState(() {
+                        _tags.remove(tag);
+                        _updateTags();
+                      });
+                    },
+                  ))
               .toList(),
         ),
       ],
     );
   }
 }
-
-
-
-
-
-

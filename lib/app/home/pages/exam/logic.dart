@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:csv/csv.dart';
 import 'package:admin_flutter/component/form/enum.dart';
 import 'package:admin_flutter/component/form/form_data.dart';
+import '../../../../api/classes_api.dart';
 import '../../../../api/config_api.dart';
 import '../../../../api/major_api.dart';
 import '../../../../api/template_api.dart';
@@ -652,4 +653,44 @@ class ExamLogic extends GetxController {
       "删除失败: $error".toHint();
     }
   }
+
+  final GlobalKey<SuggestionTextFieldState> classesTextFieldKey = GlobalKey<SuggestionTextFieldState>();
+
+  Future<List<Map<String, dynamic>>> fetchClasses(String query) async {
+    print("query:$query");
+    try {
+      final response = await ClassesApi.classesList(params: {
+        "pageSize": 10,
+        "page": 1,
+        "keyword": query ?? "",
+      });
+      var data = response['list'];
+      print("response: $data");
+      // 检查数据是否为 List
+      if (data is List) {
+        final List<Map<String, dynamic>> suggestions = data.whereType<Map>().map((item) {
+          // 检查每个 item 是否包含 'class_name' 和 'id' 字段
+          if (item.containsKey('class_name') && item.containsKey('id')) {
+            return {
+              'name': item['class_name'],
+              'id': item['id'].toString(),
+            };
+          } else {
+            throw FormatException('Invalid item format: $item');
+          }
+        }).toList();
+        print("suggestions： $suggestions");
+        return suggestions;
+      } else {
+        // Handle the case where data is not a List
+        return [];
+      }
+    } catch (e) {
+      // Handle any exceptions that are thrown
+      print('Error fetching classes: $e');
+      return [];
+    }
+  }
+
+  Rx<String> selectedClassesId = "0".obs;
 }

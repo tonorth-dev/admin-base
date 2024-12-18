@@ -120,9 +120,9 @@ class _ExamPageState extends State<ExamPage> {
                         level1Items: widget.logic.level1Items,
                         level2Items: widget.logic.level2Items,
                         level3Items: widget.logic.level3Items,
-                        selectedLevel1:  ValueNotifier(null),
-                        selectedLevel2:  ValueNotifier(null),
-                        selectedLevel3:  ValueNotifier(null),
+                        selectedLevel1: ValueNotifier(null),
+                        selectedLevel2: ValueNotifier(null),
+                        selectedLevel3: ValueNotifier(null),
                         onChanged:
                             (dynamic level1, dynamic level2, dynamic level3) {
                           widget.logic.selectedMajorId.value =
@@ -165,93 +165,93 @@ class _ExamPageState extends State<ExamPage> {
             child: Obx(() => widget.logic.loading.value
                 ? const Center(child: CircularProgressIndicator())
                 : SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: SizedBox(
-                width: 1500,
-                child: SfDataGrid(
-                  source: ExamDataSource(
-                      logic: widget.logic, context: context),
-                  headerGridLinesVisibility:
-                  GridLinesVisibility.values[1],
-                  gridLinesVisibility: GridLinesVisibility.values[1],
-                  columnWidthMode: ColumnWidthMode.fill,
-                  headerRowHeight: 50,
-                  rowHeight: 100,
-                  columns: [
-                    GridColumn(
-                      columnName: 'Select',
-                      width: 100,
-                      label: Container(
-                        color: Color(0xFFF3F4F8),
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.all(8.0),
-                        child: Checkbox(
-                          value: widget.logic.selectedRows.length ==
-                              widget.logic.list.length,
-                          onChanged: (value) =>
-                              widget.logic.toggleSelectAll(),
-                          fillColor:
-                          WidgetStateProperty.resolveWith<Color>(
-                                  (states) {
-                                if (states.contains(WidgetState.selected)) {
-                                  return Color(0xFFD43030);
-                                }
-                                return Colors.white;
-                              }),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4)),
-                        ),
+                    scrollDirection: Axis.horizontal,
+                    child: SizedBox(
+                      width: 1370,
+                      child: SfDataGrid(
+                        source: ExamDataSource(
+                            logic: widget.logic, context: context),
+                        headerGridLinesVisibility:
+                            GridLinesVisibility.values[1],
+                        gridLinesVisibility: GridLinesVisibility.values[1],
+                        columnWidthMode: ColumnWidthMode.fill,
+                        headerRowHeight: 50,
+                        rowHeight: 100,
+                        columns: [
+                          GridColumn(
+                            columnName: 'Select',
+                            width: 100,
+                            label: Container(
+                              color: Color(0xFFF3F4F8),
+                              alignment: Alignment.center,
+                              padding: const EdgeInsets.all(8.0),
+                              child: Checkbox(
+                                value: widget.logic.selectedRows.length ==
+                                    widget.logic.list.length,
+                                onChanged: (value) =>
+                                    widget.logic.toggleSelectAll(),
+                                fillColor:
+                                    WidgetStateProperty.resolveWith<Color>(
+                                        (states) {
+                                  if (states.contains(WidgetState.selected)) {
+                                    return Color(0xFFD43030);
+                                  }
+                                  return Colors.white;
+                                }),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4)),
+                              ),
+                            ),
+                          ),
+                          ...widget.logic.columns.map((column) => GridColumn(
+                                columnName: column.key,
+                                width: _getColumnWidth(column.key),
+                                label: Container(
+                                  color: Color(0xFFF3F4F8),
+                                  alignment: Alignment.center,
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    column.title,
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey[800]),
+                                  ),
+                                ),
+                              )),
+                          GridColumn(
+                            columnName: 'Actions',
+                            width: 140,
+                            label: Container(
+                              color: Color(0xFFF3F4F8),
+                              alignment: Alignment.center,
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                '操作',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 15),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    ...widget.logic.columns.map((column) => GridColumn(
-                      columnName: column.key,
-                      width: _getColumnWidth(column.key),
-                      label: Container(
-                        color: Color(0xFFF3F4F8),
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          column.title,
-                          style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey[800]),
-                        ),
-                      ),
-                    )),
-                    GridColumn(
-                      columnName: 'Actions',
-                      width: 140,
-                      label: Container(
-                        color: Color(0xFFF3F4F8),
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          '操作',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 15),
-                        ),
-                      ),
+                  )),
+          ),
+          Obx(() => Padding(
+                padding: EdgeInsets.only(right: 50),
+                child: Column(
+                  children: [
+                    PaginationPage(
+                      uniqueId: 'exam_pagination',
+                      total: widget.logic.total.value,
+                      changed: (int newSize, int newPage) {
+                        widget.logic.find(newSize, newPage);
+                      },
                     ),
                   ],
                 ),
-              ),
-            )),
-          ),
-          Obx(() => Padding(
-            padding: EdgeInsets.only(right: 50),
-            child: Column(
-              children: [
-                PaginationPage(
-                  uniqueId: 'exam_pagination',
-                  total: widget.logic.total.value,
-                  changed: (int newSize, int newPage) {
-                    widget.logic.find(newSize, newPage);
-                  },
-                ),
-              ],
-            ),
-          )),
+              )),
           ThemeUtil.height(height: 30),
         ],
       ),
@@ -338,8 +338,7 @@ class _ExamPageState extends State<ExamPage> {
     );
   }
 
-  Widget _buildInteractiveCardRight(
-      String title, double? width, double? height) {
+  Widget _buildInteractiveCardRight(String title, double? width, double? height) {
     return Container(
       width: width,
       height: height,
@@ -366,86 +365,97 @@ class _ExamPageState extends State<ExamPage> {
                   color: Colors.blue[800]),
             ),
             SizedBox(height: 16),
+            Row(children: [
+              SizedBox(
+                width: 900,
+                height: 60,
+                child: FollowHeader(),
+              ),
+            ]),
+            SizedBox(height: 16), // 增加间距
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                SizedBox(
+                  width: 205,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 第一列：试卷名称
+                      Padding(
+                        padding: const EdgeInsets.only(left: 25.0),
+                        child: TextInputWidget(
+                          width: 150,
+                          height: 34,
+                          hint: "输入试卷名称",
+                          text: widget.logic.examName,
+                          onTextChanged: (value) {
+                            widget.logic.examName.value = value;
+                          },
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  width: 150,
+                  // child: Column(
+                  //   crossAxisAlignment: CrossAxisAlignment.start,
+                  //   children: [
+                  //     CascadingDropdownField(
+                  //       width: 150,
+                  //       height: 34,
+                  //       hint1: '专业类目一',
+                  //       hint2: '专业类目二',
+                  //       hint3: '专业名称',
+                  //       level1Items: widget.logic.level1Items,
+                  //       level2Items: widget.logic.level2Items,
+                  //       level3Items: widget.logic.level3Items,
+                  //       selectedLevel1: widget.logic.majorSelectedLevel1,
+                  //       selectedLevel2: widget.logic.majorSelectedLevel2,
+                  //       selectedLevel3: widget.logic.majorSelectedLevel3,
+                  //       onChanged: (dynamic level1, dynamic level2, dynamic level3) {
+                  //         widget.logic.examSelectedMajorId.value = level3.toString();
+                  //       },
+                  //       axis: Axis.vertical,
+                  //     ),
+                  //   ],
+                  // ),
+                  child: Padding(
+                    padding: EdgeInsets.all(0),
+                    child: SuggestionTextField(
+                      width: 600,
+                      height: 34,
+                      labelText: '班级选择',
+                      hintText: '输入班级名称',
+                      key: widget.logic.classesTextFieldKey,
+                      fetchSuggestions: widget.logic.fetchClasses,
+                      initialValue: {},
+                      onSelected: (value) {
+                        if (value == '') {
+                          widget.logic.selectedClassesId.value = "";
+                          return;
+                        }
+                        widget.logic.selectedClassesId.value = value['id']!;
+                      },
+                      onChanged: (value) {
+                        if (value == null || value.isEmpty) {
+                          widget.logic.selectedClassesId.value = ""; // 确保清空
+                        }
+                        print("onChanged selectedInstitutionId value: ${widget.logic.selectedClassesId.value}");
+                      },
+                    ),
+                  ),
+                ),
                 SizedBox(
                   width: 240,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        "试卷名称：",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.black),
-                      ),
-                      SizedBox(height: 8),
-                      TextInputWidget(
-                        width: 240,
-                        height: 34,
-                        hint: "输入试卷名称",
-                        text: widget.logic.examName,
-                        // 直接传递 RxString
-                        onTextChanged: (value) {
-                          widget.logic.examName.value = value; // 更新逻辑
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(width: 120),
-                SizedBox(
-                  width: 500,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "选择专业：",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.black),
-                      ),
-                      SizedBox(height: 8),
-                      CascadingDropdownField(
-                        width: 160,
-                        height: 34,
-                        hint1: '专业类目一',
-                        hint2: '专业类目二',
-                        hint3: '专业名称',
-                        level1Items: widget.logic.level1Items,
-                        level2Items: widget.logic.level2Items,
-                        level3Items: widget.logic.level3Items,
-                        selectedLevel1: widget.logic.majorSelectedLevel1,
-                        selectedLevel2: widget.logic.majorSelectedLevel2,
-                        selectedLevel3: widget.logic.majorSelectedLevel3,
-                        onChanged:
-                            (dynamic level1, dynamic level2, dynamic level3) {
-                          widget.logic.examSelectedMajorId.value = level3.toString();
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 16),
-            Wrap(
-              spacing: 16,
-              runSpacing: 16,
-              children: [
-                SizedBox(
-                  width: 550,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "题型数量：",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.black),
-                      ),
                       Row(
                         children: widget.logic.questionCate.map((item) {
-                          final selectValue = widget.logic.cateSelectedValues[item["id"]]!;
-                          print(item["id"]);
-                          print(selectValue);
+                          final selectValue =
+                          widget.logic.cateSelectedValues[item["id"]]!;
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8.0),
                             child: Row(
@@ -487,10 +497,11 @@ class _ExamPageState extends State<ExamPage> {
                   ),
                 ),
                 SizedBox(
-                  width: 200,
+                  width: 240,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // 第四列：选择难度
                       Text(
                         "选择难度：",
                         style: TextStyle(
@@ -503,7 +514,8 @@ class _ExamPageState extends State<ExamPage> {
                         width: 120,
                         height: 34,
                         onChanged: (dynamic newValue) {
-                          widget.logic.examSelectedQuestionLevel.value = newValue.toString();
+                          widget.logic.examSelectedQuestionLevel.value =
+                              newValue.toString();
                           widget.logic.applyFilters();
                         },
                         selectedValue: widget.logic.examSelectedQuestionLevel,
@@ -512,10 +524,11 @@ class _ExamPageState extends State<ExamPage> {
                   ),
                 ),
                 SizedBox(
-                  width: 200,
+                  width: 240,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // 第五列：生成套数
                       Text(
                         "生成套数：",
                         style: TextStyle(
@@ -534,28 +547,6 @@ class _ExamPageState extends State<ExamPage> {
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () async {
-                    final result = await widget.logic.saveTemplate();
-                    if(result) {
-                      await widget.logic.fetchTemplates();
-                      refresh();
-                    }
-                  },
-                  child: Text("保存模板"),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    await widget.logic.saveExam();
-                  },
-                  child: Text("生成试卷"),
                 ),
               ],
             ),
@@ -578,24 +569,24 @@ class ExamDataSource extends DataGridSource {
   void _buildRows() {
     _rows = logic.list
         .map((item) => DataGridRow(
-      cells: [
-        DataGridCell(
-          columnName: 'Select',
-          value: logic.selectedRows.contains(item['id']),
-        ),
-        ...logic.columns.map((column) {
-          var value = item[column.key];
-          if (column.key == 'component_desc' && value is List) {
-            value = value.join("\n");
-          }
-          return DataGridCell(
-            columnName: column.key,
-            value: value,
-          );
-        }),
-        DataGridCell(columnName: 'Actions', value: item),
-      ],
-    ))
+              cells: [
+                DataGridCell(
+                  columnName: 'Select',
+                  value: logic.selectedRows.contains(item['id']),
+                ),
+                ...logic.columns.map((column) {
+                  var value = item[column.key];
+                  if (column.key == 'component_desc' && value is List) {
+                    value = value.join("\n");
+                  }
+                  return DataGridCell(
+                    columnName: column.key,
+                    value: value,
+                  );
+                }),
+                DataGridCell(columnName: 'Actions', value: item),
+              ],
+            ))
         .toList();
   }
 
@@ -622,7 +613,7 @@ class ExamDataSource extends DataGridSource {
                   : Colors.white;
             }),
             shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
           ),
         ),
         ...row.getCells().skip(1).take(row.getCells().length - 2).map((cell) {
@@ -656,36 +647,36 @@ class ExamDataSource extends DataGridSource {
                       ),
                       isOverflowing
                           ? TextButton(
-                        style: ButtonStyle(
-                          textStyle: WidgetStateProperty.all(
-                              TextStyle(fontSize: 14)),
-                          foregroundColor:
-                          WidgetStateProperty.all(Color(0xFF25B7E8)),
-                        ),
-                        onPressed: () {
-                          CopyDialog.show(context, value);
-                        },
-                        child: Text("全文"),
-                      )
+                              style: ButtonStyle(
+                                textStyle: WidgetStateProperty.all(
+                                    TextStyle(fontSize: 14)),
+                                foregroundColor:
+                                    WidgetStateProperty.all(Color(0xFF25B7E8)),
+                              ),
+                              onPressed: () {
+                                CopyDialog.show(context, value);
+                              },
+                              child: Text("全文"),
+                            )
                           : TextButton(
-                        style: ButtonStyle(
-                          textStyle: WidgetStateProperty.all(
-                              TextStyle(fontSize: 14)),
-                          foregroundColor:
-                          WidgetStateProperty.all(Color(0xFF25B7E8)),
-                        ),
-                        onPressed: () async {
-                          await Clipboard.setData(
-                              ClipboardData(text: value));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text("复制成功"),
-                              duration: Duration(seconds: 2),
+                              style: ButtonStyle(
+                                textStyle: WidgetStateProperty.all(
+                                    TextStyle(fontSize: 14)),
+                                foregroundColor:
+                                    WidgetStateProperty.all(Color(0xFF25B7E8)),
+                              ),
+                              onPressed: () async {
+                                await Clipboard.setData(
+                                    ClipboardData(text: value));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text("复制成功"),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                              child: Text("复制"),
                             ),
-                          );
-                        },
-                        child: Text("复制"),
-                      ),
                     ],
                   );
                 },
@@ -711,19 +702,74 @@ class ExamDataSource extends DataGridSource {
             ),
             TextButton(
               onPressed: () {
-              //   Navigator.push(
-              //     context,
-              //   //   MaterialPageRoute(
-              //   //   //   builder: (context) =>
-              //   //   //       ExecutePage(id: item['id']), // 替换为实际的 ID
-              //   //   // ),
-              //   // );
+                //   Navigator.push(
+                //     context,
+                //   //   MaterialPageRoute(
+                //   //   //   builder: (context) =>
+                //   //   //       ExecutePage(id: item['id']), // 替换为实际的 ID
+                //   //   // ),
+                //   // );
               },
               child: Text("查看试卷", style: TextStyle(color: Color(0xFFFD941D))),
             ),
           ],
         ),
       ],
+    );
+  }
+}
+
+class FollowHeader extends StatelessWidget {
+  final String firstBackgroundImage = 'assets/images/follow_header_bg.png';
+  final String otherBackgroundImage = 'assets/images/follow_header_bg.jpg';
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          height: 60,
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          // 添加一些内边距
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly, // 均匀分布各个项目
+            children: List.generate(5, (index) {
+              final titles = ['试卷名称', '选择班级', '题型数量', '选择难度', '生成套数'];
+              return _buildItem(context, '${index + 1}', titles[index]);
+            }),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildItem(BuildContext context, String number, String title) {
+    return Expanded(
+      child: Container(
+        height: 60, // 根据需要调整高度
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: number == "1"
+                ? AssetImage(firstBackgroundImage)
+                : AssetImage(otherBackgroundImage),
+            fit: BoxFit.fitWidth, // 确保背景图完全覆盖容器
+          ),
+          borderRadius: BorderRadius.circular(8.0), // 圆角半径，根据需要调整
+        ),
+        child: Center(
+          child: Text(
+            "$number.$title",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.black87, // 确保文字颜色与背景对比度高
+              fontSize: 16,
+              fontFamily: 'PingFang SC',
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

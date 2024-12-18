@@ -114,35 +114,27 @@ class _StudentAddFormState extends State<StudentAddForm> {
                   SizedBox(
                     width: 600,
                     child: SuggestionTextField(
-                    width: 600,
-                    height: 34,
-                    labelText: '机构选择',
-                    hintText: '输入机构名称',
-                    key: Key("add_student_institution_id"),
-                    fetchSuggestions: logic.fetchInstructions,
-                    initialValue: '',
-                    onSelected: (value) {
-                      if (value == '') {
-                        logic.institutionId.value = "";
-                        return;
-                      }
-                      RegExp regExp = RegExp(r'ID：(\d+)');
-                      Match? match = regExp.firstMatch(value);
-                      if (match != null) {
-                        String id = match.group(1)!;
-                        logic.institutionId.value = id;
-                      } else {
-                        logic.institutionId.value = "";
-                      }
-                      print("selectedInstitutionId value: ${logic.selectedInstitutionId.value}");
-                    },
-                    onChanged: (value) {
-                      if (value == null || value.isEmpty) {
-                        logic.institutionId.value = ""; // 确保清空
-                      }
-                      print("onChanged selectedInstitutionId value: ${logic.selectedInstitutionId.value}");
-                    },
-                  ),
+                      width: 600,
+                      height: 34,
+                      labelText: '请选择机构',
+                      hintText: '输入机构名称',
+                      key: Key("add_student_institution_id"),
+                      fetchSuggestions: logic.fetchInstructions,
+                      initialValue: {},
+                      onSelected: (value) {
+                        if (value.isEmpty) {
+                          logic.institutionId.value = "";
+                          return;
+                        }
+                        logic.institutionId.value = value['id']!;
+                      },
+                      onChanged: (value) {
+                        if (value == null || value.isEmpty) {
+                          logic.institutionId.value = ""; // 确保清空
+                        }
+                        print("onChanged selectedInstitutionId value: ${logic.selectedInstitutionId.value}");
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -167,20 +159,13 @@ class _StudentAddFormState extends State<StudentAddForm> {
                       hintText: '输入班级名称',
                       key: Key("add_student_class_id"),
                       fetchSuggestions: logic.fetchClasses,
-                      initialValue: '',
+                      initialValue: {},
                       onSelected: (value) {
                         if (value == '') {
                           logic.classId.value = "";
                           return;
                         }
-                        RegExp regExp = RegExp(r'ID：(\d+)');
-                        Match? match = regExp.firstMatch(value);
-                        if (match != null) {
-                          String id = match.group(1)!;
-                          logic.classId.value = id;
-                        } else {
-                          logic.classId.value = "";
-                        }
+                        logic.classId.value = value['id']!;
                       },
                       onChanged: (value) {
                         if (value == null || value.isEmpty) {

@@ -105,7 +105,7 @@ class CLogic extends GetxController {
     ];
   }
 
-  Future<List<String>> fetchInstructions(String query) async {
+  Future<List<Map<String, dynamic>>> fetchInstructions(String query) async {
     print("query:$query");
     try {
       final response = await InstitutionApi.institutionList(params: {
@@ -117,12 +117,13 @@ class CLogic extends GetxController {
       print("response: $data");
       // 检查数据是否为 List
       if (data is List) {
-        final List<String> suggestions = data.map((item) {
+        final List<Map<String, dynamic>> suggestions = data.map((item) {
           // 检查每个 item 是否包含 'name' 和 'id' 字段
-          if (item is Map &&
-              item.containsKey('name') &&
-              item.containsKey('id')) {
-            return "${item['name']}（ID：${item['id']}）";
+          if (item is Map && item.containsKey('name') && item.containsKey('id')) {
+            return {
+              'name': item['name'],
+              'id': item['id'].toString(),
+            };
           } else {
             throw FormatException('Invalid item format: $item');
           }

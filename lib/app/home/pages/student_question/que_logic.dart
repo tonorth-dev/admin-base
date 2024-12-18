@@ -324,40 +324,6 @@ class QueLogic extends GetxController {
     }
   }
 
-  Future<List<String>> fetchInstructions(String query) async {
-    print("query:$query");
-    try {
-      final response = await InstitutionApi.institutionList(params: {
-        "pageSize": 10,
-        "page": 1,
-        "keyword": query ?? "",
-      });
-      var data = response['list'];
-      print("response: $data");
-      // 检查数据是否为 List
-      if (data is List) {
-        final List<String> suggestions = data.map((item) {
-          // 检查每个 item 是否包含 'name' 和 'id' 字段
-          if (item is Map && item.containsKey('name') &&
-              item.containsKey('id')) {
-            return "${item['name']}（ID：${item['id']}）";
-          } else {
-            throw FormatException('Invalid item format: $item');
-          }
-        }).toList();
-        print("suggestions： $suggestions");
-        return suggestions;
-      } else {
-        // Handle the case where data is not a List
-        return [];
-      }
-    } catch (e) {
-      // Handle any exceptions that are thrown
-      print('Error fetching instructions: $e');
-      return [];
-    }
-  }
-
   @override
   void refresh() {
     findForStudent(size.value, page.value);

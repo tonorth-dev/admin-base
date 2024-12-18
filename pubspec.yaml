@@ -57,6 +57,7 @@ dependencies:
   field_suggestion: ^0.2.6
   pdfx: ^2.8.0
   flutter_fancy_tree_view: ^1.6.0
+  searchfield: ^1.0.0
 
 dev_dependencies:
   flutter_test:

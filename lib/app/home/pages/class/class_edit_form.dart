@@ -109,25 +109,20 @@ class _ClassesEditFormState extends State<ClassesEditForm> {
                       hintText: '输入机构名称',
                       key: Key("add_student_institution_id"),
                       fetchSuggestions: logic.fetchInstructions,
-                      initialValue: logic.uInstitutionName.value,
+                      initialValue: {
+                        'name': logic.uInstitutionName.value,
+                        'id': logic.uInstitutionId.value,
+                      },
                       onSelected: (value) {
-                        if (value == '') {
-                          logic.uInstitutionId.value = "";
+                        if (value.isEmpty) {
+                          logic.institutionId.value = "";
                           return;
                         }
-                        RegExp regExp = RegExp(r'ID：(\d+)');
-                        Match? match = regExp.firstMatch(value);
-                        if (match != null) {
-                          String id = match.group(1)!;
-                          logic.uInstitutionId.value = id;
-                        } else {
-                          logic.uInstitutionId.value = "";
-                        }
-                        print("selectedInstitutionId value: ${logic.selectedInstitutionId.value}");
+                        logic.institutionId.value = value['id']!;
                       },
                       onChanged: (value) {
                         if (value == null || value.isEmpty) {
-                          logic.uInstitutionId.value = ""; // 确保清空
+                          logic.institutionId.value = ""; // 确保清空
                         }
                         print("onChanged selectedInstitutionId value: ${logic.selectedInstitutionId.value}");
                       },
