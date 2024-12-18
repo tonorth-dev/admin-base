@@ -83,7 +83,7 @@ class LectureFileView extends StatelessWidget {
   }
 
   TreeView<DirectoryNode> _buildTreeView(BuildContext context) {
-    treeController.expandAll();
+    treeController.collapseAll();
 
     return TreeView<DirectoryNode>(
       treeController: treeController,
@@ -95,11 +95,12 @@ class LectureFileView extends StatelessWidget {
 
   Widget _buildTreeNode(BuildContext context, TreeEntry<DirectoryNode> entry) {
     final DirectoryNode dirNode = entry.node;
-    final bool isFileNode =
-        dirNode.filePath != null && dirNode.filePath!.isNotEmpty;
+    final bool isFileNode = dirNode.filePath != null && dirNode.filePath!.isNotEmpty;
     final bool isLeafNode = dirNode.children.isEmpty;
-    final bool isExpanded =
-        entry.isExpanded; // 使用entry.isExpanded代替原来的node.expanded
+    final bool isExpanded = entry.isExpanded; // 使用entry.isExpanded代替原来的node.expanded
+
+    // 根据节点层级设置缩进
+    final double indentLevel = entry.level * 24.0; // 每一级增加24像素的缩进
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
@@ -111,15 +112,14 @@ class LectureFileView extends StatelessWidget {
         }
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        padding: EdgeInsets.only(left: indentLevel, top: 8.0, bottom: 8.0),
         child: Row(
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4.0),
               child: (isFileNode && isLeafNode)
                   ? SizedBox(width: 16)
-                  : Text(isExpanded ? '-' : '+',
-                      style: TextStyle(fontSize: 14)),
+                  : Text(isExpanded ? '-' : '+', style: TextStyle(fontSize: 14)),
             ),
             Expanded(child: Text(dirNode.name)),
             SizedBox(width: 16),
