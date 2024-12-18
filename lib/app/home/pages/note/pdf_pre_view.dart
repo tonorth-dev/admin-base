@@ -24,7 +24,7 @@ class _PdfPreViewState extends State<PdfPreView> {
   void initState() {
     super.initState();
     pdfLogic.selectedPdfUrl.listen((url) async {
-      if (url != null) {
+      if (url != null && url.isNotEmpty) {
         await _initializePdf(url);
       }
     });

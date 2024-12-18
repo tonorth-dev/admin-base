@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_fancy_tree_view/flutter_fancy_tree_view.dart';
@@ -22,7 +24,35 @@ class LectureFileView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // ... 省略部分代码 ...
+        TableEx.actions(
+          children: [
+            SizedBox(width: 30), // 添加一些间距
+            Container(
+              height: 50,
+              width: 100,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.blue.shade700, Colors.blue.shade300],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Center(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        ThemeUtil.lineH(),
+        ThemeUtil.height(),
         Expanded(
           child: Obx(() {
             if (logic.directoryTree.isEmpty) {
@@ -53,8 +83,7 @@ class LectureFileView extends StatelessWidget {
   }
 
   TreeView<DirectoryNode> _buildTreeView(BuildContext context) {
-    // 如果需要自动展开所有父节点，可以在这里调用 treeController.expandAll() 或其他逻辑
-    // treeController.expandAll();
+    treeController.expandAll();
 
     return TreeView<DirectoryNode>(
       treeController: treeController,
@@ -112,12 +141,37 @@ class LectureFileView extends StatelessWidget {
         _buildIconButton(
           Icons.add,
           "添加",
-          () {
-            // 如果需要添加子目录，请确保已经定义了 _addSubdirectory 方法
-            // _addSubdirectory(context, dirNode);
-          },
+              () => _addSubdirectory(context, dirNode),
           color: Colors.blueAccent,
           isEnabled: isFilePathEmpty,
+        ),
+        _buildIconButton(
+          Icons.file_upload,
+          "上传文件",
+              () => _importFile(context, dirNode),
+          color: Colors.blueAccent,
+          isEnabled: isLeafNode, // 仅当是叶子节点时启用
+        ),
+        _buildIconButton(
+          Icons.upload_file,
+          "导入目录",
+              () => _importDir(context, dirNode),
+          color: Colors.blueAccent,
+          isEnabled: isFilePathEmpty,
+        ),
+        _buildIconButton(
+          Icons.edit,
+          "编辑",
+              () => _updateDir(context, dirNode),
+          color: Colors.greenAccent,
+          isEnabled: true, // 编辑按钮总是启用
+        ),
+        _buildIconButton(
+          Icons.delete,
+          "删除",
+              () => _confirmDelete(context, dirNode),
+          color: Colors.orangeAccent,
+          isEnabled: true, // 删除按钮总是启用
         ),
       ],
     );
@@ -149,6 +203,116 @@ class LectureFileView extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context, DirectoryNode node) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("确认删除"),
+        content: Text("您确定要删除 '${node.name}' 吗？"),
+        actions: [
+          TextButton(
+            child: Text("取消"),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          TextButton(
+            child: Text("删除", style: TextStyle(color: Colors.red)),
+            onPressed: () {
+              logic.deleteDirectory(node.id);
+              logic.loadDirectoryTree(logic.selectedLectureId.value, true);
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _addSubdirectory(BuildContext context, DirectoryNode parent) {
+    String? newDirName;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("添加节点"),
+        content: TextField(
+          onChanged: (value) => newDirName = value,
+          decoration: InputDecoration(hintText: "目录名称"),
+        ),
+        actions: [
+          TextButton(
+            child: Text("取消"),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          TextButton(
+            child: Text("添加"),
+            onPressed: () {
+              if (newDirName != null && newDirName!.isNotEmpty) {
+                logic.addNewDirectory(newDirName!, parent.id);
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _importFile(BuildContext context, DirectoryNode node) async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'docx'],
+    );
+    if (result != null) {
+      File file = File(result.files.single.path!);
+      logic.importFileToNode(file, node.id);
+    }
+  }
+
+  void _importDir(BuildContext context, DirectoryNode node) async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+    if (result != null) {
+      File file = File(result.files.single.path!);
+      logic.importFileToDir(
+          file, int.parse(logic.selectedLectureId.value), node.id);
+    }
+  }
+
+  void _updateDir(BuildContext context, DirectoryNode node) {
+    TextEditingController controller = TextEditingController(text: node.name);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("修改节点名称"),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(hintText: "节点名称"),
+        ),
+        actions: [
+          TextButton(
+            child: Text("取消"),
+            onPressed: () {
+              Navigator.of(context).pop();
+              controller.dispose(); // 释放控制器
+            },
+          ),
+          TextButton(
+            child: Text("更新"),
+            onPressed: () {
+              final newDirName = controller.text;
+              if (newDirName.isNotEmpty) {
+                logic.updateDirectory(newDirName, node.id);
+                Navigator.of(context).pop();
+                controller.dispose(); // 释放控制器
+              }
+            },
+          ),
+        ],
       ),
     );
   }
