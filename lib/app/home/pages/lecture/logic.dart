@@ -9,6 +9,7 @@ import 'package:admin_flutter/api/lecture_api.dart';
 import 'package:admin_flutter/ex/ex_hint.dart';
 import 'package:admin_flutter/component/dialog.dart';
 import '../../../../api/major_api.dart';
+import '../../../../common/config_util.dart';
 import '../../../../component/table/table_data.dart';
 import '../../../../component/widget.dart';
 import 'lecture_add_form.dart';
@@ -606,8 +607,8 @@ Future<void> importFileToDir(File file, int lectureId, int nodeId) async {
       debugPrint('Selected PDF URL updated: ${selectedPdfUrl.value}');
       return;
     }
-    if (selectedPdfUrl.value != "http://127.0.0.1:9000/hongshi$url") {
-      selectedPdfUrl.value = "http://127.0.0.1:9000/hongshi$url";
+    if (selectedPdfUrl.value != "${ConfigUtil.baseUrl}:${ConfigUtil.ossPort}${ConfigUtil.ossPrefix}$url") {
+      selectedPdfUrl.value = "${ConfigUtil.baseUrl}:${ConfigUtil.ossPort}${ConfigUtil.ossPrefix}$url";
       debugPrint('Selected PDF URL updated: ${selectedPdfUrl.value}');
     }
   }

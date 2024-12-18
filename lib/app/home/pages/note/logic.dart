@@ -9,6 +9,7 @@ import 'package:admin_flutter/ex/ex_hint.dart';
 import 'package:admin_flutter/component/dialog.dart';
 import '../../../../api/book_api.dart';
 import '../../../../api/major_api.dart';
+import '../../../../common/config_util.dart';
 import '../../../../component/table/table_data.dart';
 import '../../../../component/widget.dart';
 
@@ -134,8 +135,8 @@ class NoteLogic extends GetxController {
       debugPrint('Selected PDF URL updated: ${selectedPdfUrl.value}');
       return;
     }
-    if (selectedPdfUrl.value != "http://127.0.0.1:9000/hongshi$url") {
-      selectedPdfUrl.value = "http://127.0.0.1:9000/hongshi$url";
+    if (selectedPdfUrl.value != "${ConfigUtil.baseUrl}:${ConfigUtil.ossPort}${ConfigUtil.ossPrefix}$url") {
+      selectedPdfUrl.value = "${ConfigUtil.baseUrl}:${ConfigUtil.ossPort}${ConfigUtil.ossPrefix}$url";
       debugPrint('Selected PDF URL updated: ${selectedPdfUrl.value}');
     }
   }
@@ -146,7 +147,7 @@ class NoteLogic extends GetxController {
     // 检查响应状态码
     if (!response['url'].isEmpty) {
       // 获取 PDF 文件的 URL
-      selectedPdfUrl.value = "http://127.0.0.1:9000/hongshi${response['url']}";
+      selectedPdfUrl.value = "${ConfigUtil.baseUrl}:${ConfigUtil.ossPort}${ConfigUtil.ossPrefix}${response['url']}";
       print(selectedPdfUrl.value);
     }
   }

@@ -3,12 +3,13 @@ import 'package:admin_flutter/common/app_data.dart';
 import 'package:admin_flutter/ex/ex_hint.dart';
 import 'package:dio/dio.dart';
 
+import 'config_util.dart';
+
 class HttpUtil {
-  static const String baseUrl = "http://127.0.0.1:8888";
   static const authorization = "Authorization";
 
   static final dio = Dio(BaseOptions(
-    baseUrl: baseUrl,
+    baseUrl: "${ConfigUtil.baseUrl}:${ConfigUtil.httpPort}",
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 10),
   ))

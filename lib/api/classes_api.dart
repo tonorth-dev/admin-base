@@ -114,25 +114,6 @@ class ClassesApi {
     }
   }
 
-  // 导入题目
-  // static Future<dynamic> classesBatchImport(File file) async {
-  //   try {
-  //     MultipartFile multipartFile = await MultipartFile.fromFile(
-  //       file.path,
-  //       filename: basename(file.path),
-  //     );
-  //
-  //     Map<String, dynamic> params = {
-  //       'file': multipartFile,
-  //     };
-  //
-  //     return await HttpUtil.post("/admin/classes/classes/batch-import", params: params);
-  //   } catch (e) {
-  //     print('调用导入接口错误: $e');
-  //     rethrow; // 重新抛出异常以便调用者处理
-  //   }
-  // }
-
   static Future<dynamic> classesBatchImport(File file) async {
     try {
       // 构造 MultipartFile 对象
@@ -147,20 +128,9 @@ class ClassesApi {
       });
 
       // 调用上传接口
-      Response response = await Dio().post(
-        "http://127.0.0.1:8888/admin/class/class/batch-import",
-        data: formData,
-        options: Options(
-          headers: {
-            'User-Agent': 'Apifox/1.0.0 (https://apifox.com)',
-          },
-          contentType: 'multipart/form-data',
-        ),
-      );
-
-      return response.data; // 返回接口响应
+      return await HttpUtil.uploadFile("/admin/class/class/batch-import", formData, showMsg: false);
     } catch (e) {
-      print('调用导入接口错误: $e');
+      print('调用导入接口时发生错误: $e');
       rethrow; // 重新抛出异常以便调用者处理
     }
   }
