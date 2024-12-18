@@ -338,7 +338,8 @@ class _ExamPageState extends State<ExamPage> {
     );
   }
 
-  Widget _buildInteractiveCardRight(String title, double? width, double? height) {
+  Widget _buildInteractiveCardRight(
+      String title, double? width, double? height) {
     return Container(
       width: width,
       height: height,
@@ -377,7 +378,7 @@ class _ExamPageState extends State<ExamPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 SizedBox(
-                  width: 205,
+                  width: 150,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -385,7 +386,7 @@ class _ExamPageState extends State<ExamPage> {
                       Padding(
                         padding: const EdgeInsets.only(left: 25.0),
                         child: TextInputWidget(
-                          width: 150,
+                          width: 120,
                           height: 34,
                           hint: "输入试卷名称",
                           text: widget.logic.examName,
@@ -398,7 +399,7 @@ class _ExamPageState extends State<ExamPage> {
                   ),
                 ),
                 SizedBox(
-                  width: 150,
+                  width: 120,
                   // child: Column(
                   //   crossAxisAlignment: CrossAxisAlignment.start,
                   //   children: [
@@ -424,7 +425,7 @@ class _ExamPageState extends State<ExamPage> {
                   child: Padding(
                     padding: EdgeInsets.all(0),
                     child: SuggestionTextField(
-                      width: 600,
+                      width: 120,
                       height: 34,
                       labelText: '班级选择',
                       hintText: '输入班级名称',
@@ -442,58 +443,58 @@ class _ExamPageState extends State<ExamPage> {
                         if (value == null || value.isEmpty) {
                           widget.logic.selectedClassesId.value = ""; // 确保清空
                         }
-                        print("onChanged selectedInstitutionId value: ${widget.logic.selectedClassesId.value}");
+                        print(
+                            "onChanged selectedInstitutionId value: ${widget.logic.selectedClassesId.value}");
                       },
                     ),
                   ),
                 ),
                 SizedBox(
-                  width: 240,
+                  width: 150,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: widget.logic.questionCate.map((item) {
-                          final selectValue =
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: widget.logic.questionCate.map((item) {
+                      final selectValue =
                           widget.logic.cateSelectedValues[item["id"]]!;
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Row(
-                              children: [
-                                Text(
-                                  "${item['name']}：",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black),
-                                ),
-                                NumberInputWidget(
-                                  key: UniqueKey(),
-                                  hint: '',
-                                  selectedValue: selectValue,
-                                  width: 80,
-                                  height: 34,
-                                  onValueChanged: (value) {
-                                    final key = item['id'];
-                                    widget.logic.questionCate.value = widget
-                                        .logic.questionCate.value
-                                        .map((e) {
-                                      if (e['id'] == key) {
-                                        return {
-                                          ...e,
-                                          'value': value,
-                                        };
-                                      }
-                                      return e;
-                                    }).toList();
-                                  },
-                                ),
-                                SizedBox(width: 8),
-                              ],
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 0, top: 5),
+                        child: Row(
+                          // 再次将 Row 改为 Column
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          // 保持对齐方式
+                          children: [
+                            Text(
+                              "${item['name']}：",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black),
                             ),
-                          );
-                        }).toList(),
-                      ),
-                    ],
+                            NumberInputWidget(
+                              key: UniqueKey(),
+                              hint: '',
+                              selectedValue: selectValue,
+                              width: 60,
+                              height: 34,
+                              onValueChanged: (value) {
+                                final key = item['id'];
+                                widget.logic.questionCate.value =
+                                    widget.logic.questionCate.value.map((e) {
+                                  if (e['id'] == key) {
+                                    return {
+                                      ...e,
+                                      'value': value,
+                                    };
+                                  }
+                                  return e;
+                                }).toList();
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
                   ),
                 ),
                 SizedBox(
@@ -501,13 +502,6 @@ class _ExamPageState extends State<ExamPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 第四列：选择难度
-                      Text(
-                        "选择难度：",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.black),
-                      ),
-                      SizedBox(height: 8),
                       DropdownField(
                         items: widget.logic.questionLevel.toList(),
                         hint: '选择难度',

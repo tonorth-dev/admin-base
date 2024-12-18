@@ -856,7 +856,7 @@ class _TextInputWidgetState extends State<TextInputWidget> {
             fillColor: Colors.white,
             // 背景填充色
             contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             suffix: _errorText != null && _errorText!.isNotEmpty
                 ? Padding(
                     padding: const EdgeInsets.only(left: 8.0), // 左侧间距
@@ -890,13 +890,13 @@ class _TextInputWidgetState extends State<TextInputWidget> {
 class NumberInputWidget extends StatefulWidget {
   final String hint;
   final RxInt selectedValue;
-  final double width; // 控件宽度
-  final double height; // 控件高度
+  final double width;
+  final double height;
   final ValueChanged<int> onValueChanged;
-  final Key key; // 添加独立 Key
+  final Key key;
 
   NumberInputWidget({
-    required this.key, // 独立的 Key
+    required this.key,
     required this.hint,
     required this.selectedValue,
     required this.width,
@@ -917,11 +917,9 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
   @override
   void initState() {
     super.initState();
-    _controller =
-        TextEditingController(text: widget.selectedValue.value.toString());
+    _controller = TextEditingController(text: widget.selectedValue.value.toString());
     _focusNode = FocusNode();
 
-    // 监听 selectedValue 的变化
     widget.selectedValue.listen((value) {
       if (_controller.text != value.toString()) {
         _controller.text = value.toString();
@@ -931,16 +929,14 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
       }
     });
 
-    // 监听输入框内容变化，同步到 RxInt 和回调
     _controller.addListener(() {
       final text = _controller.text.isEmpty ? '0' : _controller.text;
       final value = int.tryParse(text) ?? 0;
       widget.selectedValue.value = value;
-      widget.onValueChanged(value); // 调用回调
-      _removeOverlay(); // 输入数字时关闭下拉列表
+      widget.onValueChanged(value);
+      _removeOverlay();
     });
 
-    // 监听键盘事件，处理上下键调整数字
     _focusNode.addListener(() {
       if (_focusNode.hasFocus) {
         RawKeyboard.instance.addListener(_handleKeyEvent);
@@ -964,25 +960,24 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
       final value = widget.selectedValue.value;
       if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
         setState(() {
-          widget.selectedValue.value += 1; // 按上键增加 1
+          widget.selectedValue.value += 1;
         });
       } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
         setState(() {
-          widget.selectedValue.value =
-              (value - 1).clamp(0, double.infinity).toInt(); // 按下键减少 1，不小于 0
+          widget.selectedValue.value = (value - 1).clamp(0, double.infinity).toInt();
         });
       }
       _controller.text = widget.selectedValue.value.toString();
       _controller.selection = TextSelection.fromPosition(
         TextPosition(offset: _controller.text.length),
-      ); // 将光标移动到末尾
-      widget.onValueChanged(widget.selectedValue.value); // 调用回调
+      );
+      widget.onValueChanged(widget.selectedValue.value);
     }
   }
 
   void _showNumberPicker() {
-    final RenderBox renderBox =
-        _inputKey.currentContext!.findRenderObject() as RenderBox;
+    _removeOverlay(); // Remove existing overlay before showing a new one
+    final RenderBox renderBox = _inputKey.currentContext!.findRenderObject() as RenderBox;
     final Offset offset = renderBox.localToGlobal(Offset.zero);
     final Size size = renderBox.size;
 
@@ -992,37 +987,33 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
           children: [
             Positioned.fill(
               child: GestureDetector(
-                onTap: () {
-                  _removeOverlay(); // 点击其他区域时关闭下拉列表
-                },
+                onTap: _removeOverlay, // Close the overlay when tapping outside
               ),
             ),
             Positioned(
               left: offset.dx,
               top: offset.dy + size.height,
-              width: 100, // 下拉列表的宽度
+              width: 100,
               child: Material(
                 elevation: 8.0,
                 child: ListView.builder(
                   shrinkWrap: true,
-                  itemCount: 20, // 显示20个选项
+                  itemCount: 20,
                   itemBuilder: (context, index) {
-                    final value = index * 5; // 例如每5个数一个选项
+                    final value = index;
                     return InkWell(
                       onTap: () {
                         widget.selectedValue.value = value;
                         _controller.text = value.toString();
                         _controller.selection = TextSelection.fromPosition(
                           TextPosition(offset: _controller.text.length),
-                        ); // 将光标移动到末尾
-                        widget.onValueChanged(value); // 调用回调
-                        _removeOverlay(); // 选中后关闭下拉列表
+                        );
+                        widget.onValueChanged(value);
+                        _removeOverlay(); // Close the overlay after selection
                       },
                       child: Container(
-                        padding:
-                            EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                        child: Text(value.toString(),
-                            style: TextStyle(fontSize: 14)),
+                        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                        child: Text(value.toString(), style: TextStyle(fontSize: 14)),
                       ),
                     );
                   },
@@ -1033,7 +1024,6 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
         );
       },
     );
-
     Overlay.of(context)?.insert(_overlayEntry!);
   }
 
@@ -1045,15 +1035,15 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: widget.width, // 设置宽度
-      height: widget.height, // 设置高度
+      width: widget.width,
+      height: widget.height,
       child: TextField(
         key: _inputKey,
         controller: _controller,
         focusNode: _focusNode,
         keyboardType: TextInputType.number,
         inputFormatters: [
-          FilteringTextInputFormatter.digitsOnly, // 仅允许数字输入
+          FilteringTextInputFormatter.digitsOnly,
         ],
         decoration: InputDecoration(
           hintText: widget.hint,
@@ -1064,27 +1054,43 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
             fontWeight: FontWeight.w400,
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(3), // 圆角
-            borderSide: BorderSide(color: Colors.grey, width: 1.0), // 失焦状态边框颜色
+            borderRadius: BorderRadius.circular(3),
+            borderSide: BorderSide(color: Colors.grey, width: 1.0),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(3), // 圆角
-            borderSide: BorderSide(color: Colors.grey, width: 1.0), // 聚焦状态边框颜色
+            borderRadius: BorderRadius.circular(3),
+            borderSide: BorderSide(color: Colors.grey, width: 1.0),
           ),
           contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          suffixIcon: IconButton(
-            icon: Icon(Icons.arrow_drop_down),
-            onPressed: _showNumberPicker,
+          suffixIconConstraints: BoxConstraints(
+            minWidth: 24,
+            minHeight: 24,
           ),
+          suffixIcon: GestureDetector(
+            onTap: () {
+              _removeOverlay(); // Ensure any existing overlay is removed
+              _showNumberPicker();
+            },
+            behavior: HitTestBehavior.translucent,
+            child: Icon(
+              Icons.arrow_drop_down,
+              size: 18,
+              color: Color(0xFF505050),
+            ),
+          ),
+        ),
+        style: TextStyle(
+          fontSize: 14,
+          color: Color(0xFF505050),
         ),
         onChanged: (text) {
           if (text.isEmpty) {
-            _controller.text = '0'; // 清空时显示默认值 0
+            _controller.text = '0';
             _controller.selection = TextSelection.fromPosition(
               TextPosition(offset: _controller.text.length),
-            ); // 将光标移动到末尾
+            );
             widget.selectedValue.value = 0;
-            widget.onValueChanged(0); // 调用回调
+            widget.onValueChanged(0);
           }
         },
       ),
@@ -1675,11 +1681,15 @@ class SuggestionTextFieldState extends State<SuggestionTextField> {
           scrollbarDecoration: ScrollbarDecoration(
             thickness: 2,
           ),
-
+          suggestionStyle: TextStyle(fontSize: 14, color: Colors.grey[900]),
           searchInputDecoration: SearchInputDecoration(
-            // contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 10),
-            // maintainHintHeight:true,
-            // contentPadding: EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+            hintText: widget.hintText,
+            hintStyle: const TextStyle(
+              color: Color(0xFF999999),
+              fontSize: 12,
+              fontFamily: 'PingFang SC',
+              fontWeight: FontWeight.w400,
+            ),
             cursorHeight: 14,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(3),
