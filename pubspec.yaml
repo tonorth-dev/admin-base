@@ -55,7 +55,6 @@ dependencies:
   number_pagination: ^1.1.6
   printing: ^5.13.4
   field_suggestion: ^0.2.6
-  flutter_treeview: ^1.0.7+1
   pdfx: ^2.8.0
   flutter_fancy_tree_view: ^1.6.0
 
