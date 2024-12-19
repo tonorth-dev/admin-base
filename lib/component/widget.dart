@@ -186,7 +186,13 @@ class DropdownFieldState extends State<DropdownField>
             final hasSelectedValue = widget.items
                 .any((item) => item['id'] == widget.selectedValue.value);
             final effectiveValue =
-                hasSelectedValue ? widget.selectedValue.value : null;
+            hasSelectedValue ? widget.selectedValue.value : null;
+
+            // 添加重置选项到 items 列表
+            final itemsWithReset = [
+              ...widget.items,
+              {'id': '', 'name': '清空选择'}
+            ];
 
             return SizedBox(
               width: widget.width,
@@ -194,21 +200,24 @@ class DropdownFieldState extends State<DropdownField>
               child: DropdownButtonFormField<String>(
                 focusNode: _focusNode,
                 value: effectiveValue,
-                // 使用 effectiveValue 而不是直接使用 selectedValue
                 hint: effectiveValue == null ? Text(widget.hint) : null,
                 onChanged: (String? newValue) {
-                  widget.selectedValue.value = newValue; // 更新 selectedValue
-                  if (widget.onChanged != null) {
-                    widget.onChanged!(newValue);
+                  if (newValue == 'reset') {
+                    reset(); // 如果选择了重置选项，则调用 reset 方法
+                  } else {
+                    widget.selectedValue.value = newValue; // 更新 selectedValue
+                    if (widget.onChanged != null) {
+                      widget.onChanged!(newValue);
+                    }
                   }
                 },
-                items: widget.items.map((item) {
+                items: itemsWithReset.map((item) {
                   return DropdownMenuItem<String>(
                     value: item['id'],
                     child: Text(
                       item['name'], // 显示的值是 name
                       style: const TextStyle(
-                        color: Color(0xFF423F3F),
+                        color: Color(0xFF505050),
                         fontSize: 14,
                         fontFamily: 'PingFang SC',
                         fontWeight: FontWeight.w400,
@@ -218,7 +227,7 @@ class DropdownFieldState extends State<DropdownField>
                   );
                 }).toList(),
                 style: const TextStyle(
-                  color: Color(0xFF423F3F),
+                  color: Color(0xFF505050),
                   fontSize: 14,
                   fontFamily: 'PingFang SC',
                   fontWeight: FontWeight.w400,
@@ -227,28 +236,35 @@ class DropdownFieldState extends State<DropdownField>
                 dropdownColor: Colors.white,
                 decoration: InputDecoration(
                   labelText: widget.label == true ? widget.hint : null,
+                  labelStyle: const TextStyle(
+                    color: Color(0xFF505050),
+                    fontSize: 14,
+                    fontFamily: 'PingFang SC',
+                    fontWeight: FontWeight.w400,
+                  ),
+                  hintStyle: const TextStyle(
+                    color: Color(0xFF505050),
+                    fontSize: 14,
+                    fontFamily: 'PingFang SC',
+                    fontWeight: FontWeight.w400,
+                  ),
                   border: OutlineInputBorder(),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: Colors.grey, width: 1),
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(3),
+                    borderSide:
+                    const BorderSide(color: Colors.grey, width: 1.0), // 非聚焦边框
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: _focusNode.hasFocus
-                          ? const Color(0xFF25B7E8)
-                          : Colors.grey,
-                      width: _focusNode.hasFocus ? 1 : 0.5,
-                    ),
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(3),
+                    borderSide:
+                    const BorderSide(color: Colors.grey, width: 1.0), // 聚焦边框
                   ),
-                  hoverColor:
-                      isHovered ? const Color(0xFF25B7E8) : Colors.transparent,
                   filled: true,
+                  fillColor: Colors.white,
+                  // 背景填充色
+                  contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 ),
-                icon: const Icon(Icons.arrow_drop_down_outlined),
-                borderRadius: BorderRadius.circular(4),
               ),
             );
           },

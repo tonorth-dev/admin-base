@@ -55,13 +55,12 @@ class _ExamPageState extends State<ExamPage> {
                     color: Colors.black87,
                   ),
                 ),
-                SizedBox(height: 16),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildInteractiveCardLeft("通过模板创建", 400, 320),
                     SizedBox(width: 40),
-                    _buildInteractiveCardRight("生成试卷", 1200, 320),
+                    _buildInteractiveCardRight("生成试卷", 1000, 320),
                   ],
                 ),
               ],
@@ -365,7 +364,6 @@ class _ExamPageState extends State<ExamPage> {
                   fontWeight: FontWeight.bold,
                   color: Colors.blue[800]),
             ),
-            SizedBox(height: 16),
             Row(children: [
               SizedBox(
                 width: 900,
@@ -375,29 +373,22 @@ class _ExamPageState extends State<ExamPage> {
             ]),
             SizedBox(height: 16), // 增加间距
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
+                SizedBox(width: 50),
                 SizedBox(
-                  width: 150,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 第一列：试卷名称
-                      Padding(
-                        padding: const EdgeInsets.only(left: 25.0),
-                        child: TextInputWidget(
-                          width: 120,
-                          height: 34,
-                          hint: "输入试卷名称",
-                          text: widget.logic.examName,
-                          onTextChanged: (value) {
-                            widget.logic.examName.value = value;
-                          },
-                        ),
-                      )
-                    ],
+                  width: 130,
+                  child: TextInputWidget(
+                    width: 120,
+                    height: 34,
+                    hint: "输入试卷名称",
+                    text: widget.logic.examName,
+                    onTextChanged: (value) {
+                      widget.logic.examName.value = value;
+                    },
                   ),
                 ),
+                SizedBox(width: 48),
                 SizedBox(
                   width: 120,
                   // child: Column(
@@ -422,33 +413,32 @@ class _ExamPageState extends State<ExamPage> {
                   //     ),
                   //   ],
                   // ),
-                  child: Padding(
-                    padding: EdgeInsets.all(0),
-                    child: SuggestionTextField(
-                      width: 120,
-                      height: 34,
-                      labelText: '班级选择',
-                      hintText: '输入班级名称',
-                      key: widget.logic.classesTextFieldKey,
-                      fetchSuggestions: widget.logic.fetchClasses,
-                      initialValue: {},
-                      onSelected: (value) {
-                        if (value == '') {
-                          widget.logic.selectedClassesId.value = "";
-                          return;
-                        }
-                        widget.logic.selectedClassesId.value = value['id']!;
-                      },
-                      onChanged: (value) {
-                        if (value == null || value.isEmpty) {
-                          widget.logic.selectedClassesId.value = ""; // 确保清空
-                        }
-                        print(
-                            "onChanged selectedInstitutionId value: ${widget.logic.selectedClassesId.value}");
-                      },
-                    ),
+
+                  child: SuggestionTextField(
+                    width: 120,
+                    height: 34,
+                    labelText: '班级选择',
+                    hintText: '输入班级名称',
+                    key: widget.logic.classesTextFieldKey,
+                    fetchSuggestions: widget.logic.fetchClasses,
+                    initialValue: {},
+                    onSelected: (value) {
+                      if (value == '') {
+                        widget.logic.selectedClassesId.value = "";
+                        return;
+                      }
+                      widget.logic.selectedClassesId.value = value['id']!;
+                    },
+                    onChanged: (value) {
+                      if (value == null || value.isEmpty) {
+                        widget.logic.selectedClassesId.value = ""; // 确保清空
+                      }
+                      print(
+                          "onChanged selectedInstitutionId value: ${widget.logic.selectedClassesId.value}");
+                    },
                   ),
                 ),
+                SizedBox(width: 48),
                 SizedBox(
                   width: 150,
                   child: Column(
@@ -461,22 +451,21 @@ class _ExamPageState extends State<ExamPage> {
                         padding: const EdgeInsets.only(left: 0, top: 5),
                         child: Row(
                           // 再次将 Row 改为 Column
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.start,
                           // 保持对齐方式
                           children: [
                             Text(
                               "${item['name']}：",
                               style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black),
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black87),
                             ),
                             NumberInputWidget(
                               key: UniqueKey(),
                               hint: '',
                               selectedValue: selectValue,
                               width: 60,
-                              height: 34,
+                              height: 30,
                               onValueChanged: (value) {
                                 final key = item['id'];
                                 widget.logic.questionCate.value =
@@ -497,38 +486,30 @@ class _ExamPageState extends State<ExamPage> {
                     }).toList(),
                   ),
                 ),
+                SizedBox(width: 30),
                 SizedBox(
-                  width: 240,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      DropdownField(
-                        items: widget.logic.questionLevel.toList(),
-                        hint: '选择难度',
-                        width: 120,
-                        height: 34,
-                        onChanged: (dynamic newValue) {
-                          widget.logic.examSelectedQuestionLevel.value =
-                              newValue.toString();
-                          widget.logic.applyFilters();
-                        },
-                        selectedValue: widget.logic.examSelectedQuestionLevel,
-                      ),
-                    ],
+                  width: 120,
+                  child: DropdownField(
+                    items: widget.logic.questionLevel.toList(),
+                    hint: '选择难度',
+                    width: 120,
+                    // 注意：这里的宽度设置可能会使内容不能完全贴靠左边
+                    height: 34,
+                    onChanged: (dynamic newValue) {
+                      widget.logic.examSelectedQuestionLevel.value =
+                          newValue.toString();
+                      widget.logic.applyFilters();
+                    },
+                    selectedValue: widget.logic.examSelectedQuestionLevel,
                   ),
                 ),
+                SizedBox(width: 58),
                 SizedBox(
-                  width: 240,
+                  width: 150,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      // 第五列：生成套数
-                      Text(
-                        "生成套数：",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.black),
-                      ),
-                      SizedBox(height: 8),
                       NumberInputWidget(
                         key: Key("exam_count"),
                         width: 90,
@@ -542,6 +523,45 @@ class _ExamPageState extends State<ExamPage> {
                     ],
                   ),
                 ),
+              ],
+            ),
+            SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () async {
+                    final result = await widget.logic.saveTemplate();
+                    if (result) {
+                      await widget.logic.fetchTemplates();
+                      refresh();
+                    }
+                  },
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(Colors.blue), // 设置按钮背景颜色为蓝色
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8), // 减少圆角半径
+                      ),
+                    ),
+                  ),
+                  child: Text("保存模板", style: TextStyle(color: Colors.white)), // 设置文本颜色为白色
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    await widget.logic.saveExam();
+                  },
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(Colors.red), // 设置按钮背景颜色为红色
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8), // 减少圆角半径
+                      ),
+                    ),
+                  ),
+                  child: Text("生成试卷", style: TextStyle(color: Colors.white)), // 设置文本颜色为白色
+                ),
+
               ],
             ),
           ],
@@ -729,7 +749,7 @@ class FollowHeader extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly, // 均匀分布各个项目
             children: List.generate(5, (index) {
-              final titles = ['试卷名称', '选择班级', '题型数量', '选择难度', '生成套数'];
+              final titles = ['选择班级', '选择题型', '选择难度', '练习次数', '练习时间'];
               return _buildItem(context, '${index + 1}', titles[index]);
             }),
           ),
