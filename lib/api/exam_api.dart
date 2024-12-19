@@ -15,8 +15,8 @@ class ExamApi {
     try {
       // 必传字段校验
       List<String> requiredFields = [
-        'name',
-        'sort',
+        'class_id',
+        'question_count',
       ];
       for (var field in requiredFields) {
         if (!params.containsKey(field) || params[field] == null) {

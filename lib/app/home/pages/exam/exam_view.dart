@@ -54,6 +54,7 @@ class _ExamPageState extends State<ExamPage> {
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
+
                 ),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -458,7 +459,7 @@ class _ExamPageState extends State<ExamPage> {
                     selectedValue: widget.logic.examSelectedQuestionLevel,
                   ),
                 ),
-                SizedBox(width: 62),
+                SizedBox(width: 66),
                 SizedBox(
                   width: 150,
                   child: Column(
@@ -478,14 +479,21 @@ class _ExamPageState extends State<ExamPage> {
                     ],
                   ),
                 ),
-                SizedBox(width: 58),
                 SizedBox(
-                  width: 150,
+                  width: 205,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-
+                      CustomDateTimePicker(
+                          controller: widget.logic.dateTimeControllerStart,
+                        hintText: "选择开始时间",
+                      ),
+                      SizedBox(height: 16),
+                      CustomDateTimePicker(
+                          controller: widget.logic.dateTimeControllerEnd,
+                        hintText: "选择结束时间",
+                      ),
                     ],
                   ),
                 ),
@@ -527,7 +535,6 @@ class _ExamPageState extends State<ExamPage> {
                   ),
                   child: Text("生成试卷", style: TextStyle(color: Colors.white)), // 设置文本颜色为白色
                 ),
-
               ],
             ),
           ],

@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:csv/csv.dart';
 import 'package:admin_flutter/component/form/enum.dart';
 import 'package:admin_flutter/component/form/form_data.dart';
+import 'package:intl/intl.dart';
 import '../../../../api/classes_api.dart';
 import '../../../../api/config_api.dart';
 import '../../../../api/major_api.dart';
@@ -62,9 +63,18 @@ class ExamLogic extends GetxController {
   final examName = ''.obs;
   final examQuestionCount = 0.obs;
   final examSelectedMajorId = "0".obs;
+
   ValueNotifier<String?> examSelectedQuestionCate = ValueNotifier<String?>(null);
   ValueNotifier<String?> examSelectedQuestionLevel = ValueNotifier<String?>(null);
   final Map<String, RxInt> cateSelectedValues = {};
+
+  DateTime todayMidnight = DateTime.now().copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
+  late String initialStartTime;
+  CustomDateTimePickerController dateTimeControllerStart = CustomDateTimePickerController(initialTime: '2024-12-19 14:30:00');
+
+  DateTime todayLastSecond = DateTime.now().copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
+  late String initialEndTime;
+  CustomDateTimePickerController dateTimeControllerEnd = CustomDateTimePickerController(initialTime: '2024-12-19 14:30:00');
 
   Future<void> fetchConfigs() async {
     try {
@@ -260,28 +270,16 @@ class ExamLogic extends GetxController {
     }
   }
 
-  var columns = <ColumnData>[
-    ColumnData(title: "ID", key: "id", width: 80),
-    ColumnData(title: "试卷名称", key: "name"),
-    ColumnData(title: "专业名称", key: "major_name"),
-    ColumnData(title: "难度", key: "level_name"),
-    ColumnData(
-      title: "题目组合",
-      key: "component_desc",
-      render: (value, rowData, rowIndex, tableData) {
-        if (value is List) {
-          // 格式化 JSON 数据为友好的字符串
-          return Text(value.join("\n"));
-        }
-        return Text(value?.toString() ?? ""); // 默认处理其他类型
-      },
-    ),
-    ColumnData(title: "题目份数", key: "unit_number"),
-    ColumnData(title: "题目数量", key: "questions_number"),
-    ColumnData(title: "创建人", key: "creator"),
-    ColumnData(title: "模板名称", key: "template_name"),
-    ColumnData(title: "标签", key: "tag"),
-    ColumnData(title: "创建时间", key: "update_time"),
+  List<ColumnData> columns = <ColumnData>[
+  ColumnData(title: "ID", key: "id", width: 80),
+  ColumnData(title: "试卷名称", key: "name"),
+  ColumnData(title: "班级名称", key: "class_name"),
+  ColumnData(title: "难度", key: "level_name"),
+  ColumnData(title: "题目数量", key: "question_count"),
+  ColumnData(title: "创建人", key: "creator"), // 假设 creator 字段存在，否则需要移除或替换
+  ColumnData(title: "模板名称", key: "template_name"), // 假设 template_name 字段存在，否则需要移除或替换
+  ColumnData(title: "标签", key: "tag"), // 假设 tag 字段存在，否则需要移除或替换
+  ColumnData(title: "创建时间", key: "create_time"),
   ];
 
   @override
@@ -289,6 +287,8 @@ class ExamLogic extends GetxController {
     await fetchMajors(); // Fetch and populate major data on initialization
     await fetchConfigs();
     await fetchTemplates();
+    initialStartTime = "${todayMidnight.year}-${todayMidnight.month.toString().padLeft(2, '0')}-${todayMidnight.day.toString().padLeft(2, '0')} 00:00:00";
+    initialEndTime = "${todayMidnight.year}-${todayMidnight.month.toString().padLeft(2, '0')}-${todayMidnight.day.toString().padLeft(2, '0')} 23:59:59";
     ever(
       questionCate,
       (value) {
@@ -300,8 +300,6 @@ class ExamLogic extends GetxController {
       },
     );
 
-    // 初始化数据
-    // find(size.value, page.value);
   }
 
   var form = FormDto(labelWidth: 80, columns: [
@@ -472,77 +470,119 @@ class ExamLogic extends GetxController {
   Future<void> saveExam() async {
     // 生成试卷的逻辑
     final examNameSubmit = examName.value;
-    final int examSelectedMajorIdSubmit = examSelectedMajorId.value.toInt();
+    final examSelectedClassIdSubmit = int.parse(selectedClassesId.value);
     final examSelectedQuestionCateSubmit = examSelectedQuestionCate.value;
     final examSelectedQuestionLevelSubmit = examSelectedQuestionLevel.value;
     final examQuestionCountSubmit = examQuestionCount.value;
+    final examStartTimeSubmit = dateTimeControllerStart.time;
+    final examEndTimeSubmit = dateTimeControllerEnd.time;
 
     bool isValid = true;
     String errorMessage = "";
 
     if (examNameSubmit.isEmpty) {
-      isValid = false;
-      errorMessage += "试卷名称不能为空\n";
+      // isValid = false;
+      // errorMessage += "试卷名称不能为空\n";
     }
-    print("examSelectedMajorIdSubmit:$examSelectedMajorIdSubmit");
-    if (examSelectedMajorIdSubmit == 0) {
+
+    // 验证班级ID是否为空
+    if (examSelectedClassIdSubmit == 0) {
       isValid = false;
-      errorMessage += "请选择专业\n";
+      errorMessage += "请选择班级\n";
     }
-    // if (examSelectedQuestionCateSubmit.isEmpty) {
-    //   isValid = false;
-    //   errorMessage += "请选择题型\n";
-    // }
+
+    if (examSelectedQuestionCateSubmit== null || examSelectedQuestionCateSubmit.isEmpty) {
+      isValid = false;
+      errorMessage += "请选择题型\n";
+    }
+
     if (examSelectedQuestionLevelSubmit == null || examSelectedQuestionLevelSubmit.isEmpty) {
       isValid = false;
       errorMessage += "请选择难度\n";
     }
+
     if (examQuestionCountSubmit <= 0) {
       isValid = false;
       errorMessage += "生成套数必须大于0\n";
     }
 
-    List<Map<String, dynamic>> components = questionCate.map((item) {
-      String key = item['id'] ?? '';
-      int value = item['value'] ?? 0;
-      return {
-        'key': key,
-        'number': value ?? 0,
-      };
-    }).toList();
+    // 验证起始时间和结束时间
+    if (examStartTimeSubmit == null || examEndTimeSubmit == null) {
+      isValid = false;
+      errorMessage += "请选择完整的考试时间段\n";
+    } else {
+      // 将字符串转换为 DateTime
+      DateTime startTime = DateTime.parse(examStartTimeSubmit);
+      DateTime endTime = DateTime.parse(examEndTimeSubmit);
 
-    print("debug questionCate: $questionCate");
-    print("debug components: $components");
+      if (startTime.isAfter(endTime)) {
+        isValid = false;
+        errorMessage += "考试开始时间不能晚于结束时间\n";
+      }
+    }
 
     if (isValid) {
       // 提交表单
       print("生成试卷：");
-      print("试卷名称: $examName");
-      print("选择专业: $examSelectedMajorId");
-      print("选择题型: $examSelectedQuestionCate");
-      print("选择难度: $examSelectedQuestionLevel");
-      print("生成套数: $examQuestionCount");
+      print("试卷名称: $examNameSubmit");
+      print("选择班级: $examSelectedClassIdSubmit");
+      print("选择题型: $examSelectedQuestionCateSubmit");
+      print("选择难度: $examSelectedQuestionLevelSubmit");
+      print("生成套数: $examQuestionCountSubmit");
+      print("开始时间: $examStartTimeSubmit");
+      print("结束时间: $examEndTimeSubmit");
+
       try {
         Map<String, dynamic> params = {
           "name": examNameSubmit,
-          "major_id": examSelectedMajorIdSubmit,
+          "class_id": examSelectedClassIdSubmit,
           "level": examSelectedQuestionLevelSubmit,
-          "component": components,
-          "unit_number": examQuestionCountSubmit,
-          "creator": "杜立东", //todo 从登录信息中获取
-          "template_id": 1,
-          "template_name": "demo",
+          "cate": examSelectedQuestionCateSubmit,
+          "question_count": examQuestionCountSubmit,
+          "start_time": convertToRFC3339(examStartTimeSubmit!), // 格式化时间为ISO 8601字符串
+          "end_time": convertToRFC3339(examEndTimeSubmit!), // 格式化时间为ISO 8601字符串
         };
 
         dynamic result = await ExamApi.examCreate(params);
         "生成试卷成功".toHint();
       } catch (e) {
         print('Error: $e');
+        errorMessage += "生成试卷失败: $e\n";
+        errorMessage.toHint();
       }
     } else {
       // 显示错误提示
       errorMessage.toHint();
     }
+  }
+  String convertToRFC3339(String inputDateTime, {String timeZone = '+08:00'}) {
+    // 定义输入格式和输出格式
+    final inputFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    final outputFormat = DateFormat("yyyy-MM-dd'T'HH:mm:ss");
+
+    // 解析输入字符串为 DateTime 对象
+    DateTime dateTime;
+    try {
+      dateTime = inputFormat.parse(inputDateTime);
+    } catch (e) {
+      throw FormatException("Invalid date format: $inputDateTime");
+    }
+
+    // 将 DateTime 对象格式化为 RFC3339 字符串，并添加时区信息
+    String rfc3339String = outputFormat.format(dateTime);
+
+    // 如果需要特定时区，可以手动调整
+    if (timeZone.isNotEmpty) {
+      // 添加指定的时区偏移
+      rfc3339String = '$rfc3339String$timeZone';
+    }
+
+    return rfc3339String;
+  }
+  // 使用本地时区
+  String formatToIso8601WithLocalTimeZone(String dateTime) {
+    final DateTime dt = DateTime.parse(dateTime);
+    return dt.toIso8601String(); // 输出：2024-12-20T00:00:00.000+08:00
   }
 
   Future<bool> saveTemplate() async {

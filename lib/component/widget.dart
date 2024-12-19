@@ -11,6 +11,7 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:omni_datetime_picker/omni_datetime_picker.dart';
 import 'package:searchfield/searchfield.dart';
 import '../api/config_api.dart';
 
@@ -1944,5 +1945,129 @@ class _TagInputFieldState extends State<TagInputField> {
         ),
       ],
     );
+  }
+}
+
+class CustomDateTimePickerController {
+  ValueNotifier<String?> _timeNotifier = ValueNotifier<String?>(null);
+
+  CustomDateTimePickerController({String? initialTime}) {
+    _timeNotifier.value = initialTime;
+  }
+
+  String? get time => _timeNotifier.value;
+
+  Future<void> showPicker(BuildContext context) async {
+    final pickedDate = await DateTimePickerWidget.show(
+      context: context,
+      initialTime: _timeNotifier.value,
+    );
+
+    if (pickedDate != null) {
+      _timeNotifier.value = _formatDateTime(pickedDate);
+    }
+  }
+
+  void updateTime(String? newTime) {
+    _timeNotifier.value = newTime;
+  }
+
+  void dispose() {
+    _timeNotifier.dispose();
+  }
+
+  String _formatDateTime(DateTime dateTime) {
+    return "${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}:${dateTime.second.toString().padLeft(2, '0')}";
+  }
+}
+
+class CustomDateTimePicker extends StatelessWidget {
+  final CustomDateTimePickerController controller;
+  String hintText;
+
+  CustomDateTimePicker({
+    Key? key,
+    required this.controller,
+    required this.hintText,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<String?>(
+      valueListenable: controller._timeNotifier,
+      builder: (context, time, child) {
+        return Container(
+          width: 200,
+          height: 40,
+          child:
+          TextField(
+            onTap: () async {
+              await controller.showPicker(context);
+            },
+            readOnly: true, // 禁止直接编辑文本框
+            style: const TextStyle(
+              color: Color(0xFF505050),
+              fontSize: 14,
+              fontFamily: 'PingFang SC',
+              fontWeight: FontWeight.w400,
+            ),
+            decoration: InputDecoration(
+              labelText: hintText,
+              border: OutlineInputBorder(),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(3),
+                borderSide:
+                const BorderSide(color: Colors.black87, width: 1.0), // 非聚焦边框
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(3),
+                borderSide:
+                const BorderSide(color: Colors.black87, width: 1.0), // 聚焦边框
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(Icons.calendar_today),
+                onPressed: () async {
+                  await controller.showPicker(context);
+                },
+              ),
+            ),
+            controller: TextEditingController(text: time ?? ''), // 使用controller设置TextField的值
+          ),
+        );
+      },
+    );
+  }
+}
+
+class DateTimePickerWidget {
+  static Future<DateTime?> show({
+    required BuildContext context,
+    String? initialTime,
+  }) async {
+    final DateTime? initialDate = initialTime != null ? DateTime.parse(initialTime) : DateTime.now();
+    final DateTime? pickedDate = await showOmniDateTimePicker(
+      context: context,
+      type: OmniDateTimePickerType.dateAndTime,
+      initialDate: initialDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2050),
+      is24HourMode: true,
+      isShowSeconds: false,
+      constraints: BoxConstraints(maxWidth: 300), // 限制弹窗的最大宽度
+      theme: ThemeData(
+        buttonTheme: ButtonThemeData(
+          height: 50,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(3),
+          ),
+        ),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.cyan,
+          brightness: Brightness.light,
+        ),
+      ),
+    );
+
+    return pickedDate;
   }
 }
