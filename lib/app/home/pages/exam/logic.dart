@@ -13,7 +13,7 @@ import 'package:intl/intl.dart';
 import '../../../../api/classes_api.dart';
 import '../../../../api/config_api.dart';
 import '../../../../api/major_api.dart';
-import '../../../../api/template_api.dart';
+import '../../../../api/exam_template_api.dart';
 import '../../../../component/pagination/logic.dart';
 import '../../../../component/table/table_data.dart';
 import '../../../../component/widget.dart';
@@ -62,7 +62,6 @@ class ExamLogic extends GetxController {
 
   final examName = ''.obs;
   final examQuestionCount = 0.obs;
-  final examSelectedMajorId = "0".obs;
 
   ValueNotifier<String?> examSelectedQuestionCate = ValueNotifier<String?>(null);
   ValueNotifier<String?> examSelectedQuestionLevel = ValueNotifier<String?>(null);
@@ -123,7 +122,7 @@ class ExamLogic extends GetxController {
   Future<void> fetchTemplates() async {
     try {
       var templates =
-          await TemplateApi.templateList({'pageSize': "30", 'page': "1"});
+          await ExamTemplateApi.templateList({'pageSize': "30", 'page': "1"});
       if (templates != null && templates.containsKey("list")) {
         final templateItem = templates["list"] as List<dynamic>;
 
@@ -271,15 +270,15 @@ class ExamLogic extends GetxController {
   }
 
   List<ColumnData> columns = <ColumnData>[
-  ColumnData(title: "ID", key: "id", width: 80),
-  ColumnData(title: "试卷名称", key: "name"),
-  ColumnData(title: "班级名称", key: "class_name"),
-  ColumnData(title: "难度", key: "level_name"),
-  ColumnData(title: "题目数量", key: "question_count"),
-  ColumnData(title: "创建人", key: "creator"), // 假设 creator 字段存在，否则需要移除或替换
-  ColumnData(title: "模板名称", key: "template_name"), // 假设 template_name 字段存在，否则需要移除或替换
-  ColumnData(title: "标签", key: "tag"), // 假设 tag 字段存在，否则需要移除或替换
-  ColumnData(title: "创建时间", key: "create_time"),
+    ColumnData(title: "ID", key: "id", width: 80),
+    ColumnData(title: "试卷名称", key: "name", width: 150),
+    ColumnData(title: "班级名称", key: "class_name",width: 120),
+    ColumnData(title: "难度", key: "level_name",width: 100),
+    ColumnData(title: "题型", key: "cate_name",width: 100),
+    ColumnData(title: "题目数量", key: "question_count", width:80),
+    ColumnData(title: "开始时间", key: "start_time",width:120),
+    ColumnData(title: "结束时间", key: "end_time",width:120),
+    ColumnData(title: "创建时间", key: "create_time",width:120),
   ];
 
   @override
@@ -579,29 +578,26 @@ class ExamLogic extends GetxController {
 
     return rfc3339String;
   }
-  // 使用本地时区
-  String formatToIso8601WithLocalTimeZone(String dateTime) {
-    final DateTime dt = DateTime.parse(dateTime);
-    return dt.toIso8601String(); // 输出：2024-12-20T00:00:00.000+08:00
-  }
 
   Future<bool> saveTemplate() async {
+    var examSelectedClassIdSubmit = 0;
     // 生成试卷的逻辑
-    final examNameSubmit = examName.value;
-    final int examSelectedMajorIdSubmit = examSelectedMajorId.value.toInt();
+    if(selectedClassesId.value.isEmpty) {
+      examSelectedClassIdSubmit = 0;
+    } else {
+      examSelectedClassIdSubmit = int.parse(selectedClassesId.value);
+    }
+
+    final examSelectedQuestionCateSubmit = examSelectedQuestionCate.value;
     final examSelectedQuestionLevelSubmit = examSelectedQuestionLevel.value;
     final examQuestionCountSubmit = examQuestionCount.value;
 
     bool isValid = true;
     String errorMessage = "";
 
-    if (examNameSubmit.isEmpty) {
+    if (examSelectedQuestionCateSubmit == null || examSelectedQuestionCateSubmit.isEmpty) {
       isValid = false;
-      errorMessage += "试卷名称不能为空\n";
-    }
-    if (examSelectedMajorIdSubmit == 0) {
-      isValid = false;
-      errorMessage += "请选择专业\n";
+      errorMessage += "请选择题型\n";
     }
     if (examSelectedQuestionLevelSubmit == null || examSelectedQuestionLevelSubmit.isEmpty) {
       isValid = false;
@@ -621,30 +617,21 @@ class ExamLogic extends GetxController {
       };
     }).toList();
 
-    print("debug questionCate: $questionCate");
-    print("debug components: $components");
-
     if (isValid) {
       // 提交表单
-      print("生成试卷：");
-      print("试卷名称: $examName");
-      print("选择专业: $examSelectedMajorId");
+      print("生成模板：");
       print("选择题型: $examSelectedQuestionCate");
       print("选择难度: $examSelectedQuestionLevel");
       print("生成套数: $examQuestionCount");
       try {
         Map<String, dynamic> params = {
-          "name": examNameSubmit,
-          "major_id": examSelectedMajorIdSubmit,
+          "class_id": examSelectedClassIdSubmit, // 新增字段
           "level": examSelectedQuestionLevelSubmit,
-          "component": components,
-          "unit_number": examQuestionCountSubmit,
-          "creator": "杜立东", //todo 从登录信息中获取
-          "template_id": 1,
-          "template_name": "demo",
+          "cate": examSelectedQuestionCateSubmit,
+          "question_count": examQuestionCountSubmit,
         };
 
-        dynamic result = await TemplateApi.templateCreate(params);
+        dynamic result = await ExamTemplateApi.templateCreate(params);
         templateSaved.value = true;
         "保存模板成功".toHint();
         return true; // 操作成功
@@ -663,31 +650,22 @@ class ExamLogic extends GetxController {
 
   void fillTemplate(Map<String, dynamic> item) {
     // 填充数据到表单
-    examName.value = item['name'];
-    var level2MajorId = getLevel2IdFromLevel3Id(item["major_id"].toString());
-    var level1MajorId = getLevel1IdFromLevel2Id(level2MajorId);
-
-    majorSelectedLevel1.value = level1MajorId;
-    majorSelectedLevel2.value = level2MajorId;
-    majorSelectedLevel3.value = item["major_id"].toString();
-    examSelectedMajorId.value = item["major_id"].toString();
-
+    selectedClassesId.value = item['class_id'].toString();
+    selectedClassesMap.value = {
+      "id": item['class_id'],
+      "name": item['class_name'],
+    };
     examSelectedQuestionLevel.value = item['level'];
-    examQuestionCount.value = item['unit_number'];
+    examSelectedQuestionCate.value = item['cate'];
+    examQuestionCount.value = item['question_count'];
 
     // 更新题型数量
-    for (var comp in item['component']) {
-      final key = comp['key'];
-      final number = comp['number'] ?? 0;
-      cateSelectedValues[key]?.value = number;
-    }
-    print("debug examSelectedQuestionLevel.value");
-    print(examSelectedQuestionLevel.value);
+    print("debug selectedClassesId.value:${selectedClassesId.value}");
   }
 
   void deleteTemplate(Map<String, dynamic> d) async {
     try {
-      await TemplateApi.templateDelete(d["id"]);
+      await ExamTemplateApi.templateDelete(d["id"]);
       "删除成功".toHint();
     } catch (error) {
       "删除失败: $error".toHint();
@@ -733,4 +711,5 @@ class ExamLogic extends GetxController {
   }
 
   Rx<String> selectedClassesId = "0".obs;
+  ValueNotifier<Map?> selectedClassesMap = ValueNotifier<Map?>(null);
 }

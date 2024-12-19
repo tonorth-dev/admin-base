@@ -96,7 +96,7 @@ class StudentTableView extends StatelessWidget {
                         hintText: '输入机构名称',
                         key: logic.institutionTextFieldKey,
                         fetchSuggestions: logic.fetchInstructions,
-                        initialValue: {},
+                        initialValue: ValueNotifier<Map<dynamic, dynamic>?>({}),
                         onSelected: (value) {
                           if (value.isEmpty) {
                             logic.selectedInstitutionId.value = "";
@@ -383,7 +383,7 @@ class ClassesTableView extends StatelessWidget {
                         hintText: '输入机构名称',
                         key: logic.institutionTextFieldKey,
                         fetchSuggestions: logic.fetchInstructions,
-                        initialValue: {},
+                        initialValue: ValueNotifier<Map<dynamic, dynamic>?>({}),
                         onSelected: (value) {
                           if (value.isEmpty) {
                             logic.selectedInstitutionId.value = "";

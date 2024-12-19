@@ -223,10 +223,11 @@ class _StudentEditFormState extends State<StudentEditForm> {
                       hintText: '输入机构名称',
                       key: Key("add_student_institution_id"),
                       fetchSuggestions: logic.fetchInstructions,
-                      initialValue: {
+                      initialValue: ValueNotifier<Map<dynamic, dynamic>?>(
+                      {
                         'name': logic.uInstitutionName.value,
                         'id': logic.uInstitutionId.value,
-                      },
+                      }),
                       onSelected: (value) {
                         if (value.isEmpty) {
                           logic.institutionId.value = "";
@@ -266,10 +267,10 @@ class _StudentEditFormState extends State<StudentEditForm> {
                       hintText: '输入班级名称',
                       key: Key("edit_student_class_id"),
                       fetchSuggestions: logic.fetchClasses,
-                      initialValue: {
+                      initialValue: ValueNotifier<Map<dynamic, dynamic>?>({
                         'name': logic.uClassName.value,
                         'id': logic.uClassId.value,
-                      },
+                      }),
                       onSelected: (value) {
                         if (value.isEmpty) {
                           logic.uClassId.value = "";

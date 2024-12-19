@@ -8,7 +8,7 @@ import 'package:admin_flutter/component/table/ex.dart';
 import 'package:admin_flutter/app/home/sidebar/logic.dart';
 import 'package:admin_flutter/component/widget.dart';
 import 'package:admin_flutter/component/dialog.dart';
-import '../../../../api/template_api.dart';
+import '../../../../api/exam_template_api.dart';
 import '../execute/view.dart';
 import 'logic.dart';
 import 'package:admin_flutter/theme/theme_util.dart';
@@ -205,7 +205,7 @@ class _ExamPageState extends State<ExamPage> {
                           ),
                           ...widget.logic.columns.map((column) => GridColumn(
                                 columnName: column.key,
-                                width: _getColumnWidth(column.key),
+                                width: column.width,
                                 label: Container(
                                   color: Color(0xFFF3F4F8),
                                   alignment: Alignment.center,
@@ -258,31 +258,6 @@ class _ExamPageState extends State<ExamPage> {
     );
   }
 
-  double _getColumnWidth(String key) {
-    switch (key) {
-      case 'id':
-        return 65;
-      case 'name':
-        return 120;
-      case 'level_name':
-        return 120;
-      case 'major_name':
-        return 100;
-      case 'component_desc':
-        return 150;
-      case 'unit_number':
-        return 80;
-      case 'questions_number':
-        return 80;
-      case 'creator':
-        return 120;
-      case 'update_time':
-        return 150;
-      default:
-        return 100;
-    }
-  }
-
   Widget _buildInteractiveCardLeft(
       String title, double? width, double? height) {
     return Container(
@@ -318,7 +293,7 @@ class _ExamPageState extends State<ExamPage> {
                   items: widget.logic.templateList,
                   onDelete: (Map<String, dynamic> item) async {
                     try {
-                      await TemplateApi.templateDelete(item["id"]);
+                      await ExamTemplateApi.templateDelete(item["id"]);
                       "删除成功".toHint();
                     } catch (error) {
                       "删除失败: $error".toHint();
@@ -408,7 +383,7 @@ class _ExamPageState extends State<ExamPage> {
                     hintText: '输入班级名称',
                     key: widget.logic.classesTextFieldKey,
                     fetchSuggestions: widget.logic.fetchClasses,
-                    initialValue: {},
+                    initialValue: widget.logic.selectedClassesMap,
                     onSelected: (value) {
                       if (value == '') {
                         widget.logic.selectedClassesId.value = "";

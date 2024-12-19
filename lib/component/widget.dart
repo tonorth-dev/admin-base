@@ -1624,9 +1624,8 @@ class SuggestionTextField extends StatefulWidget {
   final String hintText;
   final double width; // 输入框宽度
   final double height; // 输入框高度
-  final Map? initialValue; // 默认值
-  final Future<List<Map<String, dynamic>>> Function(String query)
-      fetchSuggestions; // 支持 Map 类型
+  final ValueListenable<Map?> initialValue; // 外部值监听器
+  final Future<List<Map<String, dynamic>>> Function(String query) fetchSuggestions; // 支持 Map 类型
   final ValueChanged<Map>? onSelected; // 选择后的回调
   final ValueChanged<Map?>? onChanged; // 输入或重置后的回调
 
@@ -1634,12 +1633,12 @@ class SuggestionTextField extends StatefulWidget {
     Key? key,
     required this.labelText,
     required this.hintText,
-    required this.width, // 必须提供宽度
-    required this.height, // 必须提供高度
+    required this.width,
+    required this.height,
+    required this.initialValue,
     required this.fetchSuggestions,
-    this.initialValue, // 初始化默认值
-    this.onSelected, // 可选的 onSelected 回调
-    this.onChanged, // 可选的 onChanged 回调
+    this.onSelected,
+    this.onChanged,
   }) : super(key: key);
 
   @override
@@ -1654,13 +1653,23 @@ class SuggestionTextFieldState extends State<SuggestionTextField> {
   @override
   void initState() {
     super.initState();
-    _textController =
-        TextEditingController(text: widget.initialValue?['name'] ?? '');
-    if (widget.initialValue != null && widget.initialValue!['name'] != null) {
-      _textController.text = widget.initialValue!['name']!;
-    } else {
-      _textController.text = ''; // 或者设置一个默认值
+    _textController = TextEditingController();
+
+    // 监听外部值变化并更新文本控制器
+    widget.initialValue.addListener(() {
+      final newValue = widget.initialValue.value;
+      if (newValue != null && newValue['name'] != null) {
+        _textController.text = newValue['name'];
+        setState(() {});
+      }
+    });
+
+    // 初始化文本控制器
+    final initialValue = widget.initialValue.value;
+    if (initialValue != null && initialValue['name'] != null) {
+      _textController.text = initialValue['name'];
     }
+
     _fetchSuggestions('');
   }
 
@@ -1687,80 +1696,85 @@ class SuggestionTextFieldState extends State<SuggestionTextField> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 0, right: 0, top: 8, bottom: 8),
-      child: SizedBox(
-        height: 34, // 设置输入框的固定高度(
-        child: SearchField(
-          dynamicHeight: true,
-          controller: _textController,
-          itemHeight: widget.height,
-          scrollbarDecoration: ScrollbarDecoration(
-            thickness: 2,
-          ),
-          suggestionStyle: TextStyle(fontSize: 14, color: Colors.grey[900]),
-          searchInputDecoration: SearchInputDecoration(
-            hintText: widget.hintText,
-            hintStyle: const TextStyle(
-              color: Color(0xFF999999),
-              fontSize: 12,
-              fontFamily: 'PingFang SC',
-              fontWeight: FontWeight.w400,
-            ),
-            cursorHeight: 14,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(3),
-              borderSide: const BorderSide(color: Colors.grey, width: 1.0),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(3), // 圆角
-              borderSide: BorderSide(color: Colors.grey, width: 1.0), // 失焦状态边框颜色
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(3), // 圆角
-              borderSide: BorderSide(color: Colors.grey, width: 1.0), // 聚焦状态边框颜色
-            ),
-            filled: true,
-            fillColor: Colors.white,
-            searchStyle: const TextStyle(
-              color: Color(0xFF505050),
-              fontSize: 14,
-              fontFamily: 'PingFang SC',
-              fontWeight: FontWeight.w400,
-            ),
-            contentPadding: EdgeInsets.symmetric(vertical: 4, horizontal: 10),
-          ),
-          suggestions: _suggestions.map((item) {
-            return SearchFieldListItem(item['name'], item: item);
-          }).toList(),
-          suggestionState: Suggestion.expand,
-          textInputAction: TextInputAction.search,
-          onSuggestionTap: (SearchFieldListItem selection) {
-            debugPrint('Selected: ${selection.item}');
-            _textController.text = selection.item['name'] as String;
+    return ValueListenableBuilder<Map?>(
+      valueListenable: widget.initialValue,
+      builder: (context, value, child) {
+        return Padding(
+          padding: const EdgeInsets.only(left: 0, right: 0, top: 8, bottom: 8),
+          child: SizedBox(
+            height: 34, // 设置输入框的固定高度
+            child: SearchField(
+              dynamicHeight: true,
+              controller: _textController,
+              itemHeight: widget.height,
+              scrollbarDecoration: ScrollbarDecoration(
+                thickness: 2,
+              ),
+              suggestionStyle: TextStyle(fontSize: 14, color: Colors.grey[900]),
+              searchInputDecoration: SearchInputDecoration(
+                hintText: widget.hintText,
+                hintStyle: const TextStyle(
+                  color: Color(0xFF999999),
+                  fontSize: 12,
+                  fontFamily: 'PingFang SC',
+                  fontWeight: FontWeight.w400,
+                ),
+                cursorHeight: 14,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(3),
+                  borderSide: const BorderSide(color: Colors.grey, width: 1.0),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(3), // 圆角
+                  borderSide: BorderSide(color: Colors.grey, width: 1.0), // 失焦状态边框颜色
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(3), // 圆角
+                  borderSide: BorderSide(color: Colors.grey, width: 1.0), // 聚焦状态边框颜色
+                ),
+                filled: true,
+                fillColor: Colors.white,
+                searchStyle: const TextStyle(
+                  color: Color(0xFF505050),
+                  fontSize: 14,
+                  fontFamily: 'PingFang SC',
+                  fontWeight: FontWeight.w400,
+                ),
+                contentPadding: EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+              ),
+              suggestions: _suggestions.map((item) {
+                return SearchFieldListItem(item['name'], item: item);
+              }).toList(),
+              suggestionState: Suggestion.expand,
+              textInputAction: TextInputAction.search,
+              onSuggestionTap: (SearchFieldListItem selection) {
+                debugPrint('Selected: ${selection.item}');
+                _textController.text = selection.item['name'] as String;
 
-            // 调用父组件提供的回调
-            widget.onSelected?.call(selection.item);
-            widget.onChanged?.call(selection.item);
-          },
-          onSubmit: (_) async {
-            await _fetchSuggestions(_textController.text);
-          },
-          onSearchTextChanged: (String value) {
-            // 防抖处理
-            _fetchSuggestions(value);
+                // 调用父组件提供的回调
+                widget.onSelected?.call(selection.item);
+                widget.onChanged?.call(selection.item);
+              },
+              onSubmit: (_) async {
+                await _fetchSuggestions(_textController.text);
+              },
+              onSearchTextChanged: (String value) {
+                // 防抖处理
+                _fetchSuggestions(value);
 
-            if (value.isEmpty) {
-              widget.onChanged?.call(null);
-            } else {
-              widget.onChanged?.call({'name': value});
-            }
-          },
-          onTap: () async {
-            _fetchSuggestions("");
-          },
-        ),
-      ),
+                if (value.isEmpty) {
+                  widget.onChanged?.call(null);
+                } else {
+                  widget.onChanged?.call({'name': value});
+                }
+              },
+              onTap: () async {
+                _fetchSuggestions("");
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 

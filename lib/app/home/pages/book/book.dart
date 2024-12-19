@@ -8,7 +8,7 @@ import 'package:admin_flutter/component/table/ex.dart';
 import 'package:admin_flutter/app/home/sidebar/logic.dart';
 import 'package:admin_flutter/component/widget.dart';
 import 'package:admin_flutter/component/dialog.dart';
-import '../../../../api/template_api.dart';
+import '../../../../api/book_template_api.dart';
 import 'detail.dart';
 import 'logic.dart';
 import 'package:admin_flutter/theme/theme_util.dart';
@@ -318,7 +318,7 @@ class _BookPageState extends State<BookPage> {
                   items: widget.logic.templateList,
                   onDelete: (Map<String, dynamic> item) async {
                     try {
-                      await TemplateApi.templateDelete(item["id"]);
+                      await BookTemplateApi.templateDelete(item["id"]);
                       "删除成功".toHint();
                     } catch (error) {
                       "删除失败: $error".toHint();

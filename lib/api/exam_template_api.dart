@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:admin_flutter/common/http_util.dart';
 import 'package:dio/dio.dart';
 
-class TemplateApi {
+class ExamTemplateApi {
 
   static Dio dio = Dio(BaseOptions(
     connectTimeout: const Duration(seconds: 3),
@@ -23,7 +23,7 @@ class TemplateApi {
         // 'major_id': handleNullOrEmpty(params['major_id']),
       };
 
-      return await HttpUtil.get("/admin/book/template/list", params: finalParams);
+      return await HttpUtil.get("/admin/exam/template/list", params: finalParams);
     } catch (e) {
       print('Error in templateList: $e');
       rethrow; // 重新抛出异常以便调用者处理
@@ -43,12 +43,9 @@ class TemplateApi {
     try {
       // 必传字段校验
       List<String> requiredFields = [
-        'name',
-        'major_id',
-        'level',
-        'component',
-        'unit_number',
-        'creator',
+        'cate',
+        'cate',
+        'question_count',
       ];
       for (var field in requiredFields) {
         if (!params.containsKey(field) || params[field] == null) {
@@ -57,7 +54,7 @@ class TemplateApi {
       }
 
       // 发送POST请求
-      dynamic response = await HttpUtil.post('/admin/book/template', params: params);
+      dynamic response = await HttpUtil.post('/admin/exam/template', params: params);
 
       return response;
     } catch (e) {
@@ -69,7 +66,7 @@ class TemplateApi {
   // 查看模板详细
   static Future<dynamic> templateDetail(int id) async {
     try {
-      return await HttpUtil.get("/admin/book/template/$id");
+      return await HttpUtil.get("/admin/exam/template/$id");
     } catch (e) {
       print('Error in templateDetail: $e');
       rethrow; // 重新抛出异常以便调用者处理
@@ -79,7 +76,7 @@ class TemplateApi {
   // 删除模板
   static Future<dynamic> templateDelete(int id) async {
     try {
-      return await HttpUtil.delete("/admin/book/template/$id");
+      return await HttpUtil.delete("/admin/exam/template/$id");
     } catch (e) {
       print('Error in templateDelete: $e');
       rethrow; // 重新抛出异常以便调用者处理

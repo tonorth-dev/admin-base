@@ -109,10 +109,10 @@ class _ClassesEditFormState extends State<ClassesEditForm> {
                       hintText: '输入机构名称',
                       key: Key("add_student_institution_id"),
                       fetchSuggestions: logic.fetchInstructions,
-                      initialValue: {
+                      initialValue: ValueNotifier<Map<dynamic, dynamic>?>({
                         'name': logic.uInstitutionName.value,
                         'id': logic.uInstitutionId.value,
-                      },
+                      }),
                       onSelected: (value) {
                         if (value.isEmpty) {
                           logic.institutionId.value = "";

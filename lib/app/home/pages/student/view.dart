@@ -104,7 +104,7 @@ class StudentPage extends StatelessWidget {
                     hintText: '输入机构名称',
                     key: logic.institutionTextFieldKey,
                     fetchSuggestions: logic.fetchInstructions,
-                    initialValue: {},
+                    initialValue: ValueNotifier<Map<dynamic, dynamic>?>({}),
                     onSelected: (value) {
                       if (value.isEmpty) {
                         logic.selectedInstitutionId.value = "";
@@ -134,7 +134,7 @@ class StudentPage extends StatelessWidget {
                     hintText: '输入班级名称',
                     key: logic.classesTextFieldKey,
                     fetchSuggestions: logic.fetchClasses,
-                    initialValue: {},
+                    initialValue: ValueNotifier<Map<dynamic, dynamic>?>({}),
                     onSelected: (value) {
                       if (value == '') {
                         logic.selectedClassesId.value = "";

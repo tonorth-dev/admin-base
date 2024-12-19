@@ -11,7 +11,7 @@ import 'package:admin_flutter/component/form/enum.dart';
 import 'package:admin_flutter/component/form/form_data.dart';
 import '../../../../api/config_api.dart';
 import '../../../../api/major_api.dart';
-import '../../../../api/template_api.dart';
+import '../../../../api/book_template_api.dart';
 import '../../../../component/pagination/logic.dart';
 import '../../../../component/table/table_data.dart';
 import '../../../../component/widget.dart';
@@ -112,7 +112,7 @@ class BookLogic extends GetxController {
   Future<void> fetchTemplates() async {
     try {
       var templates =
-          await TemplateApi.templateList({'pageSize': "30", 'page': "1"});
+          await BookTemplateApi.templateList({'pageSize': "30", 'page': "1"});
       if (templates != null && templates.containsKey("list")) {
         final templateItem = templates["list"] as List<dynamic>;
 
@@ -603,7 +603,7 @@ class BookLogic extends GetxController {
           "template_name": "demo",
         };
 
-        dynamic result = await TemplateApi.templateCreate(params);
+        dynamic result = await BookTemplateApi.templateCreate(params);
         templateSaved.value = true;
         "保存模板成功".toHint();
         return true; // 操作成功
@@ -646,7 +646,7 @@ class BookLogic extends GetxController {
 
   void deleteTemplate(Map<String, dynamic> d) async {
     try {
-      await TemplateApi.templateDelete(d["id"]);
+      await BookTemplateApi.templateDelete(d["id"]);
       "删除成功".toHint();
     } catch (error) {
       "删除失败: $error".toHint();
