@@ -377,19 +377,6 @@ class _ExamPageState extends State<ExamPage> {
               children: [
                 SizedBox(width: 50),
                 SizedBox(
-                  width: 130,
-                  child: TextInputWidget(
-                    width: 120,
-                    height: 34,
-                    hint: "输入试卷名称",
-                    text: widget.logic.examName,
-                    onTextChanged: (value) {
-                      widget.logic.examName.value = value;
-                    },
-                  ),
-                ),
-                SizedBox(width: 48),
-                SizedBox(
                   width: 120,
                   // child: Column(
                   //   crossAxisAlignment: CrossAxisAlignment.start,
@@ -413,7 +400,6 @@ class _ExamPageState extends State<ExamPage> {
                   //     ),
                   //   ],
                   // ),
-
                   child: SuggestionTextField(
                     width: 120,
                     height: 34,
@@ -440,53 +426,22 @@ class _ExamPageState extends State<ExamPage> {
                 ),
                 SizedBox(width: 48),
                 SizedBox(
-                  width: 150,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: widget.logic.questionCate.map((item) {
-                      final selectValue =
-                          widget.logic.cateSelectedValues[item["id"]]!;
-                      return Padding(
-                        padding: const EdgeInsets.only(left: 0, top: 5),
-                        child: Row(
-                          // 再次将 Row 改为 Column
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          // 保持对齐方式
-                          children: [
-                            Text(
-                              "${item['name']}：",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.black87),
-                            ),
-                            NumberInputWidget(
-                              key: UniqueKey(),
-                              hint: '',
-                              selectedValue: selectValue,
-                              width: 60,
-                              height: 30,
-                              onValueChanged: (value) {
-                                final key = item['id'];
-                                widget.logic.questionCate.value =
-                                    widget.logic.questionCate.value.map((e) {
-                                  if (e['id'] == key) {
-                                    return {
-                                      ...e,
-                                      'value': value,
-                                    };
-                                  }
-                                  return e;
-                                }).toList();
-                              },
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
+                  width: 120,
+                  child: DropdownField(
+                    items: widget.logic.questionCate.toList(),
+                    hint: '选择题型',
+                    width: 120,
+                    // 注意：这里的宽度设置可能会使内容不能完全贴靠左边
+                    height: 34,
+                    onChanged: (dynamic newValue) {
+                      widget.logic.examSelectedQuestionCate.value =
+                          newValue.toString();
+                      widget.logic.applyFilters();
+                    },
+                    selectedValue: widget.logic.examSelectedQuestionCate,
                   ),
                 ),
-                SizedBox(width: 30),
+                SizedBox(width: 55),
                 SizedBox(
                   width: 120,
                   child: DropdownField(
@@ -503,7 +458,7 @@ class _ExamPageState extends State<ExamPage> {
                     selectedValue: widget.logic.examSelectedQuestionLevel,
                   ),
                 ),
-                SizedBox(width: 58),
+                SizedBox(width: 62),
                 SizedBox(
                   width: 150,
                   child: Column(
@@ -520,6 +475,17 @@ class _ExamPageState extends State<ExamPage> {
                           widget.logic.examQuestionCount.value = value.toInt();
                         },
                       ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: 58),
+                SizedBox(
+                  width: 150,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+
                     ],
                   ),
                 ),

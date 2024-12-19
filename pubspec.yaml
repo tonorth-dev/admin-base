@@ -41,7 +41,7 @@ dependencies:
   syncfusion_flutter_pdfviewer: ^27.1.57
   syncfusion_flutter_pdf: ^27.1.57
   open_file: ^3.5.10
-  provider: ^5.0.0
+  provider: ^6.1.2
   pdf_render: ^1.4.12
   pdf: ^3.11.1
   flutter_dialogs: ^3.0.0
@@ -58,6 +58,7 @@ dependencies:
   pdfx: ^2.8.0
   flutter_fancy_tree_view: ^1.6.0
   searchfield: ^1.0.0
+  omni_datetime_picker: ^2.0.5
 
 dev_dependencies:
   flutter_test:

@@ -62,7 +62,7 @@ class ExamLogic extends GetxController {
   final examName = ''.obs;
   final examQuestionCount = 0.obs;
   final examSelectedMajorId = "0".obs;
-  final examSelectedQuestionCate = "".obs;
+  ValueNotifier<String?> examSelectedQuestionCate = ValueNotifier<String?>(null);
   ValueNotifier<String?> examSelectedQuestionLevel = ValueNotifier<String?>(null);
   final Map<String, RxInt> cateSelectedValues = {};
 
