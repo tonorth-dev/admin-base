@@ -9,7 +9,7 @@ class HttpUtil {
   static const authorization = "Authorization";
 
   static final dio = Dio(BaseOptions(
-    baseUrl: "${ConfigUtil.baseUrl}:${ConfigUtil.httpPort}",
+    baseUrl: ConfigUtil.httpPort == "" ? ConfigUtil.baseUrl : "${ConfigUtil.baseUrl}:${ConfigUtil.httpPort}",
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 10),
   ))

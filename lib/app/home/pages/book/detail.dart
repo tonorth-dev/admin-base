@@ -321,7 +321,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
       // 检查响应状态码
       if (!response['url'].isEmpty) {
         // 获取 PDF 文件的 URL
-        final pdfUrl = "${ConfigUtil.baseUrl}:${ConfigUtil.ossPort}${ConfigUtil.ossPrefix}${response['url']}";
+        final pdfUrl = "${ConfigUtil.ossUrl}:${ConfigUtil.ossPort}${ConfigUtil.ossPrefix}${response['url']}";
 
         // 下载 PDF 文件
         await _downloadAndOpenPdf(pdfUrl);

@@ -135,8 +135,8 @@ class NoteLogic extends GetxController {
       debugPrint('Selected PDF URL updated: ${selectedPdfUrl.value}');
       return;
     }
-    if (selectedPdfUrl.value != "${ConfigUtil.baseUrl}:${ConfigUtil.ossPort}${ConfigUtil.ossPrefix}$url") {
-      selectedPdfUrl.value = "${ConfigUtil.baseUrl}:${ConfigUtil.ossPort}${ConfigUtil.ossPrefix}$url";
+    if (selectedPdfUrl.value != "${ConfigUtil.ossUrl}:${ConfigUtil.ossPort}${ConfigUtil.ossPrefix}$url") {
+      selectedPdfUrl.value = "${ConfigUtil.ossUrl}:${ConfigUtil.ossPort}${ConfigUtil.ossPrefix}$url";
       debugPrint('Selected PDF URL updated: ${selectedPdfUrl.value}');
     }
   }
@@ -147,7 +147,7 @@ class NoteLogic extends GetxController {
     // 检查响应状态码
     if (!response['url'].isEmpty) {
       // 获取 PDF 文件的 URL
-      selectedPdfUrl.value = "${ConfigUtil.baseUrl}:${ConfigUtil.ossPort}${ConfigUtil.ossPrefix}${response['url']}";
+      selectedPdfUrl.value = "${ConfigUtil.ossUrl}:${ConfigUtil.ossPort}${ConfigUtil.ossPrefix}${response['url']}";
       print(selectedPdfUrl.value);
     }
   }

@@ -607,8 +607,8 @@ Future<void> importFileToDir(File file, int lectureId, int nodeId) async {
       debugPrint('Selected PDF URL updated: ${selectedPdfUrl.value}');
       return;
     }
-    if (selectedPdfUrl.value != "${ConfigUtil.baseUrl}:${ConfigUtil.ossPort}${ConfigUtil.ossPrefix}$url") {
-      selectedPdfUrl.value = "${ConfigUtil.baseUrl}:${ConfigUtil.ossPort}${ConfigUtil.ossPrefix}$url";
+    if (selectedPdfUrl.value != "${ConfigUtil.ossUrl}:${ConfigUtil.ossPort}${ConfigUtil.ossPrefix}$url") {
+      selectedPdfUrl.value = "${ConfigUtil.ossUrl}:${ConfigUtil.ossPort}${ConfigUtil.ossPrefix}$url";
       debugPrint('Selected PDF URL updated: ${selectedPdfUrl.value}');
     }
   }
