@@ -67,21 +67,21 @@ class SettingsPage extends StatelessWidget {
               Text("settings".tr)
             ],
           )),
-          panel("水印设置", Row(
-            children: [
-              Row(
-                children: [
-                  "创建水印".toBtn(onTap: (){
-                    waterMark.value = true;
-                  }),
-                  ThemeUtil.width(),
-                  "移除水印".toOutlineBtn(onTap: (){
-                    waterMark.value = false;
-                  }),
-                ],
-              ),
-            ],
-          ))
+          // panel("水印设置", Row(
+          //   children: [
+          //     Row(
+          //       children: [
+          //         "创建水印".toBtn(onTap: (){
+          //           waterMark.value = true;
+          //         }),
+          //         ThemeUtil.width(),
+          //         "移除水印".toOutlineBtn(onTap: (){
+          //           waterMark.value = false;
+          //         }),
+          //       ],
+          //     ),
+          //   ],
+          // ))
         ],
       ),
     );

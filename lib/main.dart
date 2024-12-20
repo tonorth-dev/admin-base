@@ -4,6 +4,7 @@ import 'package:admin_flutter/state.dart';
 import 'package:admin_flutter/theme/my_theme.dart';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
 
@@ -15,6 +16,7 @@ void main() async {
   var findTheme = themeList.firstWhereOrNull((e)=>e.name() == appData.themeName);
   theme = findTheme?.theme() ?? Light().theme();
   await message.init();
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky); // 设置为全屏
   runApp(const MyApp());
 }
 

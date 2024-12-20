@@ -56,40 +56,6 @@ class LectureTableView extends StatelessWidget {
                 height: 32, // 自定义高度
               ),
               SizedBox(width: 120), // 添加一些间距
-              // Padding(
-              //   padding: EdgeInsets.all(16.0),
-              //   child: FutureBuilder<void>(
-              //     future: logic.fetchMajors(), // 调用 fetchMajors 方法
-              //     builder: (context, snapshot) {
-              //       if (snapshot.connectionState == ConnectionState.waiting) {
-              //         return Center(
-              //             child: CircularProgressIndicator()); // 加载中显示进度条
-              //       } else if (snapshot.hasError) {
-              //         return Text('加载失败: ${snapshot.error}');
-              //       } else {
-              //         return CascadingDropdownField(
-              //           key: logic.majorDropdownKey,
-              //           width: 100,
-              //           height: 34,
-              //           hint1: '专业类目一',
-              //           hint2: '专业类目二',
-              //           hint3: '专业名称',
-              //           level1Items: logic.level1Items,
-              //           level2Items: logic.level2Items,
-              //           level3Items: logic.level3Items,
-              //           selectedLevel1: ValueNotifier(null),
-              //           selectedLevel2: ValueNotifier(null),
-              //           selectedLevel3: ValueNotifier(null),
-              //           onChanged:
-              //               (dynamic level1, dynamic level2, dynamic level3) {
-              //             logic.selectedMajorId.value = level3.toString();
-              //             // 这里可以处理选择的 id
-              //           },
-              //         );
-              //       }
-              //     },
-              //   ),
-              // ),
               SearchBoxWidget(
                 key: Key('keywords'),
                 hint: '讲义名称、创建者',

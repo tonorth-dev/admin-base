@@ -1,3 +1,5 @@
+import 'package:admin_flutter/app/home/pages/exam/topic_logic.dart';
+import 'package:admin_flutter/app/home/pages/exam/topic_view.dart';
 import 'package:admin_flutter/ex/ex_hint.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -23,7 +25,7 @@ class ExamPage extends StatefulWidget {
   static SidebarTree newThis() {
     return SidebarTree(
       name: "试卷管理",
-      icon: Icons.document_scanner,
+      icon: Icons.deblur,
       page: ExamPage(),
     );
   }
@@ -664,13 +666,16 @@ class ExamDataSource extends DataGridSource {
             ),
             TextButton(
               onPressed: () {
-                //   Navigator.push(
-                //     context,
-                //   //   MaterialPageRoute(
-                //   //   //   builder: (context) =>
-                //   //   //       ExecutePage(id: item['id']), // 替换为实际的 ID
-                //   //   // ),
-                //   // );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ExamTopicView(
+                            title: "试卷详情",
+                            id: item['id'],
+                            ),
+                          ), // 替换为实际的 ID
+                  );
               },
               child: Text("查看试卷", style: TextStyle(color: Color(0xFFFD941D))),
             ),

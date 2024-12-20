@@ -34,7 +34,7 @@ class HeadPage extends StatelessWidget {
                   },
                   child: const Icon(Icons.menu)),
               ThemeUtil.width(),
-              _breadcrumb(),
+              // _breadcrumb(),
               const Spacer(),
               InkWell(
                 borderRadius: BorderRadius.circular(32),

@@ -13,7 +13,7 @@ var message = Messages();
 var appReload = false.obs;
 
 /// 启用水印
-var waterMark = false.obs;
+var waterMark = true.obs;
 
 /// 侧边栏展开
 var sidebarExpanded = true.obs;

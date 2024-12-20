@@ -9,9 +9,9 @@ class WatermarkPainter extends CustomPainter {
       ..strokeWidth = 1.0;
 
     TextSpan span = TextSpan(
-      text: 'Sample Watermark',
+      text: '红师教育',
       style: TextStyle(
-        fontSize: 24.0,
+        fontSize: 28.0,
         color: paint.color,
       ),
     );

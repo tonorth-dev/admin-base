@@ -42,32 +42,32 @@ class SidebarLogic extends GetxController {
   static List<SidebarTree> treeList = [
     SidebarTree(
       name: "岗位信息",
-      icon: Icons.expand,
+      icon: Icons.work,
       children: jobList,
     ),
     SidebarTree(
       name: "考生信息",
-      icon: Icons.expand,
+      icon: Icons.person,
       children: studentList,
     ),
     SidebarTree(
-      name: "试题计划",
-      icon: Icons.expand,
+      name: "试题试卷",
+      icon: Icons.assignment,
       children: questionList,
     ),
     SidebarTree(
       name: "心理测试",
-      icon: Icons.expand,
+      icon: Icons.psychology,
       // children: demoList,
     ),
     SidebarTree(
       name: "讲义信息",
-      icon: Icons.expand,
+      icon: Icons.book,
       children: lectureList,
     ),
     SidebarTree(
       name: "总部题库",
-      icon: Icons.expand,
+      icon: Icons.library_books,
       children: topicList,
     ),
     SettingsPage.newThis(),
