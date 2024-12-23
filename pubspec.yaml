@@ -59,6 +59,7 @@ dependencies:
   flutter_fancy_tree_view: ^1.6.0
   searchfield: ^1.0.0
   omni_datetime_picker: ^2.0.5
+  window_manager: ^0.4.3
 
 dev_dependencies:
   flutter_test:
@@ -78,4 +79,3 @@ flutter:
         - asset: assets/fonts/OPPOSans-Bold.ttf
         - asset: assets/fonts/OPPOSans-Medium.ttf
         - asset: assets/fonts/OPPOSans-Regular.ttf
-

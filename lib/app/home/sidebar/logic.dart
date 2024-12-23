@@ -42,32 +42,38 @@ class SidebarLogic extends GetxController {
   static List<SidebarTree> treeList = [
     SidebarTree(
       name: "岗位信息",
-      icon: Icons.work,
+      icon: Icons.work, // Apply color here
+      color: Colors.orange[300], // Set desired color
       children: jobList,
     ),
     SidebarTree(
       name: "考生信息",
-      icon: Icons.person,
+      icon: Icons.person, // Apply color here
+      color: Colors.green[400], // Set desired color
       children: studentList,
     ),
     SidebarTree(
       name: "试题试卷",
-      icon: Icons.assignment,
+      icon: Icons.assignment, // Apply color here
+      color: Colors.blue[400], // Set desired color
       children: questionList,
     ),
     SidebarTree(
       name: "心理测试",
-      icon: Icons.psychology,
+      icon: Icons.psychology, // Apply color here
+      color: Colors.purple[200], // Set desired color
       // children: demoList,
     ),
     SidebarTree(
       name: "讲义信息",
-      icon: Icons.book,
+      icon: Icons.book, // Apply color here
+      color: Colors.blue[400], // Set desired color
       children: lectureList,
     ),
     SidebarTree(
       name: "总部题库",
-      icon: Icons.library_books,
+      icon: Icons.library_books, // Apply color here
+      color: Colors.brown[300], // Set desired color
       children: topicList,
     ),
     SettingsPage.newThis(),
@@ -160,18 +166,22 @@ class SidebarTree {
   final List<SidebarTree> children;
   var isExpanded = false.obs;
   final Widget page;
+  final Color color; // 正确添加 color 属性
 
   SidebarTree({
     required this.name,
     this.icon = Icons.ac_unit,
     this.children = const [],
     this.page = const EmptyPage(),
-  });
+    Color? color, // 修改为可选参数
+  }) : color = color ?? Colors.black; // 使用 ?? 运算符提供默认颜色
 }
+
 
 SidebarTree newThis(String name) {
   return SidebarTree(
     name: name,
     icon: Icons.supervised_user_circle,
+    color: Colors.grey[600], // Set default color (optional)
   );
 }

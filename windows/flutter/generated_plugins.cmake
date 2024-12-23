@@ -6,9 +6,11 @@ list(APPEND FLUTTER_PLUGIN_LIST
   file_selector_windows
   pdfx
   printing
+  screen_retriever_windows
   syncfusion_pdfviewer_windows
   url_launcher_windows
   video_player_win
+  window_manager
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

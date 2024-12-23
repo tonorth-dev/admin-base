@@ -9,10 +9,11 @@ class WatermarkPainter extends CustomPainter {
       ..strokeWidth = 1.0;
 
     TextSpan span = TextSpan(
-      text: '红师教育',
+      text: '红师教育（81hongshi.com）',
       style: TextStyle(
         fontSize: 28.0,
         color: paint.color,
+        fontFamily: 'OPPOSans',
       ),
     );
 

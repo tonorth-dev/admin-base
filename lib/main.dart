@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
+import 'package:window_manager/window_manager.dart';
 
 import 'theme/light_theme.dart';
 
@@ -16,7 +17,23 @@ void main() async {
   var findTheme = themeList.firstWhereOrNull((e)=>e.name() == appData.themeName);
   theme = findTheme?.theme() ?? Light().theme();
   await message.init();
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky); // 设置为全屏
+
+  WidgetsFlutterBinding.ensureInitialized();
+  // Must add this line.
+  await windowManager.ensureInitialized();
+
+  WindowOptions windowOptions = WindowOptions(
+    size: Size(1920, 1080),
+    center: true,
+    // backgroundColor: Colors.transparent,
+    skipTaskbar: false,
+    // titleBarStyle: TitleBarStyle.hidden,
+  );
+  windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.show();
+    await windowManager.focus();
+  });
+
   runApp(const MyApp());
 }
 

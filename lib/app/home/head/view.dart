@@ -34,7 +34,7 @@ class HeadPage extends StatelessWidget {
                   },
                   child: const Icon(Icons.menu)),
               ThemeUtil.width(),
-              // _breadcrumb(),
+              _breadcrumb(),
               const Spacer(),
               InkWell(
                 borderRadius: BorderRadius.circular(32),
@@ -66,7 +66,7 @@ class HeadPage extends StatelessWidget {
               Icon(
                 e.icon,
                 size: 16,
-                color: color,
+                color: e.color,
               ),
               const SizedBox(width: 2,),
               Text(e.name,style: TextStyle(color:color),),

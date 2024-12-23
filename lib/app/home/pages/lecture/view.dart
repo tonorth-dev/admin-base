@@ -18,7 +18,7 @@ class LecturePage extends StatelessWidget {
     return Row(
       children: [
         SizedBox(
-          width: 720,
+          width: 600,
           child: Container(
             padding: const EdgeInsets.all(16.0),
             child: LectureTableView(

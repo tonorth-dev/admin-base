@@ -16,8 +16,11 @@ class SidebarPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-        //width: 230,
-        child: _default());
+        width: 200,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: 200),
+          child: _default(),
+        ));
   }
 
   Widget _default() {
@@ -68,7 +71,9 @@ class SidebarPage extends StatelessWidget {
                     SizedBox(width: left),
                     Icon(
                       item.icon,
-                      color: UiTheme.getOnPrimary(selected),
+                      color: selected
+                          ? UiTheme.getOnPrimary(selected)
+                          : item.color,
                     ).toJump(logic.animName.value == item.name),
                     ThemeUtil.width(),
                     Text(
@@ -97,7 +102,7 @@ class SidebarPage extends StatelessWidget {
   Widget _tree(SidebarTree item, {double left = leftSpace}) {
     return Column(
       children: [
-        _text(item,left: left),
+        _text(item, left: left),
         Obx(() {
           return Visibility(
               visible: item.isExpanded.value,

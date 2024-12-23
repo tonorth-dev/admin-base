@@ -209,9 +209,9 @@ class LectureLogic extends GetxController {
     super.onInit();// Fetch and populate major data on initialization
 
     columns = [
-      ColumnData(title: "ID", key: "id", width: 80),
+      ColumnData(title: "ID", key: "id", width: 50),
       ColumnData(title: "讲义名称", key: "name", width:100),
-      ColumnData(title: "专业", key: "major_id", width:100),
+      ColumnData(title: "专业", key: "major_name", width:100),
       ColumnData(title: "讲义编码", key: "job_code", width:100),
       ColumnData(title: "排序", key: "sort", width:50),
       ColumnData(title: "创建者", key: "creator"),
