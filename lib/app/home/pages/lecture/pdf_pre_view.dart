@@ -37,7 +37,7 @@ class _PdfPreViewState extends State<PdfPreView> {
   }
 
   Future<void> _initializePdf(String url) async {
-    if (_currentUrl == url) {
+    if (_currentUrl == url || url.isEmpty) {
       debugPrint("Same URL, skipping reinitialization.");
       return;
     }

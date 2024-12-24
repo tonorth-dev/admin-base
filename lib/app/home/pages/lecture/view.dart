@@ -29,7 +29,7 @@ class LecturePage extends StatelessWidget {
           ),
         ),
         SizedBox(
-          width: 550,
+          width: 450,
           child: Container(
             padding: const EdgeInsets.all(16.0),
             child: LectureFileView(
@@ -40,7 +40,7 @@ class LecturePage extends StatelessWidget {
           ),
         ),
         SizedBox(
-          width: 900,
+          width: 800,
           child: Container(
             padding: const EdgeInsets.all(16.0),
             child: PdfPreView(

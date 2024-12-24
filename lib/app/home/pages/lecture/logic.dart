@@ -233,18 +233,49 @@ class LectureLogic extends GetxController {
     );
   }
 
-  void edit(BuildContext context, Map<String, dynamic> lecture) {
-    currentEditLecture.value = RxMap<String, dynamic>(lecture);
+  // var currentEditJob = RxMap<String, dynamic>({}).obs;
+  // void editJob(BuildContext context, Map<String, dynamic> job) {
+  //   currentEditJob.value = RxMap<String, dynamic>(job);
+  //
+  //   DynamicInputDialog.show(
+  //     context: context,
+  //     title: '录入试题',
+  //     child: JobEditForm(
+  //       jobId: 1,
+  //       initialJobCode: "abc",
+  //       initialJobName: "abc",
+  //       initialJobDesc: "abc",
+  //       initialJobCate: "simple",
+  //       initialEnrollmentNum: 5,
+  //       initialEnrollmentRatio: "abc",
+  //       initialCompanyCode: "abc",
+  //       initialCompanyName: "abc",
+  //       initialConditionSource: "abc",
+  //       initialConditionQualification: "abc",
+  //       initialConditionDegree: "abc",
+  //       initialConditionMajor: "abc",
+  //       initialConditionExam: "abc",
+  //       initialConditionOther: "abc",
+  //       initialJobCity: "abc",
+  //       initialJobPhone: "abc",
+  //     ),
+  //     onSubmit: (formData) {
+  //       print('提交的数据: $formData');
+  //     },
+  //   );
+  // }
 
+  void edit(BuildContext context, Map<String, dynamic> lecture) {
+    print('提交的数据: $lecture');
     DynamicInputDialog.show(
       context: context,
       title: '录入讲义',
       child: LectureEditForm(
         lectureId: lecture["id"],
-        initialName: lecture["name"],
-        initialMajorId: lecture["major_id"].toString(),
-        initialJobCode: lecture["job_code"],
-        initialJobName: lecture["major_name"],
+        initialLectureName: lecture["name"],
+        initialLectureMajorId: lecture["major_id"].toString(),
+        initialLectureJobCode: lecture["job_code"],
+        initialLectureJobName: lecture["major_name"],
         initialSort: lecture["sort"],
       ),
       onSubmit: (formData) {
@@ -439,6 +470,8 @@ class LectureLogic extends GetxController {
     find(size.value, page.value);
   }
 
+  int selectedNodeId = 0;
+
   void addNewDirectory(String name, int parentId) async {
     try {
       await LectureApi.addDirectory(selectedLectureId.value, {
@@ -454,7 +487,7 @@ class LectureLogic extends GetxController {
 
   void updateDirectory(String name, int id) async {
     try {
-      await LectureApi.updateDirectory(selectedLectureId.value, {
+      await LectureApi.updateDirectory(id.toString(), {
         'name': name,
       });
       loadDirectoryTree(selectedLectureId.value, true); // Refresh the directory tree
@@ -503,10 +536,13 @@ class LectureLogic extends GetxController {
     return tree;
   }
 
-  void importFileToNode(File file, int nodeId) async {
+  void importFileToNode(File file, DirectoryNode node) async {
     try {
-      await LectureApi.importFileToNode(nodeId, file);
-      loadDirectoryTree(selectedLectureId.value, true); // Refresh the directory tree after import
+      final res = await LectureApi.importFileToNode(node.id, file);
+      loadDirectoryTree(selectedLectureId.value, true);
+      await Future.delayed(const Duration(milliseconds: 1000));
+      updatePdfUrl(res["file_url"]);
+      "文件导入成功".toHint();
     } catch (e) {
       print("Failed to import file: $e");
       // Handle error
@@ -517,6 +553,8 @@ Future<void> importFileToDir(File file, int lectureId, int nodeId) async {
     isLoading.value = true; // 操作开始前设置 isLoading 为 true
     try {
       await LectureApi.importFileToDir(lectureId, nodeId, file);
+      loadDirectoryTree(selectedLectureId.value, true);
+      "目录导入成功".toHint();
     } catch (e) {
       // 处理错误
       print('Error importing file to directory: $e');
@@ -543,7 +581,7 @@ Future<void> importFileToDir(File file, int lectureId, int nodeId) async {
     print("query:$query");
     try {
       final response = await JobApi.jobList({
-        "pageSize": "10",
+        "size": "10",
         "page": "1",
         "keyword": query ?? "",
       });

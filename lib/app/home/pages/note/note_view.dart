@@ -48,7 +48,7 @@ class NoteTableView extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(width: 500), // 添加一些间距
+              SizedBox(width: 400), // 添加一些间距
               SearchBoxWidget(
                 key: Key('keywords'),
                 hint: '题本名称、创建者',

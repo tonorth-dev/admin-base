@@ -198,10 +198,10 @@ class LectureDataSource extends DataGridSource {
         Row(
           mainAxisAlignment: MainAxisAlignment.center, // 将按钮左对齐
           children: [
-            HoverTextButton(
-              text: "编辑",
-              onTap: () => logic.edit(context, item),
-            ),
+            // HoverTextButton(
+            //   text: "编辑",
+            //   onTap: () => logic.edit(context, item),
+            // ),
             HoverTextButton(
               text: "管理",
               onTap: () {

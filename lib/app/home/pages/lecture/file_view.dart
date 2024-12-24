@@ -8,17 +8,28 @@ import '../../../../component/table/ex.dart';
 import '../../../../theme/theme_util.dart';
 import 'logic.dart';
 
-class LectureFileView extends StatelessWidget {
+class LectureFileView extends StatefulWidget {
   final String title;
   final LectureLogic logic;
-  TreeController<DirectoryNode> treeController;
 
-  LectureFileView({Key? key, required this.title, required this.logic})
-      : treeController = TreeController<DirectoryNode>(
-          roots: logic.directoryTree,
-          childrenProvider: (DirectoryNode node) => node.children.toList(),
-        ),
-        super(key: key);
+  const LectureFileView({Key? key, required this.title, required this.logic}) : super(key: key);
+
+  @override
+  _LectureFileViewState createState() => _LectureFileViewState();
+}
+
+class _LectureFileViewState extends State<LectureFileView> {
+  final Map<int, bool> _loadingStates = {};
+  late TreeController<DirectoryNode> treeController;
+
+  @override
+  void initState() {
+    super.initState();
+    treeController = TreeController<DirectoryNode>(
+      roots: widget.logic.directoryTree,
+      childrenProvider: (DirectoryNode node) => node.children.toList(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +51,7 @@ class LectureFileView extends StatelessWidget {
               ),
               child: Center(
                 child: Text(
-                  title,
+                  widget.title,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -55,7 +66,7 @@ class LectureFileView extends StatelessWidget {
         ThemeUtil.height(),
         Expanded(
           child: Obx(() {
-            if (logic.directoryTree.isEmpty) {
+            if (widget.logic.directoryTree.isEmpty) {
               return _buildEmptyState(context);
             } else {
               return _buildTreeView(context);
@@ -97,31 +108,49 @@ class LectureFileView extends StatelessWidget {
     final DirectoryNode dirNode = entry.node;
     final bool isFileNode = dirNode.filePath != null && dirNode.filePath!.isNotEmpty;
     final bool isLeafNode = dirNode.children.isEmpty;
-    final bool isExpanded = entry.isExpanded; // 使用entry.isExpanded代替原来的node.expanded
+    final bool isExpanded = entry.isExpanded;
 
     // 根据节点层级设置缩进
     final double indentLevel = entry.level * 24.0; // 每一级增加24像素的缩进
+
+    // 检查是否为选中状态
+    final bool isSelected = widget.logic.selectedNodeId == dirNode.id;
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
         if (isFileNode && isLeafNode) {
-          logic.updatePdfUrl(dirNode.filePath!);
+          widget.logic.updatePdfUrl(dirNode.filePath!);
+          // 设置选中状态
+          setState(() {
+            widget.logic.selectedNodeId = dirNode.id;
+          });
         } else {
-          treeController.toggleExpansion(entry.node); // 使用controller的方法来切换展开状态
+          treeController.toggleExpansion(entry.node);
         }
       },
       child: Padding(
         padding: EdgeInsets.only(left: indentLevel, top: 8.0, bottom: 8.0),
         child: Row(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            // 固定宽度容器，确保图标不会影响文本对齐
+            Container(
+              width: 24, // 固定宽度
+              alignment: Alignment.centerLeft,
               child: (isFileNode && isLeafNode)
-                  ? SizedBox(width: 16)
-                  : Text(isExpanded ? '-' : '+', style: TextStyle(fontSize: 14)),
+                  ? Icon(Icons.insert_drive_file, size: 16, color: Colors.blueGrey) // 文件图标
+                  : Icon(isExpanded ? Icons.remove : Icons.add, size: 16, color: Colors.greenAccent), // 文件夹展开/折叠图标
             ),
-            Expanded(child: Text(dirNode.name)),
+            Expanded(
+              child: Text(
+                dirNode.name,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isSelected ? Colors.blueAccent : Colors.black, // 变色样式
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ),
             SizedBox(width: 16),
             _buildOperationButtons(context, dirNode), // 确保此方法已定义
           ],
@@ -152,27 +181,37 @@ class LectureFileView extends StatelessWidget {
           color: Colors.blueAccent,
           isEnabled: isLeafNode, // 仅当是叶子节点时启用
         ),
-        _buildIconButton(
+        if (_loadingStates[dirNode.id] ?? false)
+          SizedBox(
+            width: 20, // 固定宽度为30像素
+            height: 20,
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          ),
+        if (!(_loadingStates[dirNode.id] ?? false))
+          _buildIconButton(
           Icons.upload_file,
           "导入目录",
               () => _importDir(context, dirNode),
           color: Colors.blueAccent,
-          isEnabled: isFilePathEmpty,
+          isEnabled: true,
         ),
         _buildIconButton(
           Icons.edit,
           "编辑",
               () => _updateDir(context, dirNode),
-          color: Colors.greenAccent,
+          color: Colors.green,
           isEnabled: true, // 编辑按钮总是启用
         ),
         _buildIconButton(
           Icons.delete,
           "删除",
-              () => _confirmDelete(context, dirNode),
+              () => _confirmDelete(context, dirNode, isLeafNode),
           color: Colors.orangeAccent,
           isEnabled: true, // 删除按钮总是启用
         ),
+        SizedBox(width: 10,)
       ],
     );
   }
@@ -207,12 +246,12 @@ class LectureFileView extends StatelessWidget {
     );
   }
 
-  void _confirmDelete(BuildContext context, DirectoryNode node) {
+  void _confirmDelete(BuildContext context, DirectoryNode node, bool isLeafNode) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text("确认删除"),
-        content: Text("您确定要删除 '${node.name}' 吗？"),
+        content: isLeafNode ? Text("您确定要删除节点 '${node.name}' 吗？") : Text("您确定要删除节点 '${node.name}' 吗？删除后其子目录也都将被删除！", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
         actions: [
           TextButton(
             child: Text("取消"),
@@ -221,8 +260,8 @@ class LectureFileView extends StatelessWidget {
           TextButton(
             child: Text("删除", style: TextStyle(color: Colors.red)),
             onPressed: () {
-              logic.deleteDirectory(node.id);
-              logic.loadDirectoryTree(logic.selectedLectureId.value, true);
+              widget.logic.deleteDirectory(node.id);
+              widget.logic.loadDirectoryTree(widget.logic.selectedLectureId.value, true);
               Navigator.of(context).pop();
             },
           ),
@@ -250,7 +289,7 @@ class LectureFileView extends StatelessWidget {
             child: Text("添加"),
             onPressed: () {
               if (newDirName != null && newDirName!.isNotEmpty) {
-                logic.addNewDirectory(newDirName!, parent.id);
+                widget.logic.addNewDirectory(newDirName!, parent.id);
                 Navigator.of(context).pop();
               }
             },
@@ -263,11 +302,11 @@ class LectureFileView extends StatelessWidget {
   void _importFile(BuildContext context, DirectoryNode node) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['pdf', 'docx'],
+      allowedExtensions: ['pdf'],
     );
     if (result != null) {
       File file = File(result.files.single.path!);
-      logic.importFileToNode(file, node.id);
+      widget.logic.importFileToNode(file, node);
     }
   }
 
@@ -276,10 +315,25 @@ class LectureFileView extends StatelessWidget {
       type: FileType.custom,
       allowedExtensions: ['pdf'],
     );
-    if (result != null) {
+    if (result == null) {
+      return;
+    }
+
+    setState(() {
+      _loadingStates[node.id] = true; // 设置当前节点为加载状态
+    });
+
+    try {
       File file = File(result.files.single.path!);
-      logic.importFileToDir(
-          file, int.parse(logic.selectedLectureId.value), node.id);
+      await widget.logic.importFileToDir(
+        file,
+        int.parse(widget.logic.selectedLectureId.value),
+        node.id,
+      );
+    } finally {
+      setState(() {
+        _loadingStates[node.id] = false; // 操作完成，重置加载状态
+      });
     }
   }
 
@@ -306,7 +360,7 @@ class LectureFileView extends StatelessWidget {
             onPressed: () {
               final newDirName = controller.text;
               if (newDirName.isNotEmpty) {
-                logic.updateDirectory(newDirName, node.id);
+                widget.logic.updateDirectory(newDirName, node.id);
                 Navigator.of(context).pop();
                 controller.dispose(); // 释放控制器
               }
