@@ -74,21 +74,29 @@ class _LectureAddFormState extends State<LectureAddForm> {
                     width: 150,
                     child: Row(
                       children: const [
-                        Text('专业ID'),
+                        Text('专业'),
                         Text('*', style: TextStyle(color: Colors.red)),
                       ],
                     ),
                   ),
                   SizedBox(
-                    width: 620,
-                    child: NumberInputWidget(
-                      key: UniqueKey(),
-                      width: 90,
+                    width: 500,
+                    child: CascadingDropdownField(
+                      width: 160,
                       height: 34,
-                      hint: "输入专业ID",
-                      selectedValue: logic.majorId,
-                      onValueChanged: (value) {
-                        logic.majorId.value = value;
+                      hint1: '专业类目一',
+                      hint2: '专业类目二',
+                      hint3: '专业名称',
+                      selectedLevel1: logic.selectedLevel1,
+                      selectedLevel2: logic.selectedLevel2,
+                      selectedLevel3: logic.selectedLevel3,
+                      level1Items: logic.level1Items,
+                      level2Items: logic.level2Items,
+                      level3Items: logic.level3Items,
+                      onChanged:
+                          (dynamic level1, dynamic level2, dynamic level3) {
+                        logic.majorId.value = level3.toString();
+                        // 这里可以处理选择的 id
                       },
                     ),
                   ),
@@ -101,21 +109,33 @@ class _LectureAddFormState extends State<LectureAddForm> {
                     width: 150,
                     child: Row(
                       children: const [
-                        Text('讲义代码'),
+                        Text('岗位代码'),
                         Text('*', style: TextStyle(color: Colors.red)),
                       ],
                     ),
                   ),
                   SizedBox(
                     width: 620,
-                    child: NumberInputWidget(
-                      key: UniqueKey(),
-                      width: 90,
+                    child: SuggestionTextField(
+                      width: 600,
                       height: 34,
-                      hint: "输入讲义代码",
-                      selectedValue: logic.jobCode,
-                      onValueChanged: (value) {
-                        logic.jobCode.value = value;
+                      labelText: '请输入岗位代码',
+                      hintText: '输入岗位代码',
+                      key: Key("add_lecture_job_id"),
+                      fetchSuggestions: logic.fetchJobs,
+                      initialValue: ValueNotifier<Map<dynamic, dynamic>?>({}),
+                      onSelected: (value) {
+                        if (value.isEmpty) {
+                          logic.jobCode.value = "";
+                          return;
+                        }
+                        logic.jobCode.value = value['code']!;
+                      },
+                      onChanged: (value) {
+                        if (value == null || value.isEmpty) {
+                          logic.jobCode.value = ""; // 确保清空
+                        }
+                        print("onChanged selectedInstitutionId value: ${logic.jobCode.value}");
                       },
                     ),
                   ),
@@ -149,118 +169,89 @@ class _LectureAddFormState extends State<LectureAddForm> {
                 ],
               ),
               const SizedBox(height: 10),
-              Row(
-                children: [
-                  SizedBox(
-                    width: 150,
-                    child: Row(
-                      children: const [
-                        Text('创建者'),
-                        Text('*', style: TextStyle(color: Colors.red)),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    width: 620,
-                    child: TextInputWidget(
-                      width: 240,
-                      height: 34,
-                      maxLines: 8,
-                      hint: "输入创建者",
-                      text: logic.creator,
-                      onTextChanged: (value) {
-                        logic.creator.value = value;
-                      },
-                      validator:
-                      FormBuilderValidators.required(errorText: '创建者不能为空'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  SizedBox(
-                    width: 150,
-                    child: Row(
-                      children: const [
-                        Text('讲义类别'),
-                        Text('*', style: TextStyle(color: Colors.red)),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    width: 620,
-                    child: TextInputWidget(
-                      width: 240,
-                      height: 34,
-                      maxLines: 8,
-                      hint: "输入讲义类别",
-                      text: logic.lectureCategory,
-                      onTextChanged: (value) {
-                        logic.lectureCategory.value = value;
-                      },
-                      validator:
-                      FormBuilderValidators.required(errorText: '讲义类别不能为空'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  SizedBox(
-                    width: 150,
-                    child: Row(
-                      children: const [
-                        Text('页码数'),
-                        Text('*', style: TextStyle(color: Colors.red)),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    width: 620,
-                    child: NumberInputWidget(
-                      key: UniqueKey(),
-                      width: 90,
-                      height: 34,
-                      hint: "输入页码数",
-                      selectedValue: logic.pageCount,
-                      onValueChanged: (value) {
-                        logic.pageCount.value = value;
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  SizedBox(
-                    width: 150,
-                    child: Row(
-                      children: const [
-                        Text('状态'),
-                        Text('*', style: TextStyle(color: Colors.red)),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    width: 620,
-                    child: NumberInputWidget(
-                      key: UniqueKey(),
-                      width: 90,
-                      height: 34,
-                      hint: "输入状态",
-                      selectedValue: logic.status,
-                      onValueChanged: (value) {
-                        logic.status.value = value;
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
+              // Row(
+              //   children: [
+              //     SizedBox(
+              //       width: 150,
+              //       child: Row(
+              //         children: const [
+              //           Text('讲义类别'),
+              //           Text('*', style: TextStyle(color: Colors.red)),
+              //         ],
+              //       ),
+              //     ),
+              //     SizedBox(
+              //       width: 620,
+              //       child: TextInputWidget(
+              //         width: 240,
+              //         height: 34,
+              //         maxLines: 8,
+              //         hint: "输入讲义类别",
+              //         text: logic.lectureCategory,
+              //         onTextChanged: (value) {
+              //           logic.lectureCategory.value = value;
+              //         },
+              //         validator:
+              //         FormBuilderValidators.required(errorText: '讲义类别不能为空'),
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // const SizedBox(height: 10),
+              // Row(
+              //   children: [
+              //     SizedBox(
+              //       width: 150,
+              //       child: Row(
+              //         children: const [
+              //           Text('页码数'),
+              //           Text('*', style: TextStyle(color: Colors.red)),
+              //         ],
+              //       ),
+              //     ),
+              //     SizedBox(
+              //       width: 620,
+              //       child: NumberInputWidget(
+              //         key: UniqueKey(),
+              //         width: 90,
+              //         height: 34,
+              //         hint: "输入页码数",
+              //         selectedValue: logic.pageCount,
+              //         onValueChanged: (value) {
+              //           logic.pageCount.value = value;
+              //         },
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // const SizedBox(height: 10),
+              // Row(
+              //   children: [
+              //     SizedBox(
+              //       width: 150,
+              //       child: Row(
+              //         children: const [
+              //           Text('状态'),
+              //           Text('*', style: TextStyle(color: Colors.red)),
+              //         ],
+              //       ),
+              //     ),
+              //     SizedBox(
+              //       width: 620,
+              //       child: NumberInputWidget(
+              //         key: UniqueKey(),
+              //         width: 90,
+              //         height: 34,
+              //         hint: "输入状态",
+              //         selectedValue: logic.status,
+              //         onValueChanged: (value) {
+              //           logic.status.value = value;
+              //         },
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [

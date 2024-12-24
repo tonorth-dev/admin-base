@@ -83,7 +83,7 @@ class LectureFileView extends StatelessWidget {
   }
 
   TreeView<DirectoryNode> _buildTreeView(BuildContext context) {
-    treeController.collapseAll();
+    treeController.expandAll(); // 控制默认展开或关闭
 
     return TreeView<DirectoryNode>(
       treeController: treeController,

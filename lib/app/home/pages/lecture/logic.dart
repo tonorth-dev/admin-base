@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:admin_flutter/api/job_api.dart';
 import 'package:admin_flutter/ex/ex_list.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
@@ -53,23 +54,16 @@ class LectureLogic extends GetxController {
 
   final lectureId = 0.obs; // 对应 ID
   final lectureName = ''.obs; // 对应 Name
-  final majorId = 0.obs; // 对应 MajorID
-  final jobCode = 0.obs; // 对应 JobCode
+  final majorId = "0".obs; // 对应 MajorID
+  final jobCode = "0".obs; // 对应 JobCode
   final sort = 0.obs; // 对应 Sort
-  final creator = ''.obs; // 对应 Creator
-  final lectureCategory = ''.obs; // 对应 Category
-  final pageCount = 0.obs; // 对应 PageCount
-  final status = 0.obs; // 对应 Status
 
   final uLectureId = 0.obs; // 对应 ID
   final uLectureName = ''.obs; // 对应 Name
-  final uMajorId = 0.obs; // 对应 MajorID
-  final uJobCode = 0.obs; // 对应 JobCode
+  final uMajorId = "0".obs; // 对应 MajorID
+  final uMajorName = "".obs; // 对应 MajorID
+  final uJobCode = "0".obs; // 对应 JobCode
   final uSort = 0.obs; // 对应 Sort
-  final uCreator = ''.obs; // 对应 Creator
-  final uLectureCategory = ''.obs; // 对应 Category
-  final uPageCount = 0.obs; // 对应 PageCount
-  final uStatus = 0.obs; // 对应 Status
 
   // Maps for reverse lookup
   Map<String, String> level3IdToLevel2Id = {};
@@ -206,13 +200,15 @@ class LectureLogic extends GetxController {
 
   @override
   void onInit() {
+    fetchMajors();
+
     super.onInit();// Fetch and populate major data on initialization
 
     columns = [
-      ColumnData(title: "ID", key: "id", width: 50),
-      ColumnData(title: "讲义名称", key: "name", width:100),
+      ColumnData(title: "ID", key: "id", width: 40),
+      ColumnData(title: "讲义名称", key: "name", width:150),
       ColumnData(title: "专业", key: "major_name", width:100),
-      ColumnData(title: "讲义编码", key: "job_code", width:100),
+      ColumnData(title: "岗位代码", key: "job_code", width:100),
       ColumnData(title: "排序", key: "sort", width:50),
       ColumnData(title: "创建者", key: "creator"),
       ColumnData(title: "讲义类别", key: "category"),
@@ -245,30 +241,14 @@ class LectureLogic extends GetxController {
       title: '录入讲义',
       child: LectureEditForm(
         lectureId: lecture["id"],
-        lectureName: lecture["name"],
-        majorId: lecture["major_id"], // 假设 major_id 是存在的
-        jobCode: lecture["job_code"], // 假设 job_code 是存在的
-        sort: lecture["sort"], // 假设 sort 是存在的
-        creator: lecture["creator"], // 假设 creator 是存在的
-        lectureCategory: lecture["category"], // 假设 category 是存在的
-        pageCount: lecture["page_count"], // 假设 page_count 是存在的
-        status: lecture["status"], // 假设 status 是存在的
+        initialName: lecture["name"],
+        initialMajorId: lecture["major_id"].toString(),
+        initialJobCode: lecture["job_code"],
+        initialJobName: lecture["major_name"],
+        initialSort: lecture["sort"],
       ),
       onSubmit: (formData) {
         print('提交的数据: $formData');
-        // 处理新的字段
-        final updatedLecture = {
-          "id": formData['lectureId'],
-          "name": formData['lectureName'],
-          "major_id": formData['majorId'],
-          "job_code": formData['jobCode'],
-          "sort": formData['sort'],
-          "creator": formData['creator'],
-          "category": formData['lectureCategory'],
-          "page_count": formData['pageCount'],
-          "status": formData['status'],
-        };
-        print('更新后的讲义数据: $updatedLecture');
       },
     );
   }
@@ -276,14 +256,9 @@ class LectureLogic extends GetxController {
   Future<bool> saveLecture() async {
     // 生成题本的逻辑
     final lectureNameSubmit = lectureName.value;
-    final majorIdSubmit = majorId.value;
+    final majorIdSubmit = int.parse(majorId.value);
     final jobCodeSubmit = jobCode.value;
     final sortSubmit = sort.value;
-    final creatorSubmit = creator.value;
-    final lectureCategorySubmit = lectureCategory.value;
-    final sizeSubmit = size.value;
-    final pageCountSubmit = pageCount.value;
-    final statusSubmit = status.value;
 
     bool isValid = true;
     String errorMessage = "";
@@ -296,33 +271,13 @@ class LectureLogic extends GetxController {
       isValid = false;
       errorMessage += "专业ID必须大于0\n";
     }
-    if (jobCodeSubmit <= 0) {
+    if (jobCodeSubmit.isEmpty) {
       isValid = false;
       errorMessage += "工作代码必须大于0\n";
     }
-    if (sortSubmit <= 0) {
+    if (sortSubmit < 0) {
       isValid = false;
-      errorMessage += "排序必须大于0\n";
-    }
-    if (creatorSubmit.isEmpty) {
-      isValid = false;
-      errorMessage += "创建者不能为空\n";
-    }
-    if (lectureCategorySubmit.isEmpty) {
-      isValid = false;
-      errorMessage += "职位类别不能为空\n";
-    }
-    if (sizeSubmit <= 0) {
-      isValid = false;
-      errorMessage += "大小必须大于0\n";
-    }
-    if (pageCountSubmit <= 0) {
-      isValid = false;
-      errorMessage += "页数必须大于0\n";
-    }
-    if (statusSubmit <= 0) {
-      isValid = false;
-      errorMessage += "状态必须大于0\n";
+      errorMessage += "排序必须大于等于0\n";
     }
 
     if (isValid) {
@@ -332,11 +287,6 @@ class LectureLogic extends GetxController {
           "major_id": majorIdSubmit,
           "job_code": jobCodeSubmit,
           "sort": sortSubmit,
-          "creator": creatorSubmit,
-          "category": lectureCategorySubmit,
-          "size": sizeSubmit,
-          "pagecount": pageCountSubmit,
-          "status": statusSubmit,
         };
 
         dynamic result = await LectureApi.lectureCreate(params);
@@ -362,13 +312,9 @@ class LectureLogic extends GetxController {
   Future<bool> updateLecture(int lectureId) async {
     // 生成职位的逻辑
     final lectureNameSubmit = uLectureName.value;
-    final majorIdSubmit = uMajorId.value;
+    final majorIdSubmit = int.parse(uMajorId.value);
     final jobCodeSubmit = uJobCode.value;
     final sortSubmit = uSort.value;
-    final creatorSubmit = uCreator.value;
-    final lectureCategorySubmit = uLectureCategory.value;
-    final pageCountSubmit = uPageCount.value;
-    final statusSubmit = uStatus.value;
 
     bool isValid = true;
     String errorMessage = "";
@@ -381,29 +327,13 @@ class LectureLogic extends GetxController {
       isValid = false;
       errorMessage += "专业ID必须大于0\n";
     }
-    if (jobCodeSubmit <= 0) {
+    if (jobCodeSubmit.isEmpty) {
       isValid = false;
       errorMessage += "工作代码必须大于0\n";
     }
     if (sortSubmit <= 0) {
       isValid = false;
       errorMessage += "排序必须大于0\n";
-    }
-    if (creatorSubmit.isEmpty) {
-      isValid = false;
-      errorMessage += "创建者不能为空\n";
-    }
-    if (lectureCategorySubmit.isEmpty) {
-      isValid = false;
-      errorMessage += "职位类别不能为空\n";
-    }
-    if (pageCountSubmit <= 0) {
-      isValid = false;
-      errorMessage += "页数必须大于0\n";
-    }
-    if (statusSubmit <= 0) {
-      isValid = false;
-      errorMessage += "状态必须大于0\n";
     }
 
     if (isValid) {
@@ -413,10 +343,6 @@ class LectureLogic extends GetxController {
           "major_id": majorIdSubmit,
           "job_code": jobCodeSubmit,
           "sort": sortSubmit,
-          "creator": creatorSubmit,
-          "category": lectureCategorySubmit,
-          "pagecount": pageCountSubmit,
-          "status": statusSubmit,
         };
 
         print("提交的数据：$params");
@@ -443,7 +369,7 @@ class LectureLogic extends GetxController {
 
   void delete(Map<String, dynamic> d, int index) {
     try {
-      LectureApi.lectureDelete(d["id"]).then((value) {
+      LectureApi.lectureDelete(d["id"].toString()).then((value) {
         list.removeAt(index);
       }).catchError((error) {
         "删除失败: $error".toHint();
@@ -612,6 +538,42 @@ Future<void> importFileToDir(File file, int lectureId, int nodeId) async {
       debugPrint('Selected PDF URL updated: ${selectedPdfUrl.value}');
     }
   }
+
+  Future<List<Map<String, dynamic>>> fetchJobs(String query) async {
+    print("query:$query");
+    try {
+      final response = await JobApi.jobList({
+        "pageSize": "10",
+        "page": "1",
+        "keyword": query ?? "",
+      });
+      var data = response['list'];
+      print("response: $data");
+      // 检查数据是否为 List
+      if (data is List) {
+        final List<Map<String, dynamic>> suggestions = data.map((item) {
+          // 检查每个 item 是否包含 'name' 和 'id' 字段
+          if (item is Map && item.containsKey('name') && item.containsKey('id')) {
+            return {
+              'code': item['code'],
+              'name': "${item['name']}（${item['code']}）",
+            };
+          } else {
+            throw FormatException('Invalid item format: $item');
+          }
+        }).toList();
+        print("suggestions： $suggestions");
+        return suggestions;
+      } else {
+        // Handle the case where data is not a List
+        return [];
+      }
+    } catch (e) {
+      // Handle any exceptions that are thrown
+      print('Error fetching instructions: $e');
+      return [];
+    }
+  }
 }
 
 
@@ -623,7 +585,9 @@ class DirectoryNode {
   final String? filePath;
   RxList<DirectoryNode> children;
 
-  DirectoryNode({required this.id, this.parentId, required this.level, required this.name, this.filePath, List<DirectoryNode>? children})
+  DirectoryNode(
+      {required this.id, this.parentId, required this.level, required this.name, this.filePath, List<
+          DirectoryNode>? children})
       : children = RxList(children ?? []);
 
   factory DirectoryNode.fromJson(Map<String, dynamic> json) {

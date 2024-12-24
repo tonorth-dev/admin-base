@@ -56,8 +56,8 @@ class _EditTopicDialogState extends State<TopicEditForm> {
     print(widget.initialStatus);
     super.initState();
     logic.uTopicTitle.value = widget.initialTitle;
-    logic.uTopicSelectedQuestionCate.value = widget.initialQuestionCate as String;
-    logic.uTopicSelectedQuestionLevel.value = widget.initialQuestionLevel as String;
+    logic.uTopicSelectedQuestionCate.value = widget.initialQuestionCate.value!;
+    logic.uTopicSelectedQuestionLevel.value = widget.initialQuestionLevel.value!;
     logic.uTopicSelectedMajorId.value = widget.initialMajorId;
     logic.uTopicAnswer.value = widget.initialAnswer;
     logic.uTopicAuthor.value = widget.initialAuthor;
