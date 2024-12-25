@@ -22,7 +22,7 @@ class StuLecPage extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: StudentTableView(
-                key: const Key("student_table"), title: "学生列表", logic: sLogic),
+                key: const Key("student_table"), title: "考生列表", logic: sLogic),
           ),
         ),
         Expanded(
@@ -38,7 +38,7 @@ class StuLecPage extends StatelessWidget {
 
   static SidebarTree newThis() {
     return SidebarTree(
-      name: "学生对应讲义",
+      name: "考生对应讲义",
       icon: Icons.deblur,
       page: StuLecPage(),
     );

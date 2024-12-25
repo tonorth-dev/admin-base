@@ -6,6 +6,7 @@ class LoginData {
   String token = "";
   String themeName = "";
   String role = "";
+  String user = "";
 
 
   // toJson

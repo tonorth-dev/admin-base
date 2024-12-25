@@ -89,7 +89,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           SizedBox(width: 16), // 添加一些间距
           OutlinedButton.icon(
             icon: Icon(Icons.save),
-            label: Text('导出学生版'),
+            label: Text('导出考生版'),
             onPressed: () => _exportPdf(isTeacherVersion: false),
             style: ButtonStyle(
               side: MaterialStateProperty.all<BorderSide>(

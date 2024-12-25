@@ -295,17 +295,17 @@
 //             ),
 //             ThemeUtil.width(),
 //
-//             // 学生搜索框
+//             // 考生搜索框
 //             SizedBox(
 //               width: 200,
 //               child: TextField(
 //                 decoration: InputDecoration(
-//                   labelText: '搜索学生',
+//                   labelText: '搜索考生',
 //                   border: OutlineInputBorder(),
 //                   prefixIcon: Icon(Icons.search),
 //                 ),
 //                 onChanged: (value) {
-//                   // 处理学生搜索
+//                   // 处理考生搜索
 //                 },
 //               ),
 //             ),

@@ -495,7 +495,7 @@ class CLogic extends GetxController {
           student['class_id'] > 0 &&
           student['class_id'] != classId) {
         hasClassesStudents.add(
-            "学生姓名：${student['name']}，学生ID：${student['id']}"); // 记录classes_id > 0的数据
+            "考生姓名：${student['name']}，考生ID：${student['id']}"); // 记录classes_id > 0的数据
       }
     }
 
