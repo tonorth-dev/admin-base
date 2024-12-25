@@ -32,7 +32,7 @@ class SettingsPage extends StatelessWidget {
                   onTap: () {
                     Get.changeThemeMode(ThemeMode.light);
                     Get.changeTheme(item.theme());
-                    AppData.easySave((dg){
+                    LoginData.easySave((dg){
                       if(dg.themeName != item.name()){
                         appReload.value = true;
                         300.toDelay(() {

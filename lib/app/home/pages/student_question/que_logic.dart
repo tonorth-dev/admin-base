@@ -241,7 +241,8 @@ class QueLogic extends GetxController {
         "cate": getSelectedCateId() ?? "",
         "level": getSelectedLevelId() ?? "",
         "status": selectedQuestionStatus.value.toString(),
-        "major_id": (selectedStudentId.value?.toString() ?? ""),
+        "student_id": (selectedStudentId.value.toString() ?? ""),
+        "all": all ?? "0",
       });
 
       if (response != null && response["list"] != null) {
@@ -317,9 +318,9 @@ class QueLogic extends GetxController {
     all = selectedStudentId.value.toInt() > 0 ? "1" : "0";
     List<Map<String, dynamic>> items = await find(newSize, newPage);
     for (var item in items) {
-      if (item['class_sorted'] == 1) {
+      if (item['student_sorted'] == 1) {
         print(item['id']);
-        toggleSelect(item['id']);
+        toggleSelect(item['id'], isForce: true);
       }
     }
   }
@@ -360,23 +361,29 @@ class QueLogic extends GetxController {
     }
   }
 
-  void toggleSelectAll() {
-    if (selectedRows.length == list.length) {
-      // 当前所有行都被选中，清空选中状态
-      selectedRows.clear();
+  void toggleSelect(int id, {bool isForce = false}) {
+    if (isForce) {
+      // 强制选中
+      if (!selectedRows.contains(id)) {
+        selectedRows.add(id);
+      }
     } else {
-      // 当前不是所有行都被选中，选择所有行
-      selectedRows.assignAll(list.map((item) => item['id']));
+      // 正常的选中/取消选中逻辑
+      if (selectedRows.contains(id)) {
+        // 当前行已被选中，取消选中
+        selectedRows.remove(id);
+      } else {
+        // 当前行未被选中，选中
+        selectedRows.add(id);
+      }
     }
   }
 
-  void toggleSelect(int id) {
-    if (selectedRows.contains(id)) {
-      // 当前行已被选中，取消选中
-      selectedRows.remove(id);
+  void toggleSelectAll() {
+    if (selectedRows.length == list.length) {
+      selectedRows.clear();
     } else {
-      // 当前行未被选中，选中
-      selectedRows.add(id);
+      selectedRows.addAll(list.map((item) => item['id']));
     }
   }
 

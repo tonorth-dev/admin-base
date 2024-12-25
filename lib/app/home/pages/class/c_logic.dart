@@ -422,10 +422,10 @@ class CLogic extends GetxController {
     selectedRows.clear();
   }
 
-  Future<void> toggleSelect(int id) async {
-    if (selectedRows.contains(id)) {
+  Future<void> toggleSelect(int classesId, int institutionId) async {
+    if (selectedRows.contains(classesId)) {
       // 当前行已被选中，取消选中
-      selectedRows.remove(id);
+      selectedRows.remove(classesId);
       selectedRows.clear();
       sLogic.selectedRows.clear();
       sLogic.selectedClassesId.value = "0";
@@ -433,8 +433,9 @@ class CLogic extends GetxController {
     } else {
       // 当前行未被选中，选中
       selectedRows.clear();
-      selectedRows.add(id);
-      sLogic.selectedClassesId.value = id.toString();
+      selectedRows.add(classesId);
+      sLogic.selectedClassesId.value = classesId.toString();
+      sLogic.selectedInstitutionId.value = institutionId.toString();
       await sLogic.findForClasses(sLogic.size.value, sLogic.page.value);
       sLogic.disableRowSelection();
     }

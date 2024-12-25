@@ -28,6 +28,7 @@ import '../pages/execute/view.dart';
 import '../pages/lecture/view.dart';
 import '../pages/note/view.dart';
 import '../pages/plan/view.dart';
+import '../pages/s_lecture/view.dart';
 import '../pages/student_question/view.dart';
 import '../pages/topic/view.dart';
 
@@ -102,6 +103,7 @@ class SidebarLogic extends GetxController {
   static List<SidebarTree> lectureList = [
     LecturePage.newThis(),
     NotePage.newThis(),
+    StuLecPage.newThis(),
   ];
 
   static List<SidebarTree> topicList = [

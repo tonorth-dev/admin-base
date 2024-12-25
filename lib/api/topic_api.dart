@@ -22,7 +22,9 @@ class TopicApi {
         'cate': handleNullOrEmpty(params['cate']),
         'level': handleNullOrEmpty(params['level']),
         'status': handleNullOrEmpty(params['status']),
+        'student_id': handleNullOrEmpty(params['student_id']),
         'major_id': handleNullOrEmpty(params['major_id']),
+        'all': handleNullOrEmpty(params['all']),
       };
 
       return await HttpUtil.get("/admin/topic/topic/list", params: finalParams);

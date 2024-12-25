@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-class AppData {
+class LoginData {
   String token = "";
   String themeName = "";
   String role = "";
@@ -17,8 +17,8 @@ class AppData {
   }
 
   // fromJson
-  static AppData fromJson(Map<String, dynamic> map) {
-    var data = AppData();
+  static LoginData fromJson(Map<String, dynamic> map) {
+    var data = LoginData();
     data.token = map["token"] ?? "";
     data.themeName = map["themeName"] ?? "";
     return data;
@@ -26,13 +26,13 @@ class AppData {
 
   static String saveKey = "app_data";
 
-  static Future<AppData> read() async {
+  static Future<LoginData> read() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? data = prefs.getString(saveKey);
     if (data == null) {
-      return AppData();
+      return LoginData();
     }
-    return AppData.fromJson(jsonDecode(data));
+    return LoginData.fromJson(jsonDecode(data));
   }
 
   // 保存数据
@@ -42,7 +42,7 @@ class AppData {
   }
 
   /// 更简单的数据保存
-  static Future<void> easySave(Function(AppData) dg) async {
+  static Future<void> easySave(Function(LoginData) dg) async {
     var data = await read();
     dg(data);
     await data.save();

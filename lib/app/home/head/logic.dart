@@ -13,7 +13,7 @@ import 'package:get/get.dart';
 class HeadLogic extends GetxController {
 
   void logout() {
-    AppData.easySave((p0) => {p0.token = "", Get.offAll(() => LoginPage())});
+    LoginData.easySave((p0) => {p0.token = "", Get.offAll(() => LoginPage())});
   }
 
   void clickHeadImage() {

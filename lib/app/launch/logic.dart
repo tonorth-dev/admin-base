@@ -12,7 +12,7 @@ class LaunchLogic extends GetxController {
     super.onInit();
     // 休眠3秒
     //await Future.delayed(128.ms);
-    var data = await AppData.read();
+    var data = await LoginData.read();
     if (data.token.isEmpty) {
       Get.off(() => LoginPage());
     }else{

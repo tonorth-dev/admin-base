@@ -440,6 +440,7 @@ class StudentTableView extends StatelessWidget {
                               ),
                             )),
                         GridColumn(
+                          width: 0,
                           columnName: 'Actions',
                           label: Container(
                             decoration: BoxDecoration(
@@ -564,51 +565,6 @@ class StudentDataSource extends DataGridSource {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // ValueListenableBuilder<bool>(
-              //   valueListenable: logic.blueButtonStates[id]!,
-              //   builder: (context, isEnabled, child) {
-              //     return TextButton(
-              //       onPressed: () {
-              //         // 按钮操作逻辑
-              //         logic.blueButtonAction(id);
-              //       },
-              //       style: TextButton.styleFrom(
-              //         backgroundColor: isEnabled ? Colors.blue : Colors.grey,
-              //         foregroundColor: Colors.white,
-              //         disabledBackgroundColor: Colors.grey.shade400,
-              //         disabledForegroundColor: Colors.white,
-              //         shape: RoundedRectangleBorder(
-              //           borderRadius: BorderRadius.circular(3.0),
-              //         ),
-              //       ),
-              //       child: Text("出入班"),
-              //     );
-              //   },
-              // ),
-              // SizedBox(width: 10),
-              // ValueListenableBuilder<bool>(
-              //   valueListenable: logic.grayButtonStates[id]!,
-              //   builder: (context, isEnabled, child) {
-              //     return TextButton(
-              //       onPressed: () {
-              //         // 按钮操作逻辑
-              //         logic.grayButtonAction(id);
-              //       },
-              //       style: TextButton.styleFrom(
-              //         backgroundColor:
-              //             isEnabled ? Colors.grey[400] : Colors.grey,
-              //         foregroundColor: Colors.white,
-              //         disabledBackgroundColor: Colors.grey.shade400,
-              //         disabledForegroundColor: Colors.white,
-              //         shape: RoundedRectangleBorder(
-              //           borderRadius: BorderRadius.circular(3.0),
-              //         ),
-              //       ),
-              //       child: Text("取消"),
-              //     );
-              //   },
-              // ),
-              // SizedBox(width: 10),
               ValueListenableBuilder<bool>(
                 valueListenable: logic.redButtonStates[id]!,
                 builder: (context, isEnabled, child) {

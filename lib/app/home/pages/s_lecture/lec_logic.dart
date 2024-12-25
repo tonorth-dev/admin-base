@@ -1,25 +1,18 @@
-import 'package:admin_flutter/app/home/pages/book/book.dart';
 import 'package:admin_flutter/ex/ex_list.dart';
 import 'package:admin_flutter/ex/ex_string.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:admin_flutter/api/job_api.dart';
+import 'package:admin_flutter/api/lecture_api.dart';
 import 'package:admin_flutter/ex/ex_hint.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
-import 'dart:convert';
 import 'package:csv/csv.dart';
-import 'package:admin_flutter/component/form/enum.dart';
-import 'package:admin_flutter/component/form/form_data.dart';
-import 'package:admin_flutter/component/dialog.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../../../../api/major_api.dart';
 import '../../../../component/table/table_data.dart';
 import '../../../../component/widget.dart';
 
-class JLogic extends GetxController {
+class LLogic extends GetxController {
   var list = <Map<String, dynamic>>[].obs;
   var total = 0.obs;
   var size = 15.obs;
@@ -37,7 +30,7 @@ class JLogic extends GetxController {
       GlobalKey<DropdownFieldState>();
 
   // 当前编辑的题目数据
-  var currentEditJob = RxMap<String, dynamic>({}).obs;
+  var currentEditLecture = RxMap<String, dynamic>({}).obs;
   RxList<int> selectedRows = <int>[].obs;
 
   final ValueNotifier<dynamic> selectedLevel1 = ValueNotifier(null);
@@ -51,13 +44,13 @@ class JLogic extends GetxController {
   List<Map<String, dynamic>> level1Items = [];
   Map<String, List<Map<String, dynamic>>> level2Items = {};
   Map<String, List<Map<String, dynamic>>> level3Items = {};
-  Rx<String> selectedMajorId = "0".obs;
+  Rx<String> selectedStudentId = "0".obs;
   var all = "0";
 
-  final jobCode = ''.obs;
-  final jobName = ''.obs;
-  final jobCate = ''.obs;
-  final jobDesc = ''.obs;
+  final lectureCode = ''.obs;
+  final lectureName = ''.obs;
+  final lectureCate = ''.obs;
+  final lectureDesc = ''.obs;
   final companyCode = ''.obs;
   final companyName = ''.obs;
   final enrollmentNum = 0.obs;
@@ -68,13 +61,13 @@ class JLogic extends GetxController {
   final conditionMajor = "".obs;
   final conditionExam = "".obs;
   final conditionOther = "".obs;
-  final jobCity = "".obs;
-  final jobPhone = "".obs;
+  final lectureCity = "".obs;
+  final lecturePhone = "".obs;
 
-  final uJobCode = ''.obs;
-  final uJobName = ''.obs;
-  final uJobCate = ''.obs;
-  final uJobDesc = ''.obs;
+  final uLectureCode = ''.obs;
+  final uLectureName = ''.obs;
+  final uLectureCate = ''.obs;
+  final uLectureDesc = ''.obs;
   final uCompanyCode = ''.obs;
   final uCompanyName = ''.obs;
   final uEnrollmentNum = 0.obs;
@@ -85,8 +78,8 @@ class JLogic extends GetxController {
   final uConditionMajor = "".obs;
   final uConditionExam = "".obs;
   final uConditionOther = "".obs;
-  final uJobCity = "".obs;
-  final uJobPhone = "".obs;
+  final uLectureCity = "".obs;
+  final uLecturePhone = "".obs;
 
   // Maps for reverse lookup
   Map<String, String> level3IdToLevel2Id = {};
@@ -108,11 +101,11 @@ class JLogic extends GetxController {
     loading.value = true;
     // 打印调用堆栈
     try {
-      var response = await JobApi.jobList({
+      var response = await LectureApi.lectureList({
         "size": size.value.toString(),
         "page": page.value.toString(),
         "keyword": searchText.value.toString() ?? "",
-        "major_id": (selectedMajorId.value.toString() ?? ""),
+        "major_id": (selectedStudentId.value.toString() ?? ""),
         "all": all ?? "0",
       });
 
@@ -136,8 +129,8 @@ class JLogic extends GetxController {
     }
   }
 
-  Future<void> findForMajor(int newSize, int newPage) async {
-    all = selectedMajorId.value.toInt() > 0 ? "1" : "0";
+  Future<void> findForStudent(int newSize, int newPage) async {
+    all = selectedStudentId.value.toInt() > 0 ? "1" : "0";
     List<Map<String, dynamic>> items = await find(newSize, newPage);
     for (var item in items) {
       if (item['major_sorted'] == 1) {
@@ -179,7 +172,7 @@ class JLogic extends GetxController {
 
   @override
   void refresh() {
-    findForMajor(size.value, page.value);
+    findForStudent(size.value, page.value);
   }
 
   // 导出选中项到 CSV 文件
@@ -205,7 +198,7 @@ class JLogic extends GetxController {
       final now = DateTime.now();
       final formattedDate = DateFormat('yyyyMMdd_HHmmss').format(now);
       String csv = const ListToCsvConverter().convert(rows);
-      File('$directory/jobs_selected_$formattedDate.csv')
+      File('$directory/lectures_selected_$formattedDate.csv')
           .writeAsStringSync(csv);
       "导出选中项成功!".toHint();
     } catch (e) {
@@ -215,7 +208,7 @@ class JLogic extends GetxController {
 
   void delete(Map<String, dynamic> d, int index) {
     try {
-      JobApi.jobDelete(d["id"].toString()).then((value) {
+      LectureApi.lectureDelete(d["id"].toString()).then((value) {
         list.removeAt(index);
       }).catchError((error) {
         "删除失败: $error".toHint();
@@ -232,7 +225,7 @@ class JLogic extends GetxController {
         "请先选择要删除的试题".toHint();
         return;
       }
-      JobApi.jobDelete(idsStr.join(",")).then((value) {
+      LectureApi.lectureDelete(idsStr.join(",")).then((value) {
         "批量删除成功!".toHint();
         selectedRows.clear();
         refresh();
@@ -278,7 +271,7 @@ class JLogic extends GetxController {
     selectedRows.clear();
 
     // 重新初始化数据
-    findForMajor(size.value, page.value);
+    findForStudent(size.value, page.value);
   }
 
   var isRowsSelectable = false.obs; // 控制行是否可被选中

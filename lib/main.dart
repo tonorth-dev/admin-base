@@ -13,7 +13,7 @@ import 'theme/light_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  var appData = await AppData.read();
+  var appData = await LoginData.read();
   var findTheme = themeList.firstWhereOrNull((e)=>e.name() == appData.themeName);
   theme = findTheme?.theme() ?? Light().theme();
   await message.init();
@@ -24,14 +24,13 @@ void main() async {
 
   WindowOptions windowOptions = WindowOptions(
     size: Size(1920, 1080),
-    center: true,
     // backgroundColor: Colors.transparent,
     skipTaskbar: false,
     // titleBarStyle: TitleBarStyle.hidden,
   );
   windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.show();
-    await windowManager.focus();
+    // await windowManager.show();
+    // await windowManager.focus();
   });
 
   runApp(const MyApp());

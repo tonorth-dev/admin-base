@@ -64,7 +64,7 @@ class HttpUtil {
 
   /// 全局请求头
   static Future<Map<String, dynamic>> header() async {
-    var data = await AppData.read();
+    var data = await LoginData.read();
     return {authorization: data.token};
   }
 

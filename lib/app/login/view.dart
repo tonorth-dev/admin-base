@@ -1,8 +1,8 @@
-import 'package:admin_flutter/theme/theme_util.dart';
-import 'package:admin_flutter/theme/ui_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../theme/theme_util.dart';
+import '../../theme/ui_theme.dart';
 import 'logic.dart';
 
 class LoginPage extends StatelessWidget {
@@ -12,6 +12,9 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 初始化加载验证码
+    logic.fetchCaptcha();
+
     return Scaffold(
       body: Center(
         child: SizedBox(
@@ -52,6 +55,23 @@ class LoginPage extends StatelessWidget {
               ThemeUtil.height(),
               textInput(logic.passwordText,
                   hintText: '请输入密码', labelText: '密码', password: true),
+              ThemeUtil.height(),
+              Row(
+                children: [
+                  Expanded(
+                    child: textInput(logic.captchaText,
+                        hintText: '请输入验证码', labelText: '验证码'),
+                  ),
+                  Obx(() => logic.captchaId.isEmpty
+                      ? Container()
+                      : Image.network(
+                    'http://127.0.0.1:8888/base/captcha/${logic.captchaId.value}',
+                    height: 50,
+                    width: 100,
+                    fit: BoxFit.cover,
+                  )),
+                ],
+              ),
               SizedBox(height: 20),
               InkWell(
                 onTap: () {
@@ -65,10 +85,11 @@ class LoginPage extends StatelessWidget {
                   child: Center(
                       child: Text(
                         '登入',
-                        style: TextStyle(color: UiTheme.onPrimary(), fontSize: 16),
+                        style:
+                        TextStyle(color: UiTheme.onPrimary(), fontSize: 16),
                       )),
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -76,7 +97,6 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  /// 增加文字输入框
   Widget textInput(TextEditingController text,
       {String? hintText, String? labelText, bool password = false}) {
     return TextField(
@@ -85,9 +105,7 @@ class LoginPage extends StatelessWidget {
       decoration: InputDecoration(
         border: const OutlineInputBorder(),
         labelText: labelText,
-        // 占位符
         hintText: hintText,
-        // 激活时的边框样式
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(
             width: 2,
