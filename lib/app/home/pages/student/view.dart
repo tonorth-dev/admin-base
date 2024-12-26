@@ -116,7 +116,8 @@ class StudentPage extends StatelessWidget {
                       if (value == null || value.isEmpty) {
                         logic.selectedInstitutionId.value = ""; // 确保清空
                       }
-                      print("onChanged selectedInstitutionId value: ${logic.selectedInstitutionId.value}");
+                      print(
+                          "onChanged selectedInstitutionId value: ${logic.selectedInstitutionId.value}");
                     },
                   ),
                 ),
@@ -146,7 +147,8 @@ class StudentPage extends StatelessWidget {
                       if (value == null || value.isEmpty) {
                         logic.selectedClassesId.value = ""; // 确保清空
                       }
-                      print("onChanged selectedInstitutionId value: ${logic.selectedClassesId.value}");
+                      print(
+                          "onChanged selectedInstitutionId value: ${logic.selectedClassesId.value}");
                     },
                   ),
                 ),
@@ -189,8 +191,8 @@ class StudentPage extends StatelessWidget {
                     child: SizedBox(
                       width: 1700,
                       child: SfDataGrid(
-                        source: StudentDataSource(
-                            logic: logic, context: context),
+                        source:
+                            StudentDataSource(logic: logic, context: context),
                         headerGridLinesVisibility:
                             GridLinesVisibility.values[1],
                         gridLinesVisibility: GridLinesVisibility.values[1],
@@ -348,68 +350,14 @@ class StudentDataSource extends DataGridSource {
           final columnName = cell.columnName;
           final value = cell.value.toString();
 
-          if (columnName == 'title' || columnName == 'answer') {
-            // LayoutBuilder 处理溢出和文本显示
-            return Tooltip(
-              message: "点击右侧复制或查看全文",
-              verticalOffset: 25.0,
-              showDuration: Duration(milliseconds: 200),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade800,
-                borderRadius: BorderRadius.circular(4.0),
-              ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final isOverflowing = value.length > 100; // 判断是否溢出
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          alignment: Alignment.centerLeft,
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            value,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 14),
-                          ),
-                        ),
-                      ),
-                      isOverflowing
-                          ? TextButton(
-                              onPressed: () {
-                                CopyDialog.show(context, value);
-                              },
-                              child: Text("全文"),
-                            )
-                          : TextButton(
-                              onPressed: () async {
-                                await Clipboard.setData(
-                                    ClipboardData(text: value));
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text("复制成功"),
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
-                              },
-                              child: Text("复制"),
-                            ),
-                    ],
-                  );
-                },
-              ),
-            );
-          } else {
-            return Container(
-              alignment: Alignment.center,
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                value,
-                style: TextStyle(fontSize: 14),
-              ),
-            );
-          }
+          return Container(
+            alignment: Alignment.center,
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              value,
+              style: TextStyle(fontSize: 14),
+            ),
+          );
         }),
         Row(
           mainAxisAlignment: MainAxisAlignment.center, // 将按钮左对齐

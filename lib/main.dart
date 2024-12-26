@@ -11,26 +11,44 @@ import 'package:window_manager/window_manager.dart';
 
 import 'theme/light_theme.dart';
 
+// 定义全局变量 theme 以便在 main 函数外也可以访问
+late ThemeData theme;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   var appData = await LoginData.read();
-  var findTheme = themeList.firstWhereOrNull((e)=>e.name() == appData.themeName);
+  var findTheme = themeList.firstWhereOrNull((e) => e.name() == appData.themeName);
   theme = findTheme?.theme() ?? Light().theme();
+
+  // 自定义字体设置
+  final fontFamily = 'Arial Unicode MS.TTF'; // 确保已在 pubspec.yaml 中声明
+
+  // 更新全局主题数据
+  theme = theme.copyWith(
+    textTheme: theme.textTheme.apply(
+      fontFamily: fontFamily,
+      displayColor: Colors.black, // 如果需要的话，指定颜色
+      bodyColor: Colors.black, // 如果需要的话，指定颜色
+    ).copyWith(
+      bodyMedium: TextStyle(
+        fontSize: 14.0, // 根据需要调整大小
+        fontWeight: FontWeight.w700, // 加粗一号
+      ),
+    ),
+  );
+
   await message.init();
 
   WidgetsFlutterBinding.ensureInitialized();
-  // Must add this line.
   await windowManager.ensureInitialized();
 
   WindowOptions windowOptions = WindowOptions(
     size: Size(1920, 1080),
-    // backgroundColor: Colors.transparent,
     skipTaskbar: false,
-    // titleBarStyle: TitleBarStyle.hidden,
   );
-  windowManager.waitUntilReadyToShow(windowOptions, () async {
-    // await windowManager.show();
-    // await windowManager.focus();
+  await windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.show();
+    await windowManager.focus();
   });
 
   runApp(const MyApp());
@@ -39,31 +57,27 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-      return GetMaterialApp(
-        translations: message,
-        defaultTransition: Transition.noTransition,
-        builder: BotToastInit(),
-        //1.调用BotToastInit
-        navigatorObservers: [BotToastNavigatorObserver()],
-        //2.注册路由观察者
-        title: 'Flutter Admin',
-        debugShowCheckedModeBanner: false,
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('en'), // English
-          Locale('zh'), // Chinese
-        ],
-        locale: const Locale('zh'),
-        theme: theme,
-        home: LaunchPage(),
-      );
+    return GetMaterialApp(
+      translations: message,
+      defaultTransition: Transition.noTransition,
+      builder: BotToastInit(),
+      navigatorObservers: [BotToastNavigatorObserver()],
+      title: 'Flutter Admin',
+      debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'), // English
+        Locale('zh'), // Chinese
+      ],
+      locale: const Locale('zh'),
+      theme: theme,
+      home: LaunchPage(),
+    );
   }
 }

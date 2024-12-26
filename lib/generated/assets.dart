@@ -10,7 +10,7 @@ class Assets {
   static const String imagesFollowHeaderBg = 'assets/images/follow_header_bg.jpg';
   static const String imagesFollowHeaderBgF = 'assets/images/follow_header_bg_f.jpg';
   static const String imagesLogo = 'assets/images/logo.jpg';
-  static const String imagesWatermarker = 'assets/images/watermarker.jpg';
+  static const String imagesWatermark = 'assets/images/watermark.jpg';
   static const String images空 = 'assets/images/空.md';
   static const String messagesCn = 'assets/messages/cn.json';
   static const String messagesEn = 'assets/messages/en.json';
