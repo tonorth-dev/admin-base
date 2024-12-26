@@ -211,10 +211,10 @@ class BookLogic extends GetxController {
         print('level3IdToLevel2Id: $level3IdToLevel2Id');
         print('level2IdToLevel1Id: $level2IdToLevel1Id');
       } else {
-        "获取专业列表失败".toHint();
+        "6.获取专业列表失败".toHint();
       }
     } catch (e) {
-      "获取专业列表失败: $e".toHint();
+      "6.获取专业列表失败: $e".toHint();
     }
   }
 
@@ -285,7 +285,6 @@ class BookLogic extends GetxController {
 
   @override
   Future<void> onInit() async {
-    await fetchMajors(); // Fetch and populate major data on initialization
     await fetchConfigs();
     await fetchTemplates();
     ever(
@@ -464,7 +463,6 @@ class BookLogic extends GetxController {
 
     // 重新初始化数据
     fetchConfigs();
-    fetchMajors();
     find(size.value, page.value);
   }
 

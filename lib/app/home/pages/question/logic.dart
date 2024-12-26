@@ -200,10 +200,10 @@ class QuestionLogic extends GetxController {
         print('level3IdToLevel2Id: $level3IdToLevel2Id');
         print('level2IdToLevel1Id: $level2IdToLevel1Id');
       } else {
-        "获取专业列表失败".toHint();
+        "9.获取专业列表失败".toHint();
       }
     } catch (e) {
-      "获取专业列表失败: $e".toHint();
+      "9.获取专业列表失败: $e".toHint();
     }
   }
 
@@ -256,8 +256,6 @@ class QuestionLogic extends GetxController {
 
   @override
   void onInit() {
-    fetchMajors(); // Fetch and populate major data on initialization
-    fetchConfigs();
     ever(
       questionCate,
       (value) {
@@ -411,8 +409,6 @@ class QuestionLogic extends GetxController {
     selectedRows.clear();
 
     // 重新初始化数据
-    fetchConfigs();
-    fetchMajors();
     find(size.value, page.value);
   }
 }

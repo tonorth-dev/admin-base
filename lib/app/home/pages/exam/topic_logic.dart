@@ -146,10 +146,10 @@ class ExamTopicLogic extends GetxController {
         print('level3IdToLevel2Id: $level3IdToLevel2Id');
         print('level2IdToLevel1Id: $level2IdToLevel1Id');
       } else {
-        "获取专业列表失败".toHint();
+        "3.获取专业列表失败".toHint();
       }
     } catch (e) {
-      "获取专业列表失败: $e".toHint();
+      "3.获取专业列表失败: $e".toHint();
     }
   }
 
@@ -286,7 +286,6 @@ class ExamTopicLogic extends GetxController {
     selectedRows.clear();
 
     // 重新初始化数据
-    fetchMajors();
     find(size.value, page.value);
   }
 }

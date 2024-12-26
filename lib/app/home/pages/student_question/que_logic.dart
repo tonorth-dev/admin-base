@@ -32,15 +32,6 @@ class QueLogic extends GetxController {
   var loading = false.obs;
   final searchText = ''.obs;
 
-  final GlobalKey<CascadingDropdownFieldState> majorDropdownKey =
-  GlobalKey<CascadingDropdownFieldState>();
-  final GlobalKey<DropdownFieldState> cateDropdownKey =
-  GlobalKey<DropdownFieldState>();
-  final GlobalKey<DropdownFieldState> levelDropdownKey =
-  GlobalKey<DropdownFieldState>();
-  final GlobalKey<DropdownFieldState> statusDropdownKey =
-  GlobalKey<DropdownFieldState>();
-
   // 当前编辑的题目数据
   var currentEditTopic = RxMap<String, dynamic>({}).obs;
   RxList<int> selectedRows = <int>[].obs;
@@ -57,17 +48,7 @@ class QueLogic extends GetxController {
     {'id': '4', 'name': '审核中'},
   ].obs;
 
-  final ValueNotifier<dynamic> selectedLevel1 = ValueNotifier(null);
-  final ValueNotifier<dynamic> selectedLevel2 = ValueNotifier(null);
-  final ValueNotifier<dynamic> selectedLevel3 = ValueNotifier(null);
-
   // 专业列表数据
-  List<Map<String, dynamic>> majorList = [];
-  Map<String, List<Map<String, dynamic>>> subMajorMap = {};
-  Map<String, List<Map<String, dynamic>>> subSubMajorMap = {};
-  List<Map<String, dynamic>> level1Items = [];
-  Map<String, List<Map<String, dynamic>>> level2Items = {};
-  Map<String, List<Map<String, dynamic>>> level3Items = {};
   Rx<String> selectedStudentId = "0".obs;
   var all = "0";
 
@@ -131,103 +112,6 @@ class QueLogic extends GetxController {
     }
   }
 
-  // Maps for reverse lookup
-  Map<String, String> level3IdToLevel2Id = {};
-  Map<String, String> level2IdToLevel1Id = {};
-
-  Future<void> fetchMajors() async {
-    try {
-      var response =
-      await MajorApi.majorList(params: {'pageSize': 3000, 'page': 1});
-      if (response != null && response["total"] > 0) {
-        var dataList = response["list"] as List<dynamic>;
-
-        // Clear existing data to avoid duplicates
-        majorList.clear();
-        majorList.add({'id': '0', 'name': '全部专业'});
-        subMajorMap.clear();
-        subSubMajorMap.clear();
-        level1Items.clear();
-        level2Items.clear();
-        level3Items.clear();
-
-        // Track the generated IDs for first and second levels
-        Map<String, String> firstLevelIdMap = {};
-        Map<String, String> secondLevelIdMap = {};
-
-        for (var item in dataList) {
-          String firstLevelName = item["first_level_category"];
-          String secondLevelName = item["second_level_category"];
-          String thirdLevelId = item["id"].toString();
-          String thirdLevelName = item["major_name"];
-
-          // Generate unique IDs based on name for first-level and second-level categories
-          String firstLevelId = firstLevelIdMap.putIfAbsent(
-              firstLevelName, () => firstLevelIdMap.length.toString());
-          String secondLevelId = secondLevelIdMap.putIfAbsent(
-              secondLevelName, () => secondLevelIdMap.length.toString());
-
-          // Add first-level category if it doesn't exist
-          if (!majorList.any((m) => m['name'] == firstLevelName)) {
-            majorList.add({'id': firstLevelId, 'name': firstLevelName});
-            level1Items.add({'id': firstLevelId, 'name': firstLevelName});
-            subMajorMap[firstLevelId] = [];
-            level2Items[firstLevelId] = [];
-          }
-
-          // Add second-level category if it doesn't exist under this first-level category
-          if (subMajorMap[firstLevelId]
-              ?.any((m) => m['name'] == secondLevelName) !=
-              true) {
-            subMajorMap[firstLevelId]!
-                .add({'id': secondLevelId, 'name': secondLevelName});
-            level2Items[firstLevelId]
-                ?.add({'id': secondLevelId, 'name': secondLevelName});
-            subSubMajorMap[secondLevelId] = [];
-            level3Items[secondLevelId] = [];
-            level2IdToLevel1Id[secondLevelId] =
-                firstLevelId; // Populate reverse lookup map
-          }
-
-          // Add third-level major if it doesn't exist under this second-level category
-          if (subSubMajorMap[secondLevelId]
-              ?.any((m) => m['name'] == thirdLevelName) !=
-              true) {
-            subSubMajorMap[secondLevelId]!
-                .add({'id': thirdLevelId, 'name': thirdLevelName});
-            level3Items[secondLevelId]
-                ?.add({'id': thirdLevelId, 'name': thirdLevelName});
-            level3IdToLevel2Id[thirdLevelId] =
-                secondLevelId; // Populate reverse lookup map
-          }
-        }
-
-        // Debug output
-        print("questionLevel:$questionLevel");
-        print('majorList: $majorList');
-        print('subMajorMap: $subMajorMap');
-        print('subSubMajorMap: $subSubMajorMap');
-        print('level1Items: $level1Items');
-        print('level2Items: $level2Items');
-        print('level3Items: $level3Items');
-        print('level3IdToLevel2Id: $level3IdToLevel2Id');
-        print('level2IdToLevel1Id: $level2IdToLevel1Id');
-      } else {
-        "获取专业列表失败".toHint();
-      }
-    } catch (e) {
-      "获取专业列表失败: $e".toHint();
-    }
-  }
-
-  String getLevel2IdFromLevel3Id(String thirdLevelId) {
-    return level3IdToLevel2Id[thirdLevelId] ?? '';
-  }
-
-  String getLevel1IdFromLevel2Id(String secondLevelId) {
-    return level2IdToLevel1Id[secondLevelId] ?? '';
-  }
-
   Future<List<Map<String, dynamic>>> find(int newSize, int newPage) async {
     size.value = newSize;
     page.value = newPage;
@@ -282,7 +166,6 @@ class QueLogic extends GetxController {
 
   @override
   void onInit() {
-    fetchMajors(); // Fetch and populate major data on initialization
     fetchConfigs();
     ever(
       questionCate,

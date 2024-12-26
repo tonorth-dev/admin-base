@@ -221,10 +221,10 @@ class ExamLogic extends GetxController {
         print('level3IdToLevel2Id: $level3IdToLevel2Id');
         print('level2IdToLevel1Id: $level2IdToLevel1Id');
       } else {
-        "获取专业列表失败".toHint();
+        "7.获取专业列表失败".toHint();
       }
     } catch (e) {
-      "获取专业列表失败: $e".toHint();
+      "7.获取专业列表失败: $e".toHint();
     }
   }
 
@@ -283,7 +283,6 @@ class ExamLogic extends GetxController {
 
   @override
   Future<void> onInit() async {
-    await fetchMajors(); // Fetch and populate major data on initialization
     await fetchConfigs();
     await fetchTemplates();
     initialStartTime = "${todayMidnight.year}-${todayMidnight.month.toString().padLeft(2, '0')}-${todayMidnight.day.toString().padLeft(2, '0')} 00:00:00";
