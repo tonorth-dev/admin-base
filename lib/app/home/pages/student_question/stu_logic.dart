@@ -92,7 +92,7 @@ class StuLogic extends GetxController {
       ColumnData(title: "机构名称", key: "institution_name", width: 100),
       ColumnData(title: "班级名称", key: "class_name", width: 100),
       ColumnData(title: "考生编码", key: "question_code", width: 0),
-      ColumnData(title: "岗位名称", key: "job_code", width: 100),
+      ColumnData(title: "岗位代码", key: "job_code", width: 100),
       ColumnData(title: "岗位名称", key: "job_name", width: 150),
       ColumnData(title: "到期时间", key: "expire_time", width: 0),
     ];

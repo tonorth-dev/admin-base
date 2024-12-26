@@ -207,7 +207,7 @@ class ExecutePage extends StatelessWidget {
   static SidebarTree newThis() {
     return SidebarTree(
       name: "计划执行明细",
-      icon: Icons.deblur,
+      icon: Icons.app_registration_outlined,
       page: ExecutePage(),
     );
   }

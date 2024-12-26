@@ -20,15 +20,6 @@ class LLogic extends GetxController {
   var loading = false.obs;
   final searchText = ''.obs;
 
-  final GlobalKey<CascadingDropdownFieldState> majorDropdownKey =
-      GlobalKey<CascadingDropdownFieldState>();
-  final GlobalKey<DropdownFieldState> cateDropdownKey =
-      GlobalKey<DropdownFieldState>();
-  final GlobalKey<DropdownFieldState> levelDropdownKey =
-      GlobalKey<DropdownFieldState>();
-  final GlobalKey<DropdownFieldState> statusDropdownKey =
-      GlobalKey<DropdownFieldState>();
-
   // 当前编辑的题目数据
   var currentEditLecture = RxMap<String, dynamic>({}).obs;
   RxList<int> selectedRows = <int>[].obs;
@@ -38,12 +29,6 @@ class LLogic extends GetxController {
   final ValueNotifier<dynamic> selectedLevel3 = ValueNotifier(null);
 
   // 专业列表数据
-  List<Map<String, dynamic>> majorList = [];
-  Map<String, List<Map<String, dynamic>>> subMajorMap = {};
-  Map<String, List<Map<String, dynamic>>> subSubMajorMap = {};
-  List<Map<String, dynamic>> level1Items = [];
-  Map<String, List<Map<String, dynamic>>> level2Items = {};
-  Map<String, List<Map<String, dynamic>>> level3Items = {};
   Rx<String> selectedStudentId = "0".obs;
   var all = "0";
 
@@ -105,7 +90,7 @@ class LLogic extends GetxController {
         "size": size.value.toString(),
         "page": page.value.toString(),
         "keyword": searchText.value.toString() ?? "",
-        "major_id": (selectedStudentId.value.toString() ?? ""),
+        "student_id": (selectedStudentId.value.toString() ?? ""),
         "all": all ?? "0",
       });
 
@@ -133,7 +118,7 @@ class LLogic extends GetxController {
     all = selectedStudentId.value.toInt() > 0 ? "1" : "0";
     List<Map<String, dynamic>> items = await find(newSize, newPage);
     for (var item in items) {
-      if (item['major_sorted'] == 1) {
+      if (item['student_sorted'] == 1) {
         print(item['id']);
         toggleSelect(item['id'], isForce: true);
       }
@@ -147,23 +132,18 @@ class LLogic extends GetxController {
     super.onInit(); // Fetch and populate major data on initialization
 
     columns = [
-      ColumnData(title: "ID", key: "id", width: 0),
-      ColumnData(title: "岗位编码", key: "code", width: 100),
-      ColumnData(title: "岗位名称", key: "name", width: 200),
-      ColumnData(title: "岗位类别", key: "cate", width: 120),
-      ColumnData(title: "从事工作", key: "desc", width: 0),
-      ColumnData(title: "单位编码", key: "company_code", width: 100),
-      ColumnData(title: "单位名称", key: "company_name", width: 120),
-      ColumnData(title: "录取人数", key: "enrollment_num", width: 80),
-      ColumnData(title: "录取比例", key: "enrollment_ratio", width: 0),
-      ColumnData(title: "报考条件原文", key: "condition"),
-      ColumnData(title: "报考条件", key: "condition_name"),
-      ColumnData(title: "城市", key: "city"),
-      ColumnData(title: "专业ID", key: "major_id", width: 100),
-      ColumnData(title: "专业名称", key: "major_name", width: 100),
+      ColumnData(title: "ID", key: "id", width: 40),
+      ColumnData(title: "讲义名称", key: "name", width:200),
+      ColumnData(title: "专业", key: "major_name", width:150),
+      ColumnData(title: "岗位代码", key: "job_code", width:100),
+      ColumnData(title: "岗位名称", key: "job_name", width:150),
+      ColumnData(title: "排序", key: "sort", width:50),
+      ColumnData(title: "创建者", key: "creator"),
+      ColumnData(title: "讲义类别", key: "category"),
+      ColumnData(title: "大小", key: "size"),
+      ColumnData(title: "页数", key: "pagecount"),
       ColumnData(title: "状态", key: "status"),
-      ColumnData(title: "创建时间", key: "create_time"),
-      ColumnData(title: "更新时间", key: "update_time"),
+      ColumnData(title: "创建时间", key: "created_time"),
     ];
 
     // 初始化数据
@@ -266,7 +246,6 @@ class LLogic extends GetxController {
   }
 
   void reset() {
-    majorDropdownKey.currentState?.reset();
     searchText.value = '';
     selectedRows.clear();
 

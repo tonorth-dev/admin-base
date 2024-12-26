@@ -75,7 +75,6 @@ class _LectureAddFormState extends State<LectureAddForm> {
                     child: Row(
                       children: const [
                         Text('专业'),
-                        Text('*', style: TextStyle(color: Colors.red)),
                       ],
                     ),
                   ),
@@ -110,7 +109,6 @@ class _LectureAddFormState extends State<LectureAddForm> {
                     child: Row(
                       children: const [
                         Text('岗位代码'),
-                        Text('*', style: TextStyle(color: Colors.red)),
                       ],
                     ),
                   ),

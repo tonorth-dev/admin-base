@@ -35,7 +35,7 @@
 //   static SidebarTree newThis() {
 //     return SidebarTree(
 //       name: "考生专业",
-//       icon: Icons.deblur,
+//       icon: Icons.app_registration_outlined,
 //       page: BindPage(),
 //     );
 //   }

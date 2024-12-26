@@ -23,7 +23,7 @@ class BookPage extends StatefulWidget {
   static SidebarTree newThis() {
     return SidebarTree(
       name: "题本管理",
-      icon: Icons.deblur,
+      icon: Icons.app_registration_outlined,
       page: BookPage(),
     );
   }

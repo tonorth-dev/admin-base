@@ -99,7 +99,6 @@ class _LectureEditFormState extends State<LectureEditForm> {
                 //       child: Row(
                 //         children: const [
                 //           Text('专业'),
-                //           Text('*', style: TextStyle(color: Colors.red)),
                 //         ],
                 //       ),
                 //     ),
@@ -141,7 +140,6 @@ class _LectureEditFormState extends State<LectureEditForm> {
                 //       child: Row(
                 //         children: const [
                 //           Text('岗位代码'),
-                //           Text('*', style: TextStyle(color: Colors.red)),
                 //         ],
                 //       ),
                 //     ),

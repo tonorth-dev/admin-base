@@ -221,7 +221,7 @@ class MajorPage extends StatelessWidget {
   static SidebarTree newThis() {
     return SidebarTree(
       name: "专业管理",
-      icon: Icons.deblur,
+      icon: Icons.app_registration_outlined,
       page: MajorPage(),
     );
   }

@@ -204,7 +204,7 @@ class PlanPage extends StatelessWidget {
   static SidebarTree newThis() {
     return SidebarTree(
       name: "计划管理",
-      icon: Icons.deblur,
+      icon: Icons.app_registration_outlined,
       page: PlanPage(),
     );
   }

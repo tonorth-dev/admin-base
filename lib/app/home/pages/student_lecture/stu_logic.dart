@@ -208,13 +208,16 @@ class StudLogic extends GetxController {
     find(size.value, page.value);// Fetch and populate student data on initialization
 
     columns = [
-      ColumnData(title: "ID", key: "id", width: 80),
-      ColumnData(title: "一级类别", key: "first_level_category", width: 150),
-      ColumnData(title: "二级类别", key: "second_level_category", width: 150),
-      ColumnData(title: "专业名称", key: "student_name", width: 150),
-      ColumnData(title: "年份", key: "year", width: 0),
-      ColumnData(title: "创建时间", key: "create_time", width: 0),
-      ColumnData(title: "更新时间", key: "update_time", width: 0),
+    ColumnData(title: "ID", key: "id", width: 50),
+    ColumnData(title: "姓名", key: "name", width: 80),
+    ColumnData(title: "电话", key: "phone", width: 0),
+    ColumnData(title: "密码", key: "password", width: 0),
+    ColumnData(title: "机构名称", key: "institution_name", width: 100),
+    ColumnData(title: "班级名称", key: "class_name", width: 100),
+    ColumnData(title: "考生编码", key: "question_code", width: 0),
+    ColumnData(title: "岗位代码", key: "job_code", width: 0),
+    ColumnData(title: "岗位名称", key: "job_name", width: 150),
+    ColumnData(title: "到期时间", key: "expire_time", width: 0),
     ];
   }
 

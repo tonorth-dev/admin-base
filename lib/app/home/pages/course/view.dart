@@ -21,7 +21,7 @@ class CourseManagerPage extends StatelessWidget {
   static SidebarTree newThis() {
     return SidebarTree(
       name: "讲义管理",
-      icon: Icons.deblur,
+      icon: Icons.app_registration_outlined,
       page: CourseManagerPage(),
     );
   }

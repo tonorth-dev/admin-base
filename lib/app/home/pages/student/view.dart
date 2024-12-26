@@ -57,7 +57,7 @@ class StudentPage extends StatelessWidget {
                 width: 110, // 自定义宽度
                 height: 32, // 自定义高度
               ),
-              SizedBox(width: 340), // 添加一些间距
+              SizedBox(width: 300), // 添加一些间距
               Padding(
                 padding: EdgeInsets.all(16.0),
                 child: FutureBuilder<void>(
@@ -283,7 +283,7 @@ class StudentPage extends StatelessWidget {
   static SidebarTree newThis() {
     return SidebarTree(
       name: "考生管理",
-      icon: Icons.deblur,
+      icon: Icons.app_registration_outlined,
       page: StudentPage(),
     );
   }

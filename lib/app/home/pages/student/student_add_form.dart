@@ -106,7 +106,7 @@ class _StudentAddFormState extends State<StudentAddForm> {
                     width: 150,
                     child: Row(
                       children: const [
-                        Text('机构ID'),
+                        Text('机构选择'),
                         Text('*', style: TextStyle(color: Colors.red)),
                       ],
                     ),
@@ -145,7 +145,7 @@ class _StudentAddFormState extends State<StudentAddForm> {
                     width: 150,
                     child: Row(
                       children: const [
-                        Text('机构ID'),
+                        Text('班级选择'),
                         Text('*', style: TextStyle(color: Colors.red)),
                       ],
                     ),

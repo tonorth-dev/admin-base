@@ -279,7 +279,7 @@ class JobPage extends StatelessWidget {
   static SidebarTree newThis() {
     return SidebarTree(
       name: "岗位管理",
-      icon: Icons.deblur,
+      icon: Icons.app_registration_outlined,
       page: JobPage(),
     );
   }

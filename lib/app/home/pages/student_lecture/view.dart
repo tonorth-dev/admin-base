@@ -39,7 +39,7 @@ class StuLecPage extends StatelessWidget {
   static SidebarTree newThis() {
     return SidebarTree(
       name: "考生对应讲义",
-      icon: Icons.deblur,
+      icon: Icons.app_registration_outlined,
       page: StuLecPage(),
     );
   }
@@ -85,17 +85,10 @@ class LectureTableView extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Obx(() => ElevatedButton(
-                        onPressed: () => logic.isRowsSelectable.value
-                            ? logic.disableRowSelection()
-                            : logic.enableRowSelection(),
-                        child: Text(
-                            logic.isRowsSelectable.value ? '禁用选择' : '启用选择'),
-                      )),
                   SizedBox(width: 10),
                   SearchBoxWidget(
                     key: Key('keywords'),
-                    hint: '岗位代码、岗位名称、单位序号、单位名称',
+                    hint: '讲义名称、创建者',
                     onTextChanged: (String value) {
                       logic.searchText.value = value;
                     },
@@ -133,7 +126,7 @@ class LectureTableView extends StatelessWidget {
                   scrollDirection: Axis.horizontal,
                   child: Container(
                     key: _tableKey, // 绑定 GlobalKey
-                    width: 1000,
+                    width: 800,
                     child: SfDataGrid(
                       source: LectureDataSource(logic: logic),
                       headerGridLinesVisibility: GridLinesVisibility.values[1],
@@ -338,42 +331,9 @@ class StudentTableView extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   ThemeUtil.width(width: 20),
-                  Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: FutureBuilder<void>(
-                      future: logic.fetchStudents(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return Center(child: CircularProgressIndicator());
-                        } else if (snapshot.hasError) {
-                          return Text('加载失败: ${snapshot.error}');
-                        } else {
-                          return CascadingDropdownField(
-                            key: logic.studentDropdownKey,
-                            width: 110,
-                            height: 34,
-                            hint1: '专业类目一',
-                            hint2: '专业类目二',
-                            hint3: '专业名称',
-                            level1Items: logic.level1Items,
-                            level2Items: logic.level2Items,
-                            level3Items: logic.level3Items,
-                            selectedLevel1: logic.selectedLevel1,
-                            selectedLevel2: logic.selectedLevel2,
-                            selectedLevel3: logic.selectedLevel3,
-                            onChanged: (dynamic level1, dynamic level2,
-                                dynamic level3) {
-                              logic.selectedStudentId.value = level3.toString();
-                            },
-                          );
-                        }
-                      },
-                    ),
-                  ),
                   SearchBoxWidget(
                     key: Key('keywords'),
-                    hint: '类目名称、专业名称',
+                    hint: '考生姓名、电话',
                     onTextChanged: (String value) {
                       logic.searchText.value = value;
                     },
@@ -409,7 +369,7 @@ class StudentTableView extends StatelessWidget {
               : SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: SizedBox(
-                    width: 900,
+                    width: 840,
                     height: Get.height,
                     child: SfDataGrid(
                       source: StudentDataSource(logic: logic),
@@ -573,8 +533,9 @@ class StudentDataSource extends DataGridSource {
         MouseRegion(
           cursor: SystemMouseCursors.click,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
+              SizedBox(width: 8),
               ValueListenableBuilder<bool>(
                 valueListenable: logic.blueButtonStates[id]!,
                 builder: (context, isEnabled, child) {
@@ -592,11 +553,11 @@ class StudentDataSource extends DataGridSource {
                         borderRadius: BorderRadius.circular(3.0),
                       ),
                     ),
-                    child: Text("关联岗位"),
+                    child: Text("关联讲义"),
                   );
                 },
               ),
-              SizedBox(width: 20),
+              SizedBox(width: 8),
               ValueListenableBuilder<bool>(
                 valueListenable: logic.grayButtonStates[id]!,
                 builder: (context, isEnabled, child) {
@@ -619,7 +580,7 @@ class StudentDataSource extends DataGridSource {
                   );
                 },
               ),
-              SizedBox(width: 20),
+              SizedBox(width: 8),
               ValueListenableBuilder<bool>(
                 valueListenable: logic.redButtonStates[id]!,
                 builder: (context, isEnabled, child) {

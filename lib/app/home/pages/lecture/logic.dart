@@ -296,15 +296,11 @@ class LectureLogic extends GetxController {
 
     if (lectureNameSubmit.isEmpty) {
       isValid = false;
-      errorMessage += "职位名称不能为空\n";
+      errorMessage += "讲义名称不能为空\n";
     }
-    if (majorIdSubmit <= 0) {
+    if (majorIdSubmit <= 0 && jobCodeSubmit.isEmpty) {
       isValid = false;
-      errorMessage += "专业ID必须大于0\n";
-    }
-    if (jobCodeSubmit.isEmpty) {
-      isValid = false;
-      errorMessage += "工作代码必须大于0\n";
+      errorMessage += "专业或岗位代码必须填写一个\n";
     }
     if (sortSubmit < 0) {
       isValid = false;
@@ -354,13 +350,9 @@ class LectureLogic extends GetxController {
       isValid = false;
       errorMessage += "职位名称不能为空\n";
     }
-    if (majorIdSubmit <= 0) {
+    if (majorIdSubmit <= 0 && jobCodeSubmit.isEmpty) {
       isValid = false;
-      errorMessage += "专业ID必须大于0\n";
-    }
-    if (jobCodeSubmit.isEmpty) {
-      isValid = false;
-      errorMessage += "工作代码必须大于0\n";
+      errorMessage += "专业或岗位代码必须填写一个\n";
     }
     if (sortSubmit <= 0) {
       isValid = false;
