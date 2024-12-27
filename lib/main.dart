@@ -27,8 +27,8 @@ void main() async {
   theme = theme.copyWith(
     textTheme: theme.textTheme.apply(
       fontFamily: fontFamily,
-      displayColor: Colors.black, // 如果需要的话，指定颜色
-      bodyColor: Colors.black, // 如果需要的话，指定颜色
+      displayColor: Colors.black87, // 如果需要的话，指定颜色
+      bodyColor: Colors.black87, // 如果需要的话，指定颜色
     ).copyWith(
       bodyMedium: TextStyle(
         fontSize: 14.0, // 根据需要调整大小

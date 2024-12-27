@@ -52,7 +52,7 @@ class PaginationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var style = const TextStyle(fontSize: 14);
+    var style = const TextStyle(fontSize: 14, color: Colors.black87);
     final logic = Get.find<PaginationLogic>(tag: uniqueId);
 
     return SizedBox(
