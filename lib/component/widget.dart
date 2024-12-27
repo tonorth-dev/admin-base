@@ -14,6 +14,7 @@ import 'package:get/get.dart';
 import 'package:omni_datetime_picker/omni_datetime_picker.dart';
 import 'package:searchfield/searchfield.dart';
 import '../api/config_api.dart';
+import '../theme/table_text_style.dart';
 
 class CustomButton extends StatefulWidget {
   final VoidCallback onPressed;
@@ -76,7 +77,7 @@ class _CustomButtonState extends State<CustomButton> {
                     color: isHovered ? Colors.white : Color(0xFF423F3F),
                     fontSize: 14,
                     fontFamily: 'PingFang SC',
-                    fontWeight: FontWeight.w400,
+                    fontWeight: FontWeight.w600,
                     height: 1.2,
                   ),
                 ),
@@ -1387,7 +1388,9 @@ class _HoverTextButtonState extends State<HoverTextButton> {
                   color: _isHovered && widget.enabled
                       ? Colors.red
                       : Color(0xFFFD941D),
-                  fontSize: 14,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  fontFamily: "PingFang SC",
                 ),
           ),
         ),
@@ -2086,17 +2089,32 @@ class DateTimePickerWidget {
   }
 }
 
-class StyledText extends StatelessWidget {
+class StyledTitleText extends StatelessWidget {
   final String data;
   final TextStyle? style;
 
-  const StyledText(this.data, {Key? key, this.style}) : super(key: key);
+  const StyledTitleText(this.data, {Key? key, this.style}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return SelectableText(
       data,
-      style: style ?? TableTextStyles.tableTextStyle,
+      style: style ?? TableTitleTextStyles.tableTextStyle,
+    );
+  }
+}
+
+class StyledNormalText extends StatelessWidget {
+  final String data;
+  final TextStyle? style;
+
+  const StyledNormalText(this.data, {Key? key, this.style}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SelectableText(
+      data,
+      style: style ?? TableNormalTextStyles.tableTextStyle,
     );
   }
 }
