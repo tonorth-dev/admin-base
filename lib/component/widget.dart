@@ -1388,9 +1388,9 @@ class _HoverTextButtonState extends State<HoverTextButton> {
                   color: _isHovered && widget.enabled
                       ? Colors.red
                       : Color(0xFFFD941D),
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  fontFamily: "PingFang SC",
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  fontFamily: 'PingFang SC',
                 ),
           ),
         ),
