@@ -17,7 +17,7 @@ class PdfPreView extends StatefulWidget {
 }
 class _PdfPreViewState extends State<PdfPreView> {
   final LectureLogic pdfLogic = Get.put(LectureLogic());
-  PdfControllerPinch? _pdfController;
+  PdfController? _pdfController;
   String? _currentUrl;
 
   @override
@@ -58,7 +58,7 @@ class _PdfPreViewState extends State<PdfPreView> {
         await Future.delayed(Duration(milliseconds: 100)); // Give some time for the widget to rebuild without a controller
         setState(() {
           _currentUrl = url;
-          _pdfController = PdfControllerPinch(document: pdfDocument);
+          _pdfController = PdfController(document: pdfDocument);
         });
 
         debugPrint('PDF loaded successfully');
@@ -131,7 +131,7 @@ class _PdfPreViewState extends State<PdfPreView> {
               );
             }
             return _pdfController != null
-                ? PdfViewPinch(controller: _pdfController!)
+                ? PdfView(controller: _pdfController!)
                 : Center(child: CircularProgressIndicator());
           }),
         ),

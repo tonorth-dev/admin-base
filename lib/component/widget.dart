@@ -2085,3 +2085,18 @@ class DateTimePickerWidget {
     return pickedDate;
   }
 }
+
+class StyledText extends StatelessWidget {
+  final String data;
+  final TextStyle? style;
+
+  const StyledText(this.data, {Key? key, this.style}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SelectableText(
+      data,
+      style: style ?? TableTextStyles.tableTextStyle,
+    );
+  }
+}

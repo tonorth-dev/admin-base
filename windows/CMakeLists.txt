@@ -1,5 +1,5 @@
 # Project-level configuration.
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.20)
 project(app_template LANGUAGES CXX)
 
 # The name of the executable created for the application. Change this to change

@@ -10,8 +10,8 @@ class HttpUtil {
 
   static final dio = Dio(BaseOptions(
     baseUrl: ConfigUtil.httpPort == "" ? ConfigUtil.baseUrl : "${ConfigUtil.baseUrl}:${ConfigUtil.httpPort}",
-    connectTimeout: const Duration(seconds: 20),
-    receiveTimeout: const Duration(seconds: 20),
+    connectTimeout: const Duration(seconds: 40),
+    receiveTimeout: const Duration(seconds: 40),
   ))
     ..interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
