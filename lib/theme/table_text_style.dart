@@ -14,6 +14,6 @@ class TableNormalTextStyles {
     fontSize: 15, // 根据需要调整字体大小
     fontWeight: FontWeight.w400,
     color: Colors.black87,
-    fontFamily: 'PingFang SC',
+    fontFamily: 'OPPOSans',
   );
 }
