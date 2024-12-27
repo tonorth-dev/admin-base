@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:pdfx/pdfx.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../../component/table/ex.dart';
@@ -15,10 +17,12 @@ class PdfPreView extends StatefulWidget {
   @override
   _PdfPreViewState createState() => _PdfPreViewState();
 }
+
 class _PdfPreViewState extends State<PdfPreView> {
   final LectureLogic pdfLogic = Get.put(LectureLogic());
-  PdfController? _pdfController;
+  PdfViewerController? _pdfController;
   String? _currentUrl;
+  String? _localFilePath;
 
   @override
   void initState() {
@@ -36,6 +40,22 @@ class _PdfPreViewState extends State<PdfPreView> {
     super.dispose();
   }
 
+  Future<String> _getLocalFilePath(String url) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final fileName = Uri.parse(url).pathSegments.last;
+    return '${directory.path}/$fileName';
+  }
+
+  Future<bool> _isCacheValid(String filePath) async {
+    final file = File(filePath);
+    if (await file.exists()) {
+      final lastModified = await file.lastModified();
+      final now = DateTime.now();
+      return now.difference(lastModified).inDays < 3;
+    }
+    return false;
+  }
+
   Future<void> _initializePdf(String url) async {
     if (_currentUrl == url || url.isEmpty) {
       debugPrint("Same URL, skipping reinitialization.");
@@ -44,29 +64,30 @@ class _PdfPreViewState extends State<PdfPreView> {
 
     debugPrint('Initializing PDF with URL: $url');
     try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final pdfDocument = PdfDocument.openData(response.bodyBytes);
-
-        // Dispose of the old controller and set it to null before creating a new one
-        _pdfController?.dispose();
-        setState(() {
-          _pdfController = null; // Ensure that the widget rebuilds without a controller first.
-        });
-
-        // Update the controller and state
-        await Future.delayed(Duration(milliseconds: 100)); // Give some time for the widget to rebuild without a controller
+      final localPath = await _getLocalFilePath(url);
+      if (await _isCacheValid(localPath)) {
+        debugPrint('Using cached PDF at: $localPath');
         setState(() {
           _currentUrl = url;
-          _pdfController = PdfController(document: pdfDocument);
+          _localFilePath = localPath;
         });
-
-        debugPrint('PDF loaded successfully');
       } else {
-        debugPrint('Failed to load PDF. Status code: ${response.statusCode}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load PDF: ${response.statusCode}')),
-        );
+        debugPrint('Downloading PDF from remote URL.');
+        final response = await http.get(Uri.parse(url));
+        if (response.statusCode == 200) {
+          final file = File(localPath);
+          await file.writeAsBytes(response.bodyBytes);
+          debugPrint('PDF cached at: $localPath');
+          setState(() {
+            _currentUrl = url;
+            _localFilePath = localPath;
+          });
+        } else {
+          debugPrint('Failed to download PDF. Status code: ${response.statusCode}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to load PDF: ${response.statusCode}')),
+          );
+        }
       }
     } catch (e) {
       debugPrint('Error initializing PDF: $e');
@@ -130,13 +151,12 @@ class _PdfPreViewState extends State<PdfPreView> {
                 ),
               );
             }
-            return _pdfController != null
-                ? PdfView(controller: _pdfController!)
+            return _localFilePath != null
+                ? SfPdfViewer.file(File(_localFilePath!))
                 : Center(child: CircularProgressIndicator());
           }),
         ),
       ],
     );
   }
-
 }

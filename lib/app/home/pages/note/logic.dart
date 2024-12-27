@@ -88,7 +88,7 @@ class NoteLogic extends GetxController {
       ColumnData(title: "专业", key: "major_name", width: 150),
       ColumnData(title: "难度", key: "level_name", width: 100),
       ColumnData(title: "试题数量", key: "questions_number", width: 100),
-      ColumnData(title: "创建时间", key: "created_time", width: 150),
+      ColumnData(title: "创建时间", key: "create_time", width: 150),
     ];
 
     // 初始化数据

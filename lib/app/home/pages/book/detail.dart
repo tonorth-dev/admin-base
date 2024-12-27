@@ -307,6 +307,11 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
         padding: const EdgeInsets.all(8.0),
         child: Text(
           text,
+          style: TextStyle(
+            fontSize: 15,
+            fontFamily: 'Microsoft YaHei UI',
+            color: Colors.black87
+          ),
           textAlign: TextAlign.left,
         ),
       ),

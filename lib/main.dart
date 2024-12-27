@@ -17,24 +17,27 @@ late ThemeData theme;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   var appData = await LoginData.read();
-  var findTheme = themeList.firstWhereOrNull((e) => e.name() == appData.themeName);
+  var findTheme =
+      themeList.firstWhereOrNull((e) => e.name() == appData.themeName);
   theme = findTheme?.theme() ?? Light().theme();
 
   // 自定义字体设置
-  final fontFamily = 'Arial Unicode MS.TTF'; // 确保已在 pubspec.yaml 中声明
+  final fontFamily = 'Microsoft YaHei UI'; // 确保已在 pubspec.yaml 中声明
 
   // 更新全局主题数据
   theme = theme.copyWith(
-    textTheme: theme.textTheme.apply(
-      fontFamily: fontFamily,
-      displayColor: Colors.black87, // 如果需要的话，指定颜色
-      bodyColor: Colors.black87, // 如果需要的话，指定颜色
-    ).copyWith(
-      bodyMedium: TextStyle(
-        fontSize: 14.0, // 根据需要调整大小
-        fontWeight: FontWeight.w700, // 加粗一号
-      ),
-    ),
+    textTheme: theme.textTheme
+        .apply(
+          fontFamily: fontFamily,
+          displayColor: Colors.black87, // 如果需要的话，指定颜色
+          bodyColor: Colors.black87, // 如果需要的话，指定颜色
+        )
+        .copyWith(
+          bodyMedium: TextStyle(
+              fontSize: 14.0, // 根据需要调整大小
+              fontWeight: FontWeight.w500, // 加粗一号
+              color: Colors.black87),
+        ),
   );
 
   await message.init();
