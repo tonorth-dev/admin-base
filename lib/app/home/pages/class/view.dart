@@ -192,13 +192,8 @@ class StudentTableView extends StatelessWidget {
                                     color: Colors.indigo[50],
                                   ),
                                   child: Center(
-                                    child: Text(
+                                    child: StyledTitleText(
                                       column.title,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.indigo[800],
-                                      ),
                                     ),
                                   ),
                                 ),
@@ -304,11 +299,7 @@ class StudentDataSource extends DataGridSource {
                     alignment: Alignment.center,
                     padding: const EdgeInsets.all(8.0),
                     width: double.infinity, // 确保单元格充满整个宽度
-                    child: Text(
-                      value,
-                      textAlign: TextAlign.center, // 文字居中
-                      style: TextStyle(fontSize: 14),
-                    ),
+                    child: StyledNormalText(value),
                   ),
                 ),
               ));
@@ -471,13 +462,8 @@ class ClassesTableView extends StatelessWidget {
                                 ),
                                 child: FittedBox(
                                   fit: BoxFit.scaleDown,
-                                  child: Text(
+                                  child: StyledTitleText(
                                     column.title,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey[800],
-                                    ),
                                   ),
                                 ),
                               ),
@@ -593,11 +579,7 @@ class ClassesDataSource extends DataGridSource {
                 alignment: Alignment.center,
                 padding: const EdgeInsets.all(8.0),
                 width: double.infinity, // 确保单元格充满整个宽度
-                child: Text(
-                  value,
-                  textAlign: TextAlign.center, // 文字居中
-                  style: TextStyle(fontSize: 14),
-                ),
+                child: StyledNormalText(value),
               ),
             ),
           );

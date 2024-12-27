@@ -195,12 +195,8 @@ class JobPage extends StatelessWidget {
                                   color: Color(0xFFF3F4F8),
                                   alignment: Alignment.center,
                                   padding: const EdgeInsets.all(8.0),
-                                  child: Text(
+                                  child: StyledTitleText(
                                     column.title,
-                                    style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey[800]),
                                   ),
                                 ),
                               )),
@@ -370,12 +366,7 @@ class JobDataSource extends DataGridSource {
                         child: Container(
                           alignment: Alignment.centerLeft,
                           padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            value,
-                            maxLines: 4,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 14),
-                          ),
+                          child: StyledNormalText(value),
                         ),
                       ),
                       isOverflowing
@@ -407,10 +398,7 @@ class JobDataSource extends DataGridSource {
             return Container(
               alignment: Alignment.center,
               padding: const EdgeInsets.all(8.0),
-              child: Text(
-                value,
-                style: TextStyle(fontSize: 14),
-              ),
+              child: StyledNormalText(value),
             );
           }
         }),

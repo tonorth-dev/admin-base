@@ -128,12 +128,8 @@ class NoteTableView extends StatelessWidget {
                                   color: Color(0xFFF3F4F8),
                                   alignment: Alignment.center,
                                   padding: const EdgeInsets.all(8.0),
-                                  child: Text(
+                                  child: StyledTitleText(
                                     column.title,
-                                    style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey[800]),
                                   ),
                                 ),
                               )),
@@ -235,98 +231,40 @@ class NoteDataSource extends DataGridSource {
         ...row.getCells().skip(1).take(row.getCells().length - 2).map((cell) {
           final columnName = cell.columnName;
           final value = cell.value.toString();
-
-          if (columnName == 'condition_name') {
-            return Tooltip(
-              message: "点击右侧复制或查看全文",
-              verticalOffset: 25.0,
-              showDuration: Duration(milliseconds: 200),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade800,
-                borderRadius: BorderRadius.circular(4.0),
-              ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  // 使用TextPainter来检查文本是否会在给定宽度内溢出
-                  final textPainter = TextPainter(
-                    text: TextSpan(text: value, style: TextStyle(fontSize: 14)),
-                    maxLines: 2,
-                    textDirection: TextDirection.ltr,
-                  )..layout(
-                      maxWidth: constraints.maxWidth - 10); // 减去Padding的宽度
-
-                  final isOverflowing = textPainter.didExceedMaxLines;
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          alignment: Alignment.centerLeft,
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            value,
-                            maxLines: 4,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 14),
-                          ),
-                        ),
-                      ),
-                      isOverflowing
-                          ? TextButton(
-                              onPressed: () {
-                                CopyDialog.show(context, value);
-                              },
-                              child: Text("全文"),
-                            )
-                          : TextButton(
-                              onPressed: () async {
-                                await Clipboard.setData(
-                                    ClipboardData(text: value));
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text("复制成功"),
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
-                              },
-                              child: Text("复制"),
-                            ),
-                    ],
-                  );
-                },
-              ),
-            );
-          } else {
-            return Container(
-              alignment: Alignment.center,
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                value,
-                style: TextStyle(fontSize: 14),
-              ),
-            );
-          }
+          return Container(
+            alignment: Alignment.center,
+            padding: const EdgeInsets.all(8.0),
+            child: StyledNormalText(value),
+          );
         }),
         Row(
           mainAxisAlignment: MainAxisAlignment.center, // 将按钮左对齐
           children: [
             TextButton(
-              style: item["teacher_file_path"] != null && item["teacher_file_path"].isNotEmpty
+              style: item["teacher_file_path"] != null &&
+                      item["teacher_file_path"].isNotEmpty
                   ? ButtonStyle(
-                foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
-                overlayColor: MaterialStateProperty.all<Color>(Colors.transparent),
-              )
+                      foregroundColor:
+                          MaterialStateProperty.all<Color>(Colors.blue),
+                      overlayColor:
+                          MaterialStateProperty.all<Color>(Colors.transparent),
+                    )
                   : ButtonStyle(
-                foregroundColor: MaterialStateProperty.all<Color>(Colors.orangeAccent),
-                overlayColor: MaterialStateProperty.all<Color>(Colors.transparent),
-              ),
-              onPressed: item["teacher_file_path"] != null && item["teacher_file_path"].isNotEmpty
+                      foregroundColor:
+                          MaterialStateProperty.all<Color>(Colors.orangeAccent),
+                      overlayColor:
+                          MaterialStateProperty.all<Color>(Colors.transparent),
+                    ),
+              onPressed: item["teacher_file_path"] != null &&
+                      item["teacher_file_path"].isNotEmpty
                   ? () {
-                logic.updatePdfUrl(item["teacher_file_path"]);
-              }
+                      logic.updatePdfUrl(item["teacher_file_path"]);
+                    }
                   : () {
-                logic.loadAndUpdatePdfUrl(item["id"]);
-              },
-              child: item["teacher_file_path"] != null && item["teacher_file_path"].isNotEmpty
+                      logic.loadAndUpdatePdfUrl(item["id"]);
+                    },
+              child: item["teacher_file_path"] != null &&
+                      item["teacher_file_path"].isNotEmpty
                   ? Text("查看")
                   : Text("生成并查看"),
             ),
