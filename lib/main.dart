@@ -24,21 +24,21 @@ void main() async {
   // 自定义字体设置
   final fontFamily = 'Microsoft YaHei UI'; // 确保已在 pubspec.yaml 中声明
 
-  // 更新全局主题数据
-  theme = theme.copyWith(
-    textTheme: theme.textTheme
-        .apply(
-          fontFamily: fontFamily,
-          displayColor: Colors.black87, // 如果需要的话，指定颜色
-          bodyColor: Colors.black87, // 如果需要的话，指定颜色
-        )
-        .copyWith(
-          bodyMedium: TextStyle(
-              fontSize: 14.0, // 根据需要调整大小
-              fontWeight: FontWeight.w500, // 加粗一号
-              color: Colors.black87),
-        ),
-  );
+  // // 更新全局主题数据
+  // theme = theme.copyWith(
+  //   textTheme: theme.textTheme
+  //       .apply(
+  //         fontFamily: fontFamily,
+  //         displayColor: Colors.black87, // 如果需要的话，指定颜色
+  //         bodyColor: Colors.black87, // 如果需要的话，指定颜色
+  //       )
+  //       .copyWith(
+  //         bodyMedium: TextStyle(
+  //             fontSize: 14.0, // 根据需要调整大小
+  //             fontWeight: FontWeight.w500, // 加粗一号
+  //             color: Colors.black87),
+  //       ),
+  // );
 
   await message.init();
 
@@ -79,7 +79,6 @@ class MyApp extends StatelessWidget {
         Locale('zh'), // Chinese
       ],
       locale: const Locale('zh'),
-      theme: theme,
       home: LaunchPage(),
     );
   }
