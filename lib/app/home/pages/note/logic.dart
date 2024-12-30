@@ -148,7 +148,6 @@ class NoteLogic extends GetxController {
     if (!response['url'].isEmpty) {
       // 获取 PDF 文件的 URL
       selectedPdfUrl.value = "${ConfigUtil.ossUrl}:${ConfigUtil.ossPort}${ConfigUtil.ossPrefix}${response['url']}";
-      print(selectedPdfUrl.value);
     }
   }
 }

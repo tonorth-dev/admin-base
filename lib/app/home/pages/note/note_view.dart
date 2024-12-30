@@ -1,3 +1,4 @@
+import 'package:admin_flutter/ex/ex_hint.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -260,8 +261,10 @@ class NoteDataSource extends DataGridSource {
                   ? () {
                       logic.updatePdfUrl(item["teacher_file_path"]);
                     }
-                  : () {
-                      logic.loadAndUpdatePdfUrl(item["id"]);
+                  : () async {
+                      await logic.loadAndUpdatePdfUrl(item["id"]);
+                      logic.refresh();
+                      "生成成功".toHint();
                     },
               child: item["teacher_file_path"] != null &&
                       item["teacher_file_path"].isNotEmpty
