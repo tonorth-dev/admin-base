@@ -23,6 +23,7 @@ import '../../../../component/widget.dart';
 import '../../config/logic.dart';
 import 'topic_add_form.dart';
 import 'topic_edit_form.dart';
+import 'package:excel/excel.dart';
 
 class TopicLogic extends GetxController {
   var list = <Map<String, dynamic>>[].obs;
@@ -71,8 +72,10 @@ class TopicLogic extends GetxController {
   Rx<String> selectedMajorId = "0".obs;
 
   final topicTitle = ''.obs;
-  ValueNotifier<String?> topicSelectedQuestionCate = ValueNotifier<String?>(null);
-  ValueNotifier<String?> topicSelectedQuestionLevel = ValueNotifier<String?>(null);
+  ValueNotifier<String?> topicSelectedQuestionCate =
+      ValueNotifier<String?>(null);
+  ValueNotifier<String?> topicSelectedQuestionLevel =
+      ValueNotifier<String?>(null);
   final topicSelectedMajorId = "".obs;
   final topicAnswer = "".obs;
   final topicAuthor = "".obs;
@@ -392,11 +395,13 @@ class TopicLogic extends GetxController {
       isValid = false;
       errorMessage += "请选择专业\n";
     }
-    if (topicSelectedQuestionCateSubmit == null || topicSelectedQuestionCateSubmit.isEmpty) {
+    if (topicSelectedQuestionCateSubmit == null ||
+        topicSelectedQuestionCateSubmit.isEmpty) {
       isValid = false;
       errorMessage += "请选择题型\n";
     }
-    if (topicSelectedQuestionLevelSubmit == null || topicSelectedQuestionLevelSubmit.isEmpty) {
+    if (topicSelectedQuestionLevelSubmit == null ||
+        topicSelectedQuestionLevelSubmit.isEmpty) {
       isValid = false;
       errorMessage += "请选择难度\n";
     }
@@ -548,25 +553,28 @@ class TopicLogic extends GetxController {
     }
   }
 
-  // void search(String key) {
-  //   try {
-  //     TopicApi.topicList({"search": key}).then((value) {
-  //       refresh();
-  //     }).catchError((error) {
-  //       "搜索失败: $error".toHint();
-  //     });
-  //   } catch (e) {
-  //     "搜索失败: $e".toHint();
-  //   }
-  // }
-
   @override
   void refresh() {
     find(size.value, page.value);
   }
 
-  // 导出选中项到 CSV 文件
-  Future<void> exportSelectedItemsToCSV() async {
+  // 将 List<dynamic> 转换为 List<CellValue?> 类型
+  List<CellValue?> convertToCellValues(List<dynamic> row) {
+    return row.map((e) {
+      if (e is String) {
+        return TextCellValue(e); // 对于字符串类型使用 StringCellValue
+      } else if (e is int) {
+        return IntCellValue(e); // 对于整数类型使用 IntCellValue
+      } else if (e is double) {
+        return DoubleCellValue(e); // 对于浮动类型使用 DoubleCellValue
+      } else {
+        return TextCellValue(e.toString()); // 其他类型默认转换为字符串
+      }
+    }).toList();
+  }
+
+  // 导出选中项到 XLSX 文件
+  Future<void> exportSelectedItemsToXLSX() async {
     try {
       if (selectedRows.isEmpty) {
         "请选择要导出的数据".toHint();
@@ -576,91 +584,59 @@ class TopicLogic extends GetxController {
       final directory = await FilePicker.platform.getDirectoryPath();
       if (directory == null) return;
 
+      var excel = Excel.createExcel();
+      Sheet sheet = excel['Sheet1'];
       List<List<dynamic>> rows = [];
+
+      // Add headers
       rows.add(columns.map((column) => column.title).toList());
 
+      // Add selected items
       for (var item in list) {
         if (selectedRows.contains(item['id'])) {
           rows.add(columns.map((column) => item[column.key]).toList());
         }
       }
 
+      // 将每一行数据转换为 CellValue 类型
+      for (var row in rows) {
+        sheet.appendRow(convertToCellValues(row));
+      }
+
+      // Save the file
       final now = DateTime.now();
-      final formattedDate = DateFormat('yyyyMMdd_HHmmss').format(now);
-      String csv = const ListToCsvConverter().convert(rows);
-      File('$directory/topics_selected_$formattedDate.csv')
-          .writeAsStringSync(csv);
+      final formattedDate = DateFormat('yyyyMMdd_HHmm').format(now);
+      final file = File('$directory/topics_selected_$formattedDate.xlsx');
+      await file.writeAsBytes(await excel.encode()!);
+
       "导出选中项成功!".toHint();
     } catch (e) {
       "导出选中项失败: $e".toHint();
     }
   }
 
-  Future<void> exportAllToCSV() async {
+  void importFromXLSX() async {
     try {
-      final directory = await FilePicker.platform.getDirectoryPath();
-      if (directory == null) return;
-
-      List<Map<String, dynamic>> allItems = [];
-      int currentPage = 1;
-      int pageSize = 100;
-
-      while (true) {
-        var response = await TopicApi.topicList({
-          "size": pageSize.toString(),
-          "page": currentPage.toString(),
-        });
-
-        allItems.addAll((response["list"] as List<dynamic>).toListMap());
-
-        if (allItems.length >= response["total"]) break;
-        currentPage++;
-      }
-
-      List<List<dynamic>> rows = [];
-      rows.add(columns.map((column) => column.title).toList());
-
-      for (var item in allItems) {
-        rows.add(columns.map((column) => item[column.key]).toList());
-      }
-
-      String csv = const ListToCsvConverter().convert(rows);
-      File('$directory/topics_all_pages.csv').writeAsStringSync(csv);
-      "导出全部成功!".toHint();
-    } catch (e) {
-      "导出全部失败: $e".toHint();
-    }
-  }
-
-  void importFromCSV() async {
-    try {
+      // 选择文件
       FilePickerResult? result = await FilePicker.platform
-          .pickFiles(type: FileType.custom, allowedExtensions: ['csv']);
+          .pickFiles(type: FileType.custom, allowedExtensions: ['xlsx']);
       if (result != null) {
         PlatformFile file = result.files.first;
-        String content;
+        List<int> content;
 
         // 使用文件路径读取内容
         if (file.path != null) {
-          content = await File(file.path!).readAsString(encoding: utf8);
+          content = await File(file.path!)
+              .readAsBytes(); // content 是 Uint8List 类型，但我们将它视作 List<int>
 
-          // 检查文件内容是否为空
-          if (content.isEmpty) {
-            "文件内容为空".toHint();
+          // 解析 XLSX 文件
+          var excel = Excel.decodeBytes(content);
+          if (excel == null) {
+            "无法解析 XLSX 文件".toHint();
             return;
           }
 
-          // 检查 BOM 并移除
-          if (content.startsWith('\uFEFF')) {
-            content = content.substring(1);
-          }
-
-          // 解析 CSV 内容
-          List<List<dynamic>> rows =
-              const CsvToListConverter().convert(content);
-          rows.removeAt(0); // 移除表头
-
-          // 调用 API 执行批量导入
+          // 执行批量导入操作
           await TopicApi.topicBatchImport(File(file.path!)).then((value) {
             "导入成功!".toHint();
             refresh();
@@ -675,6 +651,57 @@ class TopicLogic extends GetxController {
       }
     } catch (e) {
       "导入失败: $e".toHint();
+    }
+  }
+
+  Future<void> exportAllToXLSX() async {
+    try {
+      final directory = await FilePicker.platform.getDirectoryPath();
+      if (directory == null) return;
+
+      var excel = Excel.createExcel(); // 创建 Excel 文件
+      Sheet sheet = excel['Sheet1']; // 获取 Sheet1 表单
+
+      List<Map<String, dynamic>> allItems = [];
+      int currentPage = 1;
+      int pageSize = 100;
+
+      // 获取所有数据（根据需要调整 API 调用）
+      while (true) {
+        var response = await TopicApi.topicList({
+          "size": pageSize.toString(),
+          "page": currentPage.toString(),
+        });
+
+        allItems.addAll((response["list"] as List<dynamic>).toListMap());
+
+        if (allItems.length >= response["total"]) break;
+        currentPage++;
+      }
+
+      // 创建表头
+      List<List<dynamic>> rows = [];
+      rows.add(columns.map((column) => column.title).toList()); // 表头行
+
+      // 将所有项添加到行中
+      for (var item in allItems) {
+        rows.add(columns.map((column) => item[column.key]).toList());
+      }
+
+      // 将每行数据转换为 CellValue 类型并添加到 Sheet
+      for (var row in rows) {
+        sheet.appendRow(convertToCellValues(row));
+      }
+
+      // 保存到指定目录
+      final now = DateTime.now();
+      final formattedDate = DateFormat('yyyyMMdd_HHmm').format(now);
+      final file = File('$directory/topics_all_pages_$formattedDate.xlsx');
+      await file.writeAsBytes(await excel.encode()!);
+
+      "导出全部成功!".toHint();
+    } catch (e) {
+      "导出全部失败: $e".toHint();
     }
   }
 
@@ -730,7 +757,6 @@ class TopicLogic extends GetxController {
     }
     return selectedQuestionLevel.value?.toString() ?? "";
   }
-
 
   void applyFilters() {
     // 这里可以添加应用过滤逻辑
