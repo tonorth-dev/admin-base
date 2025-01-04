@@ -1,4 +1,5 @@
 import 'package:admin_flutter/ex/ex_list.dart';
+import 'package:excel/excel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -291,8 +292,8 @@ class QuestionLogic extends GetxController {
     find(size.value, page.value);
   }
 
-  // 导出选中项到 CSV 文件
-  Future<void> exportSelectedItemsToCSV() async {
+  // 导出选中项到 XLSX 文件
+  Future<void> exportSelectedItemsToXLSX() async {
     try {
       if (selectedRows.isEmpty) {
         "请选择要导出的数据".toHint();
@@ -302,35 +303,65 @@ class QuestionLogic extends GetxController {
       final directory = await FilePicker.platform.getDirectoryPath();
       if (directory == null) return;
 
+      var excel = Excel.createExcel();
+      Sheet sheet = excel['Sheet1'];
       List<List<dynamic>> rows = [];
+
+      // Add headers
       rows.add(columns.map((column) => column.title).toList());
 
+      // Add selected items
       for (var item in list) {
         if (selectedRows.contains(item['id'])) {
           rows.add(columns.map((column) => item[column.key]).toList());
         }
       }
 
+      // 将每一行数据转换为 CellValue 类型
+      for (var row in rows) {
+        sheet.appendRow(convertToCellValues(row));
+      }
+
+      // Save the file
       final now = DateTime.now();
-      final formattedDate = DateFormat('yyyyMMdd_HHmmss').format(now);
-      String csv = const ListToCsvConverter().convert(rows);
-      File('$directory/questions_selected_$formattedDate.csv')
-          .writeAsStringSync(csv);
+      final formattedDate = DateFormat('yyyyMMdd_HHmm').format(now);
+      final file = File('$directory/topics_selected_$formattedDate.xlsx');
+      await file.writeAsBytes(await excel.encode()!);
+
       "导出选中项成功!".toHint();
     } catch (e) {
       "导出选中项失败: $e".toHint();
     }
   }
 
-  Future<void> exportAllToCSV() async {
+  // 将 List<dynamic> 转换为 List<CellValue?> 类型
+  List<CellValue?> convertToCellValues(List<dynamic> row) {
+    return row.map((e) {
+      if (e is String) {
+        return TextCellValue(e); // 对于字符串类型使用 StringCellValue
+      } else if (e is int) {
+        return IntCellValue(e); // 对于整数类型使用 IntCellValue
+      } else if (e is double) {
+        return DoubleCellValue(e); // 对于浮动类型使用 DoubleCellValue
+      } else {
+        return TextCellValue(e.toString()); // 其他类型默认转换为字符串
+      }
+    }).toList();
+  }
+
+  Future<void> exportAllToXLSX() async {
     try {
       final directory = await FilePicker.platform.getDirectoryPath();
       if (directory == null) return;
+
+      var excel = Excel.createExcel(); // 创建 Excel 文件
+      Sheet sheet = excel['Sheet1']; // 获取 Sheet1 表单
 
       List<Map<String, dynamic>> allItems = [];
       int currentPage = 1;
       int pageSize = 100;
 
+      // 获取所有数据（根据需要调整 API 调用）
       while (true) {
         var response = await TopicApi.topicList({
           "size": pageSize.toString(),
@@ -343,15 +374,26 @@ class QuestionLogic extends GetxController {
         currentPage++;
       }
 
+      // 创建表头
       List<List<dynamic>> rows = [];
-      rows.add(columns.map((column) => column.title).toList());
+      rows.add(columns.map((column) => column.title).toList()); // 表头行
 
+      // 将所有项添加到行中
       for (var item in allItems) {
         rows.add(columns.map((column) => item[column.key]).toList());
       }
 
-      String csv = const ListToCsvConverter().convert(rows);
-      File('$directory/questions_all_pages.csv').writeAsStringSync(csv);
+      // 将每行数据转换为 CellValue 类型并添加到 Sheet
+      for (var row in rows) {
+        sheet.appendRow(convertToCellValues(row));
+      }
+
+      // 保存到指定目录
+      final now = DateTime.now();
+      final formattedDate = DateFormat('yyyyMMdd_HHmm').format(now);
+      final file = File('$directory/topics_all_pages_$formattedDate.xlsx');
+      await file.writeAsBytes(await excel.encode()!);
+
       "导出全部成功!".toHint();
     } catch (e) {
       "导出全部失败: $e".toHint();

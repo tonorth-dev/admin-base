@@ -171,37 +171,6 @@ class SLogic extends GetxController {
     findForClasses(size.value, page.value);
   }
 
-  // 导出选中项到 CSV 文件
-  Future<void> exportSelectedItemsToCSV() async {
-    try {
-      if (selectedRows.isEmpty) {
-        "请选择要导出的数据".toHint();
-        return;
-      }
-
-      final directory = await FilePicker.platform.getDirectoryPath();
-      if (directory == null) return;
-
-      List<List<dynamic>> rows = [];
-      rows.add(columns.map((column) => column.title).toList());
-
-      for (var item in list) {
-        if (selectedRows.contains(item['id'])) {
-          rows.add(columns.map((column) => item[column.key]).toList());
-        }
-      }
-
-      final now = DateTime.now();
-      final formattedDate = DateFormat('yyyyMMdd_HHmmss').format(now);
-      String csv = const ListToCsvConverter().convert(rows);
-      File('$directory/students_selected_$formattedDate.csv')
-          .writeAsStringSync(csv);
-      "导出选中项成功!".toHint();
-    } catch (e) {
-      "导出选中项失败: $e".toHint();
-    }
-  }
-
   void delete(Map<String, dynamic> d, int index) {
     try {
       StudentApi.studentDelete(d["id"].toString()).then((value) {

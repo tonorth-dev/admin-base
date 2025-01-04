@@ -1,6 +1,7 @@
 import 'package:admin_flutter/app/home/pages/book/book.dart';
 import 'package:admin_flutter/ex/ex_list.dart';
 import 'package:admin_flutter/ex/ex_string.dart';
+import 'package:excel/excel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -590,8 +591,23 @@ class JobLogic extends GetxController {
     find(size.value, page.value);
   }
 
-  // 导出选中项到 CSV 文件
-  Future<void> exportSelectedItemsToCSV() async {
+  // 将 List<dynamic> 转换为 List<CellValue?> 类型
+  List<CellValue?> convertToCellValues(List<dynamic> row) {
+    return row.map((e) {
+      if (e is String) {
+        return TextCellValue(e); // 对于字符串类型使用 StringCellValue
+      } else if (e is int) {
+        return IntCellValue(e); // 对于整数类型使用 IntCellValue
+      } else if (e is double) {
+        return DoubleCellValue(e); // 对于浮动类型使用 DoubleCellValue
+      } else {
+        return TextCellValue(e.toString()); // 其他类型默认转换为字符串
+      }
+    }).toList();
+  }
+
+  // 导出选中项到 XLSX 文件
+  Future<void> exportSelectedItemsToXLSX() async {
     try {
       if (selectedRows.isEmpty) {
         "请选择要导出的数据".toHint();
@@ -601,35 +617,89 @@ class JobLogic extends GetxController {
       final directory = await FilePicker.platform.getDirectoryPath();
       if (directory == null) return;
 
+      var excel = Excel.createExcel();
+      Sheet sheet = excel['Sheet1'];
       List<List<dynamic>> rows = [];
+
+      // Add headers
       rows.add(columns.map((column) => column.title).toList());
 
+      // Add selected items
       for (var item in list) {
         if (selectedRows.contains(item['id'])) {
           rows.add(columns.map((column) => item[column.key]).toList());
         }
       }
 
+      // 将每一行数据转换为 CellValue 类型
+      for (var row in rows) {
+        sheet.appendRow(convertToCellValues(row));
+      }
+
+      // Save the file
       final now = DateTime.now();
-      final formattedDate = DateFormat('yyyyMMdd_HHmmss').format(now);
-      String csv = const ListToCsvConverter().convert(rows);
-      File('$directory/jobs_selected_$formattedDate.csv')
-          .writeAsStringSync(csv);
+      final formattedDate = DateFormat('yyyyMMdd_HHmm').format(now);
+      final file = File('$directory/jobs_selected_$formattedDate.xlsx');
+      await file.writeAsBytes(await excel.encode()!);
+
       "导出选中项成功!".toHint();
     } catch (e) {
       "导出选中项失败: $e".toHint();
     }
   }
 
-  Future<void> exportAllToCSV() async {
+  void importFromXLSX() async {
+    try {
+      // 选择文件
+      FilePickerResult? result = await FilePicker.platform
+          .pickFiles(type: FileType.custom, allowedExtensions: ['xlsx']);
+      if (result != null) {
+        PlatformFile file = result.files.first;
+        List<int> content;
+
+        // 使用文件路径读取内容
+        if (file.path != null) {
+          content = await File(file.path!)
+              .readAsBytes(); // content 是 Uint8List 类型，但我们将它视作 List<int>
+
+          // 解析 XLSX 文件
+          var excel = Excel.decodeBytes(content);
+          if (excel == null) {
+            "无法解析 XLSX 文件".toHint();
+            return;
+          }
+
+          // 执行批量导入操作
+          await JobApi.jobBatchImport(File(file.path!)).then((value) {
+            "导入成功!".toHint();
+            refresh();
+          }).catchError((error) {
+            "导入失败: $error".toHint();
+          });
+        } else {
+          "文件路径为空，无法读取文件".toHint();
+        }
+      } else {
+        "没有选择文件".toHint();
+      }
+    } catch (e) {
+      "导入失败: $e".toHint();
+    }
+  }
+
+  Future<void> exportAllToXLSX() async {
     try {
       final directory = await FilePicker.platform.getDirectoryPath();
       if (directory == null) return;
+
+      var excel = Excel.createExcel(); // 创建 Excel 文件
+      Sheet sheet = excel['Sheet1']; // 获取 Sheet1 表单
 
       List<Map<String, dynamic>> allItems = [];
       int currentPage = 1;
       int pageSize = 100;
 
+      // 获取所有数据（根据需要调整 API 调用）
       while (true) {
         var response = await JobApi.jobList({
           "size": pageSize.toString(),
@@ -642,57 +712,29 @@ class JobLogic extends GetxController {
         currentPage++;
       }
 
+      // 创建表头
       List<List<dynamic>> rows = [];
-      rows.add(columns.map((column) => column.title).toList());
+      rows.add(columns.map((column) => column.title).toList()); // 表头行
 
+      // 将所有项添加到行中
       for (var item in allItems) {
         rows.add(columns.map((column) => item[column.key]).toList());
       }
 
-      String csv = const ListToCsvConverter().convert(rows);
-      File('$directory/jobs_all_pages.csv').writeAsStringSync(csv);
+      // 将每行数据转换为 CellValue 类型并添加到 Sheet
+      for (var row in rows) {
+        sheet.appendRow(convertToCellValues(row));
+      }
+
+      // 保存到指定目录
+      final now = DateTime.now();
+      final formattedDate = DateFormat('yyyyMMdd_HHmm').format(now);
+      final file = File('$directory/jobs_all_pages_$formattedDate.xlsx');
+      await file.writeAsBytes(await excel.encode()!);
+
       "导出全部成功!".toHint();
     } catch (e) {
       "导出全部失败: $e".toHint();
-    }
-  }
-
-  void importFromCSV() async {
-    try {
-      FilePickerResult? result = await FilePicker.platform
-          .pickFiles(type: FileType.custom, allowedExtensions: ['xlsx', 'xls']);
-      if (result != null) {
-        PlatformFile file = result.files.first;
-        String? filePath = file.path;
-
-        if (filePath != null) {
-          // 创建 File 对象
-          File excelFile = File(filePath);
-
-          // 检查文件是否为空
-          int fileSize = await excelFile.length();
-          if (fileSize == 0) {
-            "文件内容为空".toHint();
-            return;
-          }
-
-          // 调用 API 执行批量导入
-          await JobApi.jobBatchImport(excelFile).then((value) {
-            "导入成功!".toHint();
-            refresh();
-          }).catchError((error) {
-            print("导入失败: $error");
-            "导入失败: $error".toHint();
-          });
-        } else {
-          "文件路径为空，无法读取文件".toHint();
-        }
-      } else {
-        "没有选择文件".toHint();
-      }
-    } catch (e) {
-      print("导入失败: $e");
-      "导入失败: $e".toHint();
     }
   }
 

@@ -62,21 +62,21 @@ class JobPage extends StatelessWidget {
               ),
               SizedBox(width: 8), // 添加一些间距
               CustomButton(
-                onPressed: logic.exportSelectedItemsToCSV,
+                onPressed: logic.exportSelectedItemsToXLSX,
                 text: '导出选中',
                 width: 90, // 自定义宽度
                 height: 32, // 自定义高度
               ),
               SizedBox(width: 8), // 添加一些间距
               CustomButton(
-                onPressed: logic.exportAllToCSV,
+                onPressed: logic.exportAllToXLSX,
                 text: '导出全部',
                 width: 90, // 自定义宽度
                 height: 32, // 自定义高度
               ),
               SizedBox(width: 8), // 添加一些间距
               CustomButton(
-                onPressed: logic.importFromCSV,
+                onPressed: logic.importFromXLSX,
                 text: '从Excel导入',
                 width: 110, // 自定义宽度
                 height: 32, // 自定义高度
