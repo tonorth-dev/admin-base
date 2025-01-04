@@ -53,7 +53,7 @@ class StudentPage extends StatelessWidget {
               SizedBox(width: 8), // 添加一些间距
               CustomButton(
                 onPressed: logic.importFromXLSX,
-                text: '从CSV导入',
+                text: '从Excel导入',
                 width: 110, // 自定义宽度
                 height: 32, // 自定义高度
               ),
