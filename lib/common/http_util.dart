@@ -100,6 +100,7 @@ class HttpUtil {
 
   /// 验证结果
   static dynamic verify(dynamic data, bool showMsg) {
+    print("data: $data");
     if (data["code"] == 0) {
       return data["data"];
     } else {
