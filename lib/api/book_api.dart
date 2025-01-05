@@ -102,5 +102,7 @@ class BookApi {
     }
   }
 
+  static updateQuestion(question, String? selectedQuestion) {}
+
 
 }

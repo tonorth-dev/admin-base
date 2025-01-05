@@ -23,6 +23,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   Map<String, dynamic>? _data;
   bool _isLoading = true;
   String? _errorMessage;
+  Map<int, String?> _selectedQuestions = {}; // 用于记录每行选中的题目ID
 
   @override
   void initState() {
@@ -86,7 +87,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
               ),
             ),
           ),
-          SizedBox(width: 16), // 添加一些间距
+          SizedBox(width: 16),
           OutlinedButton.icon(
             icon: Icon(Icons.save),
             label: Text('导出考生版'),
@@ -105,7 +106,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
         ],
       ),
       body: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: 1440),
+        constraints: BoxConstraints(maxWidth: 1660),
         child: Padding(
           padding: const EdgeInsets.all(50.0),
           child: _isLoading
@@ -210,9 +211,14 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                           fontFamily: 'OPPOSans',
                           color: Color(0xFF102b3f))),
                   ...((_data?['component_desc'] as List?) ?? [])
-                      .map((desc) => Text(desc + "，",
-                      style: TextStyle(
-                          fontSize: 15, color: Color(0xFF102b3f)))),
+                      .asMap()
+                      .entries
+                      .map((entry) {
+                    final desc = entry.value;
+                    final isLast = entry.key == ((_data?['component_desc'] as List?)?.length ?? 0) - 1;
+                    return Text(desc + (isLast ? "" : "，"),
+                        style: TextStyle(fontSize: 15, color: Color(0xFF102b3f)));
+                  }).toList(),
                 ],
               ),
             ),
@@ -237,215 +243,147 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 20), // 分隔不同章节
+          SizedBox(height: 20),
           Text(
             '章节：${section['title']}',
             style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w400,
-                fontFamily: 'OPPOSans',
-                color: Color(0xFFf3722c)),
+              fontSize: 18,
+              fontWeight: FontWeight.w400,
+              fontFamily: 'OPPOSans',
+              color: Color(0xFFf3722c),
+            ),
           ),
           SizedBox(height: 10),
           Table(
-            border: TableBorder.all(color: Colors.grey, width: 1), // 设置全线框并避免重叠
+            border: TableBorder.all(color: Colors.grey, width: 1),
             columnWidths: {
               0: FixedColumnWidth(60),
-              1: FixedColumnWidth(110),
-              2: FixedColumnWidth(290),
-              3: FixedColumnWidth(840),
+              1: FixedColumnWidth(120),
+              2: FixedColumnWidth(110),
+              3: FixedColumnWidth(290),
+              4: FixedColumnWidth(840),
+              5: FixedColumnWidth(120),
             },
             children: [
               TableRow(
-                decoration: BoxDecoration(color: Color(0xFF68b0ab)), // 标题行背景色
+                decoration: BoxDecoration(color: Color(0xFF68b0ab)),
                 children: [
                   _buildTableHeader('序号'),
+                  _buildTableHeader('试题ID'),
                   _buildTableHeader('试题分类'),
                   _buildTableHeader('试题标题'),
                   _buildTableHeader('试题答案'),
+                  _buildTableHeader('换题'),
                 ],
               ),
               for (var detail in (section['questions_detail'] as List? ?? []))
                 for (var i = 0; i < (detail['list'] as List? ?? []).length; i++)
-                  TableRow(
-                    children: [
-                      _buildTableCell((i + 1).toString()), // 显示序号
-                      _buildTableCell(detail['list'][i]['cate_name'] ?? ''),
-                      _buildTableCell(detail['list'][i]['title'] ?? ''),
-                      _buildTableCell(detail['list'][i]['answer'] ?? ''),
-                    ],
-                  ),
+                    TableRow(
+                      children: [
+                        _buildTableCell(Text((i + 1).toString())),
+                        _buildTableCell(Text(detail['list'][i]['id'].toString())),
+                        _buildTableCell(Text(detail['list'][i]['category_name'] ?? "")),
+                        _buildTableCell(Text(detail['list'][i]['title'] ?? "")),
+                        _buildTableCell(Text(detail['list'][i]['answer'] ?? "")),
+                        _buildTableCell(_buildChangeButton(i, detail['list'][i])),
+                      ],
+                    ),
             ],
           ),
-          SizedBox(height: 20), // 分隔不同章节
         ],
       );
     }).toList();
   }
 
   Widget _buildTableHeader(String text) {
-    return ConstrainedBox(
-      constraints: BoxConstraints(minHeight: 40),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Text(
-          text,
-          style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontFamily: 'OPPOSans',
-              color: Colors.white),
-          textAlign: TextAlign.center,
-        ),
+    return Padding(
+      padding: EdgeInsets.all(10),
+      child: Text(
+        text,
+        style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFFf5f5f5)),
       ),
     );
   }
 
-  Widget _buildTableCell(String text) {
-    return ConstrainedBox(
-      constraints: BoxConstraints(minHeight: 40),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Text(
-          text,
-          style: TextStyle(
-            fontSize: 15,
-            fontFamily: 'Microsoft YaHei UI',
-            color: Colors.black87
-          ),
-          textAlign: TextAlign.left,
-        ),
-      ),
+  Widget _buildTableCell(Widget child) {
+    return Padding(
+      padding: EdgeInsets.all(10),
+      child: child,
     );
   }
 
-  Future<void> _exportPdf({required bool isTeacherVersion}) async {
-    try {
-      // 调用 generateBookData 方法
-      final response = await BookApi.generateBook(widget.id, isTeacher: isTeacherVersion);
+  Widget _buildChangeButton(int i, dynamic question) {
+    return ElevatedButton(
+      onPressed: () => _onChangeButtonPressed(i, question),
+      child: _selectedQuestions[i] == null
+          ? Text('换题')
+          : Text('保存'),
+    );
+  }
 
-      // 检查响应状态码
-      if (!response['url'].isEmpty) {
-        // 获取 PDF 文件的 URL
-        final pdfUrl = "${ConfigUtil.ossUrl}:${ConfigUtil.ossPort}${ConfigUtil.ossPrefix}${response['url']}";
+  Future<void> _onChangeButtonPressed(int i, dynamic question) async {
+    if (_selectedQuestions[i] == null) {
+      // 显示下拉选择题目
+      final selectedQuestionId = await showDialog<int>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('选择题目'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 替换为适当的题目列表
+                DropdownButton<int>(
+                  items: [
+                    DropdownMenuItem(
+                      value: 123,
+                      child: Text("题目123"),
+                    ),
+                    DropdownMenuItem(
+                      value: 456,
+                      child: Text("题目456"),
+                    ),
+                    // 添加更多题目
+                  ],
+                  onChanged: (value) {
+                    Navigator.pop(context, value);
+                  },
+                ),
+              ],
+            ),
+          );
+        },
+      );
 
-        // 下载 PDF 文件
-        await _downloadAndOpenPdf(pdfUrl);
-      } else {
-        throw Exception('Failed to generate PDF: ${response['msg']}');
+      if (selectedQuestionId != null) {
+        setState(() {
+          _selectedQuestions[i] = selectedQuestionId.toString();
+        });
       }
-    } catch (e) {
-      print('Error in _exportPdf: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('导出失败：$e')),
-      );
+    } else {
+      // 保存修改
+      // 调用API更新题目
+      await BookApi.updateQuestion(question['id'], _selectedQuestions[i]);
+      setState(() {
+        _selectedQuestions[i] = null;
+      });
     }
   }
 
-  Future<void> _downloadAndOpenPdf(String pdfUrl) async {
-    try {
-      // 获取应用的临时目录
-      final directory = await getApplicationDocumentsDirectory();
-      final filePath = '${directory.path}/output.pdf';
-
-      // 使用 Dio 下载文件
-      final dio = Dio();
-      await dio.download(pdfUrl, filePath);
-
-      // 打开下载的 PDF 文件
-      await OpenFile.open(filePath);
-    } catch (e) {
-      print('Error in _downloadAndOpenPdf: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('下载或打开文件失败：$e')),
-      );
-    }
-  }
-
-  List<pw.Widget> _buildPdfTables({required bool isTeacherVersion, required pw.Font font}) {
-    final questionsDesc = _data?['questions_desc'] as List?;
-    if (questionsDesc == null || questionsDesc.isEmpty) return [];
-
-    return questionsDesc.map((section) {
-      return pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.SizedBox(height: 20), // 分隔不同章节
-          pw.Text(
-            '章节：${section['title']}',
-            style: pw.TextStyle(
-                fontSize: 11,
-                fontWeight: pw.FontWeight.bold,
-                color: PdfColors.orange,
-                font: font),
-          ),
-          pw.SizedBox(height: 10),
-          pw.Table(
-            border: pw.TableBorder.all(color: PdfColors.grey, width: 1), // 设置全线框并避免重叠
-            columnWidths: {
-              0: pw.FixedColumnWidth(60),
-              1: pw.FixedColumnWidth(110),
-              2: pw.FixedColumnWidth(290),
-              3: pw.FixedColumnWidth(840),
-            },
-            children: [
-              pw.TableRow(
-                decoration: pw.BoxDecoration(color: PdfColor.fromHex('#68b0ab')), // 标题行背景色
-                children: [
-                  _buildPdfTableHeader('序号', font: font),
-                  _buildPdfTableHeader('试题分类', font: font),
-                  _buildPdfTableHeader('试题标题', font: font),
-                  _buildPdfTableHeader('试题答案', font: font),
-                ],
-              ),
-              for (var detail in (section['questions_detail'] as List? ?? []))
-                for (var i = 0; i < (detail['list'] as List? ?? []).length; i++)
-                  pw.TableRow(
-                    children: [
-                      _buildPdfTableCell((i + 1).toString(), font: font), // 显示序号
-                      _buildPdfTableCell(detail['list'][i]['cate_name'] ?? '', font: font),
-                      _buildPdfTableCell(detail['list'][i]['title'] ?? '', font: font),
-                      _buildPdfTableCell(
-                          isTeacherVersion ? (detail['list'][i]['answer'] ?? '') : ' ' * 400, font: font),
-                    ],
-                  ),
-            ],
-          ),
-          pw.SizedBox(height: 20), // 分隔不同章节
-        ],
-      );
-    }).toList();
-  }
-
-  pw.Widget _buildPdfTableHeader(String text, {required pw.Font font}) {
-    return pw.ConstrainedBox(
-      constraints: pw.BoxConstraints(minHeight: 40),
-      child: pw.Padding(
-        padding: pw.EdgeInsets.all(8.0),
-        child: pw.Text(
-          text,
-          style: pw.TextStyle(
-              fontWeight: pw.FontWeight.bold,
-              color: PdfColors.white,
-              font: font,
-              fontSize: 9
-          ),
-          textAlign: pw.TextAlign.center,
-        ),
-      ),
-    );
-  }
-
-  pw.Widget _buildPdfTableCell(String text, {required pw.Font font}) {
-    return pw.ConstrainedBox(
-      constraints: pw.BoxConstraints(minHeight: 40),
-      child: pw.Padding(
-        padding: pw.EdgeInsets.all(8.0),
-        child: pw.Text(
-          text,
-          textAlign: pw.TextAlign.left,
-          style: pw.TextStyle(font: font, fontSize: 8, fontWeight: pw.FontWeight.normal),
-        ),
-      ),
-    );
+  // PDF导出函数
+  Future<void> _exportPdf({required bool isTeacherVersion}) async {
+    final pdf = pw.Document();
+    pdf.addPage(pw.Page(
+      build: (pw.Context context) {
+        return pw.Center(child: pw.Text('导出PDF功能，教师版: $isTeacherVersion'));
+      },
+    ));
+    final output = await getTemporaryDirectory();
+    final file = File("${output.path}/export.pdf");
+    await file.writeAsBytes(await pdf.save());
+    OpenFile.open(file.path);
   }
 }
