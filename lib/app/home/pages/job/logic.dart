@@ -1,7 +1,4 @@
-import 'package:admin_flutter/app/home/pages/book/book.dart';
 import 'package:admin_flutter/ex/ex_list.dart';
-import 'package:admin_flutter/ex/ex_string.dart';
-import 'package:excel/excel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -21,6 +18,7 @@ import '../../../../component/table/table_data.dart';
 import '../../../../component/widget.dart';
 import 'job_add_form.dart';
 import 'job_edit_form.dart';
+import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 
 class JobLogic extends GetxController {
   var list = <Map<String, dynamic>>[].obs;
@@ -591,17 +589,12 @@ class JobLogic extends GetxController {
     find(size.value, page.value);
   }
 
-  // 将 List<dynamic> 转换为 List<CellValue?> 类型
-  List<CellValue?> convertToCellValues(List<dynamic> row) {
+  List<dynamic> convertToCellValues(List<dynamic> row) {
     return row.map((e) {
-      if (e is String) {
-        return TextCellValue(e); // 对于字符串类型使用 StringCellValue
-      } else if (e is int) {
-        return IntCellValue(e); // 对于整数类型使用 IntCellValue
-      } else if (e is double) {
-        return DoubleCellValue(e); // 对于浮动类型使用 DoubleCellValue
+      if (e is int || e is double || e is String || e is DateTime) {
+        return e;
       } else {
-        return TextCellValue(e.toString()); // 其他类型默认转换为字符串
+        return e?.toString() ?? '';
       }
     }).toList();
   }
@@ -617,30 +610,37 @@ class JobLogic extends GetxController {
       final directory = await FilePicker.platform.getDirectoryPath();
       if (directory == null) return;
 
-      var excel = Excel.createExcel();
-      Sheet sheet = excel['Sheet1'];
-      List<List<dynamic>> rows = [];
+      // 创建 Excel 工作簿和工作表
+      final xlsio.Workbook workbook = xlsio.Workbook();
+      final xlsio.Worksheet sheet = workbook.worksheets[0];
+      sheet.name = "Sheet1";
 
-      // Add headers
-      rows.add(columns.map((column) => column.title).toList());
+      // 添加表头
+      for (int colIndex = 0; colIndex < columns.length; colIndex++) {
+        final column = columns[colIndex];
+        sheet.getRangeByIndex(1, colIndex + 1).setText(column.title);
+        sheet.getRangeByIndex(1, colIndex + 1).cellStyle.bold = true;
+      }
 
-      // Add selected items
+      // 添加选中行的数据
+      int rowIndex = 2;
       for (var item in list) {
         if (selectedRows.contains(item['id'])) {
-          rows.add(columns.map((column) => item[column.key]).toList());
+          for (int colIndex = 0; colIndex < columns.length; colIndex++) {
+            final column = columns[colIndex];
+            final value = item[column.key];
+            _setCellValue(sheet, rowIndex, colIndex + 1, value);
+          }
+          rowIndex++;
         }
       }
 
-      // 将每一行数据转换为 CellValue 类型
-      for (var row in rows) {
-        sheet.appendRow(convertToCellValues(row));
-      }
-
-      // Save the file
+      // 保存文件
       final now = DateTime.now();
       final formattedDate = DateFormat('yyyyMMdd_HHmm').format(now);
       final file = File('$directory/jobs_selected_$formattedDate.xlsx');
-      await file.writeAsBytes(await excel.encode()!);
+      await file.writeAsBytes(workbook.saveAsStream());
+      workbook.dispose();
 
       "导出选中项成功!".toHint();
     } catch (e) {
@@ -648,28 +648,22 @@ class JobLogic extends GetxController {
     }
   }
 
+  // 导入 XLSX 文件
   void importFromXLSX() async {
     try {
-      // 选择文件
       FilePickerResult? result = await FilePicker.platform
           .pickFiles(type: FileType.custom, allowedExtensions: ['xlsx']);
       if (result != null) {
         PlatformFile file = result.files.first;
-        List<int> content;
 
-        // 使用文件路径读取内容
         if (file.path != null) {
-          content = await File(file.path!)
-              .readAsBytes(); // content 是 Uint8List 类型，但我们将它视作 List<int>
-
-          // 解析 XLSX 文件
-          var excel = Excel.decodeBytes(content);
-          if (excel == null) {
-            "无法解析 XLSX 文件".toHint();
+          final bytes = await File(file.path!).readAsBytes();
+          if (bytes.isEmpty) {
+            "无法读取 XLSX 文件".toHint();
             return;
           }
 
-          // 执行批量导入操作
+          // 调用 API 执行导入
           await JobApi.jobBatchImport(File(file.path!)).then((value) {
             "导入成功!".toHint();
             refresh();
@@ -687,19 +681,21 @@ class JobLogic extends GetxController {
     }
   }
 
+  // 导出全部到 XLSX 文件
   Future<void> exportAllToXLSX() async {
     try {
       final directory = await FilePicker.platform.getDirectoryPath();
       if (directory == null) return;
 
-      var excel = Excel.createExcel(); // 创建 Excel 文件
-      Sheet sheet = excel['Sheet1']; // 获取 Sheet1 表单
+      final xlsio.Workbook workbook = xlsio.Workbook();
+      final xlsio.Worksheet sheet = workbook.worksheets[0];
+      sheet.name = "Sheet1";
 
+      // 获取所有数据
       List<Map<String, dynamic>> allItems = [];
       int currentPage = 1;
       int pageSize = 100;
 
-      // 获取所有数据（根据需要调整 API 调用）
       while (true) {
         var response = await JobApi.jobList({
           "size": pageSize.toString(),
@@ -707,34 +703,49 @@ class JobLogic extends GetxController {
         });
 
         allItems.addAll((response["list"] as List<dynamic>).toListMap());
-
         if (allItems.length >= response["total"]) break;
         currentPage++;
       }
 
-      // 创建表头
-      List<List<dynamic>> rows = [];
-      rows.add(columns.map((column) => column.title).toList()); // 表头行
+      // 添加表头
+      for (int colIndex = 0; colIndex < columns.length; colIndex++) {
+        final column = columns[colIndex];
+        sheet.getRangeByIndex(1, colIndex + 1).setText(column.title);
+        sheet.getRangeByIndex(1, colIndex + 1).cellStyle.bold = true;
+      }
 
-      // 将所有项添加到行中
+      // 添加所有行数据
+      int rowIndex = 2;
       for (var item in allItems) {
-        rows.add(columns.map((column) => item[column.key]).toList());
+        for (int colIndex = 0; colIndex < columns.length; colIndex++) {
+          final column = columns[colIndex];
+          final value = item[column.key];
+          _setCellValue(sheet, rowIndex, colIndex + 1, value);
+        }
+        rowIndex++;
       }
 
-      // 将每行数据转换为 CellValue 类型并添加到 Sheet
-      for (var row in rows) {
-        sheet.appendRow(convertToCellValues(row));
-      }
-
-      // 保存到指定目录
+      // 保存文件
       final now = DateTime.now();
       final formattedDate = DateFormat('yyyyMMdd_HHmm').format(now);
       final file = File('$directory/jobs_all_pages_$formattedDate.xlsx');
-      await file.writeAsBytes(await excel.encode()!);
+      await file.writeAsBytes(workbook.saveAsStream());
+      workbook.dispose();
 
       "导出全部成功!".toHint();
     } catch (e) {
       "导出全部失败: $e".toHint();
+    }
+  }
+
+  // 辅助方法：设置单元格的值
+  void _setCellValue(xlsio.Worksheet sheet, int rowIndex, int colIndex, dynamic value) {
+    if (value is int || value is double) {
+      sheet.getRangeByIndex(rowIndex, colIndex).setNumber(value.toDouble());
+    } else if (value is DateTime) {
+      sheet.getRangeByIndex(rowIndex, colIndex).setDateTime(value);
+    } else {
+      sheet.getRangeByIndex(rowIndex, colIndex).setText(value?.toString() ?? '');
     }
   }
 

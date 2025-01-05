@@ -46,7 +46,6 @@ class QuestionPage extends StatelessWidget {
                 selectedValue: logic.selectedQuestionLevel,
                 onChanged: (dynamic newValue) {
                   logic.selectedQuestionLevel.value = newValue.toString();
-                  logic.applyFilters();
                 },
               ),
               SizedBox(width: 8),
@@ -60,7 +59,6 @@ class QuestionPage extends StatelessWidget {
                 selectedValue: logic.selectedQuestionStatus,
                 onChanged: (dynamic newValue) {
                   logic.selectedQuestionStatus.value = newValue;
-                  logic.applyFilters();
                 },
               ),
               Padding(
@@ -102,7 +100,6 @@ class QuestionPage extends StatelessWidget {
                 hint: '题干、答案、标签',
                 onTextChanged: (String value) {
                   logic.searchText.value = value;
-                  logic.applyFilters();
                 },
                 searchText: logic.searchText,
               ),

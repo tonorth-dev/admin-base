@@ -1,5 +1,4 @@
 import 'package:admin_flutter/ex/ex_list.dart';
-import 'package:excel/excel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -13,6 +12,7 @@ import '../../../../api/major_api.dart';
 import '../../../../api/topic_api.dart';
 import '../../../../component/table/table_data.dart';
 import '../../../../component/widget.dart';
+import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 
 class QuestionLogic extends GetxController {
   var list = <Map<String, dynamic>>[].obs;
@@ -292,6 +292,16 @@ class QuestionLogic extends GetxController {
     find(size.value, page.value);
   }
 
+  List<dynamic> convertToCellValues(List<dynamic> row) {
+    return row.map((e) {
+      if (e is int || e is double || e is String || e is DateTime) {
+        return e;
+      } else {
+        return e?.toString() ?? '';
+      }
+    }).toList();
+  }
+
   // 导出选中项到 XLSX 文件
   Future<void> exportSelectedItemsToXLSX() async {
     try {
@@ -303,30 +313,37 @@ class QuestionLogic extends GetxController {
       final directory = await FilePicker.platform.getDirectoryPath();
       if (directory == null) return;
 
-      var excel = Excel.createExcel();
-      Sheet sheet = excel['Sheet1'];
-      List<List<dynamic>> rows = [];
+      // 创建 Excel 工作簿和工作表
+      final xlsio.Workbook workbook = xlsio.Workbook();
+      final xlsio.Worksheet sheet = workbook.worksheets[0];
+      sheet.name = "Sheet1";
 
-      // Add headers
-      rows.add(columns.map((column) => column.title).toList());
+      // 添加表头
+      for (int colIndex = 0; colIndex < columns.length; colIndex++) {
+        final column = columns[colIndex];
+        sheet.getRangeByIndex(1, colIndex + 1).setText(column.title);
+        sheet.getRangeByIndex(1, colIndex + 1).cellStyle.bold = true;
+      }
 
-      // Add selected items
+      // 添加选中行的数据
+      int rowIndex = 2;
       for (var item in list) {
         if (selectedRows.contains(item['id'])) {
-          rows.add(columns.map((column) => item[column.key]).toList());
+          for (int colIndex = 0; colIndex < columns.length; colIndex++) {
+            final column = columns[colIndex];
+            final value = item[column.key];
+            _setCellValue(sheet, rowIndex, colIndex + 1, value);
+          }
+          rowIndex++;
         }
       }
 
-      // 将每一行数据转换为 CellValue 类型
-      for (var row in rows) {
-        sheet.appendRow(convertToCellValues(row));
-      }
-
-      // Save the file
+      // 保存文件
       final now = DateTime.now();
       final formattedDate = DateFormat('yyyyMMdd_HHmm').format(now);
-      final file = File('$directory/topics_selected_$formattedDate.xlsx');
-      await file.writeAsBytes(await excel.encode()!);
+      final file = File('$directory/questions_selected_$formattedDate.xlsx');
+      await file.writeAsBytes(workbook.saveAsStream());
+      workbook.dispose();
 
       "导出选中项成功!".toHint();
     } catch (e) {
@@ -334,34 +351,54 @@ class QuestionLogic extends GetxController {
     }
   }
 
-  // 将 List<dynamic> 转换为 List<CellValue?> 类型
-  List<CellValue?> convertToCellValues(List<dynamic> row) {
-    return row.map((e) {
-      if (e is String) {
-        return TextCellValue(e); // 对于字符串类型使用 StringCellValue
-      } else if (e is int) {
-        return IntCellValue(e); // 对于整数类型使用 IntCellValue
-      } else if (e is double) {
-        return DoubleCellValue(e); // 对于浮动类型使用 DoubleCellValue
+  // 导入 XLSX 文件
+  void importFromXLSX() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform
+          .pickFiles(type: FileType.custom, allowedExtensions: ['xlsx']);
+      if (result != null) {
+        PlatformFile file = result.files.first;
+
+        if (file.path != null) {
+          final bytes = await File(file.path!).readAsBytes();
+          if (bytes.isEmpty) {
+            "无法读取 XLSX 文件".toHint();
+            return;
+          }
+
+          // 调用 API 执行导入
+          await TopicApi.topicBatchImport(File(file.path!)).then((value) {
+            "导入成功!".toHint();
+            refresh();
+          }).catchError((error) {
+            "导入失败: $error".toHint();
+          });
+        } else {
+          "文件路径为空，无法读取文件".toHint();
+        }
       } else {
-        return TextCellValue(e.toString()); // 其他类型默认转换为字符串
+        "没有选择文件".toHint();
       }
-    }).toList();
+    } catch (e) {
+      "导入失败: $e".toHint();
+    }
   }
 
+  // 导出全部到 XLSX 文件
   Future<void> exportAllToXLSX() async {
     try {
       final directory = await FilePicker.platform.getDirectoryPath();
       if (directory == null) return;
 
-      var excel = Excel.createExcel(); // 创建 Excel 文件
-      Sheet sheet = excel['Sheet1']; // 获取 Sheet1 表单
+      final xlsio.Workbook workbook = xlsio.Workbook();
+      final xlsio.Worksheet sheet = workbook.worksheets[0];
+      sheet.name = "Sheet1";
 
+      // 获取所有数据
       List<Map<String, dynamic>> allItems = [];
       int currentPage = 1;
       int pageSize = 100;
 
-      // 获取所有数据（根据需要调整 API 调用）
       while (true) {
         var response = await TopicApi.topicList({
           "size": pageSize.toString(),
@@ -369,34 +406,49 @@ class QuestionLogic extends GetxController {
         });
 
         allItems.addAll((response["list"] as List<dynamic>).toListMap());
-
         if (allItems.length >= response["total"]) break;
         currentPage++;
       }
 
-      // 创建表头
-      List<List<dynamic>> rows = [];
-      rows.add(columns.map((column) => column.title).toList()); // 表头行
+      // 添加表头
+      for (int colIndex = 0; colIndex < columns.length; colIndex++) {
+        final column = columns[colIndex];
+        sheet.getRangeByIndex(1, colIndex + 1).setText(column.title);
+        sheet.getRangeByIndex(1, colIndex + 1).cellStyle.bold = true;
+      }
 
-      // 将所有项添加到行中
+      // 添加所有行数据
+      int rowIndex = 2;
       for (var item in allItems) {
-        rows.add(columns.map((column) => item[column.key]).toList());
+        for (int colIndex = 0; colIndex < columns.length; colIndex++) {
+          final column = columns[colIndex];
+          final value = item[column.key];
+          _setCellValue(sheet, rowIndex, colIndex + 1, value);
+        }
+        rowIndex++;
       }
 
-      // 将每行数据转换为 CellValue 类型并添加到 Sheet
-      for (var row in rows) {
-        sheet.appendRow(convertToCellValues(row));
-      }
-
-      // 保存到指定目录
+      // 保存文件
       final now = DateTime.now();
       final formattedDate = DateFormat('yyyyMMdd_HHmm').format(now);
-      final file = File('$directory/topics_all_pages_$formattedDate.xlsx');
-      await file.writeAsBytes(await excel.encode()!);
+      final file = File('$directory/questions_all_pages_$formattedDate.xlsx');
+      await file.writeAsBytes(workbook.saveAsStream());
+      workbook.dispose();
 
       "导出全部成功!".toHint();
     } catch (e) {
       "导出全部失败: $e".toHint();
+    }
+  }
+
+  // 辅助方法：设置单元格的值
+  void _setCellValue(xlsio.Worksheet sheet, int rowIndex, int colIndex, dynamic value) {
+    if (value is int || value is double) {
+      sheet.getRangeByIndex(rowIndex, colIndex).setNumber(value.toDouble());
+    } else if (value is DateTime) {
+      sheet.getRangeByIndex(rowIndex, colIndex).setDateTime(value);
+    } else {
+      sheet.getRangeByIndex(rowIndex, colIndex).setText(value?.toString() ?? '');
     }
   }
 
@@ -432,14 +484,6 @@ class QuestionLogic extends GetxController {
       return "";
     }
     return selectedQuestionLevel.value?.toString() ?? "";
-  }
-
-
-  void applyFilters() {
-    // 这里可以添加应用过滤逻辑
-    // print('Selected Major: ${selectedMajor.value}');
-    // print('Selected Sub Major: ${selectedSubMajor.value}');
-    // print('Selected Sub Sub Major: ${selectedSubSubMajor.value}');
   }
 
   void reset() {

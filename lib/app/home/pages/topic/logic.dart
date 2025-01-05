@@ -24,7 +24,6 @@ import '../../../../component/widget.dart';
 import '../../config/logic.dart';
 import 'topic_add_form.dart';
 import 'topic_edit_form.dart';
-import 'package:excel/excel.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 
 class TopicLogic extends GetxController {
