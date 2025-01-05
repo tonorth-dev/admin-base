@@ -12,6 +12,8 @@ import 'package:admin_flutter/component/form/form_data.dart';
 import '../../../../api/config_api.dart';
 import '../../../../api/major_api.dart';
 import '../../../../api/book_template_api.dart';
+import '../../../../api/topic_api.dart';
+import '../../../../common/http_util.dart';
 import '../../../../component/pagination/logic.dart';
 import '../../../../component/table/table_data.dart';
 import '../../../../component/widget.dart';
@@ -648,6 +650,54 @@ class BookLogic extends GetxController {
       "删除成功".toHint();
     } catch (error) {
       "删除失败: $error".toHint();
+    }
+  }
+
+  final GlobalKey<SuggestionTextFieldState> topicTextFieldKey = GlobalKey<SuggestionTextFieldState>();
+  Rx<String> newTopicId = "0".obs;
+
+  Future<List<Map<String, dynamic>>> fetchTopics(String query) async {
+    print("query:$query");
+    try {
+      final response = await TopicApi.topicList({
+        "pageSize": "10",
+        "page": "1",
+        "keyword": query ?? "",
+      });
+      var data = response['list'];
+      print("response: $data");
+      // 检查数据是否为 List
+      if (data is List) {
+        final List<Map<String, dynamic>> suggestions = data.map((item) {
+          // 检查每个 item 是否包含 'name' 和 'id' 字段
+          if (item is Map && item.containsKey('name') && item.containsKey('id')) {
+            return {
+              'name': item['name'],
+              'id': item['id'].toString(),
+            };
+          } else {
+            throw FormatException('Invalid item format: $item');
+          }
+        }).toList();
+        print("suggestions： $suggestions");
+        return suggestions;
+      } else {
+        // Handle the case where data is not a List
+        return [];
+      }
+    } catch (e) {
+      // Handle any exceptions that are thrown
+      print('Error fetching instructions: $e');
+      return [];
+    }
+  }
+
+  Future<dynamic> changeTopic(question, String? selectedQuestion) async {
+    try {
+
+    } catch (e) {
+      print('Error in updateDirectory: $e');
+      rethrow; // 重新抛出异常以便调用者处理
     }
   }
 }

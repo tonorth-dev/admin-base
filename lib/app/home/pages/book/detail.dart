@@ -6,9 +6,11 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:open_file/open_file.dart';
-
+import 'package:get/get.dart';
 import '../../../../api/book_api.dart';
 import '../../../../common/config_util.dart';
+import '../../../../component/widget.dart';
+import 'logic.dart';
 
 class QuestionDetailPage extends StatefulWidget {
   final int id;
@@ -24,6 +26,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   bool _isLoading = true;
   String? _errorMessage;
   Map<int, String?> _selectedQuestions = {}; // 用于记录每行选中的题目ID
+  final logic = Get.put(BookLogic());
 
   @override
   void initState() {
@@ -81,7 +84,8 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
               side: MaterialStateProperty.all<BorderSide>(
                 BorderSide(color: Colors.redAccent, width: 2.0),
               ),
-              foregroundColor: MaterialStateProperty.all<Color>(Colors.redAccent),
+              foregroundColor: MaterialStateProperty.all<Color>(
+                  Colors.redAccent),
               padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
                 EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               ),
@@ -96,7 +100,8 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
               side: MaterialStateProperty.all<BorderSide>(
                 BorderSide(color: Colors.blueAccent, width: 2.0),
               ),
-              foregroundColor: MaterialStateProperty.all<Color>(Colors.blueAccent),
+              foregroundColor: MaterialStateProperty.all<Color>(
+                  Colors.blueAccent),
               padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
                 EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               ),
@@ -215,9 +220,11 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                       .entries
                       .map((entry) {
                     final desc = entry.value;
-                    final isLast = entry.key == ((_data?['component_desc'] as List?)?.length ?? 0) - 1;
+                    final isLast = entry.key ==
+                        ((_data?['component_desc'] as List?)?.length ?? 0) - 1;
                     return Text(desc + (isLast ? "" : "，"),
-                        style: TextStyle(fontSize: 15, color: Color(0xFF102b3f)));
+                        style: TextStyle(
+                            fontSize: 15, color: Color(0xFF102b3f)));
                   }).toList(),
                 ],
               ),
@@ -278,16 +285,17 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
               ),
               for (var detail in (section['questions_detail'] as List? ?? []))
                 for (var i = 0; i < (detail['list'] as List? ?? []).length; i++)
-                    TableRow(
-                      children: [
-                        _buildTableCell(Text((i + 1).toString())),
-                        _buildTableCell(Text(detail['list'][i]['id'].toString())),
-                        _buildTableCell(Text(detail['list'][i]['category_name'] ?? "")),
-                        _buildTableCell(Text(detail['list'][i]['title'] ?? "")),
-                        _buildTableCell(Text(detail['list'][i]['answer'] ?? "")),
-                        _buildTableCell(_buildChangeButton(i, detail['list'][i])),
-                      ],
-                    ),
+                  TableRow(
+                    children: [
+                      _buildTableCell(Text((i + 1).toString())),
+                      _buildTableCell(Text(detail['list'][i]['id'].toString())),
+                      _buildTableCell(
+                          Text(detail['list'][i]['category_name'] ?? "")),
+                      _buildTableCell(Text(detail['list'][i]['title'] ?? "")),
+                      _buildTableCell(Text(detail['list'][i]['answer'] ?? "")),
+                      _buildTableCell(_buildChangeButton(i, detail['list'][i])),
+                    ],
+                  ),
             ],
           ),
         ],
@@ -315,75 +323,100 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     );
   }
 
-  Widget _buildChangeButton(int i, dynamic question) {
+  Widget _buildChangeButton(int index, dynamic question) {
+    final isEditing = _selectedQuestions[index] != null;
+
     return ElevatedButton(
-      onPressed: () => _onChangeButtonPressed(i, question),
-      child: _selectedQuestions[i] == null
-          ? Text('换题')
-          : Text('保存'),
+      onPressed: () => _onChangeButtonPressed(index, question),
+      child: Text(isEditing ? '保存' : '换题'),
     );
   }
 
-  Future<void> _onChangeButtonPressed(int i, dynamic question) async {
-    if (_selectedQuestions[i] == null) {
-      // 显示下拉选择题目
-      final selectedQuestionId = await showDialog<int>(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('选择题目'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // 替换为适当的题目列表
-                DropdownButton<int>(
-                  items: [
-                    DropdownMenuItem(
-                      value: 123,
-                      child: Text("题目123"),
-                    ),
-                    DropdownMenuItem(
-                      value: 456,
-                      child: Text("题目456"),
-                    ),
-                    // 添加更多题目
-                  ],
-                  onChanged: (value) {
-                    Navigator.pop(context, value);
-                  },
-                ),
-              ],
-            ),
-          );
-        },
-      );
-
-      if (selectedQuestionId != null) {
-        setState(() {
-          _selectedQuestions[i] = selectedQuestionId.toString();
-        });
+  Future<void> _onChangeButtonPressed(int index, dynamic question) async {
+    // Reset all other buttons to initial state
+    setState(() {
+      for (var i = 0; i < _selectedQuestions.length; i++) {
+        if (i != index) {
+          _selectedQuestions[i] = null;
+        }
       }
+    });
+
+    if (_selectedQuestions[index] == null) {
+      // Show SuggestionTextField dialog
+      Get.defaultDialog(
+        title: "修改题目",
+        content: Container(
+          width: 1000, // 表格宽度
+          height: 400,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SuggestionTextField(
+                width: 200,
+                height: 34,
+                labelText: '筛选题目',
+                hintText: '输入题目标题或ID',
+                key: logic.topicTextFieldKey,
+                fetchSuggestions: logic.fetchTopics,
+                initialValue: ValueNotifier<Map<dynamic, dynamic>?>({
+                  'name': question["title"],
+                  'id': question["id"],
+                }),
+                onSelected: (value) {
+                  if (value.isEmpty) {
+                    logic.newTopicId.value = "";
+                    Navigator.pop(context);
+                    return;
+                  }
+                  logic.newTopicId.value = value['id']!;
+                  Navigator.pop(context, value['id']);
+                },
+                onChanged: (value) {
+                  if (value == null || value.isEmpty) {
+                    logic.newTopicId.value = ""; // Ensure clear
+                  }
+                  print("onChanged selectedInstitutionId value: ${logic.newTopicId.value}");
+                },
+              ),
+            ],
+          ),
+        ),
+        onCancel: () {
+          // Handle cancel action if needed
+        },
+        onConfirm: () {
+          // Handle confirm action if needed
+        },
+      ).then((value) {
+        // Update the selected question after dialog closes
+        final selectedQuestionId = logic.newTopicId.value;
+
+        if (selectedQuestionId.isNotEmpty) {
+          setState(() {
+            _selectedQuestions[index] = selectedQuestionId;
+          });
+        }
+      });
     } else {
-      // 保存修改
-      // 调用API更新题目
-      await BookApi.updateQuestion(question['id'], _selectedQuestions[i]);
+      // Save changes
+      await logic.changeTopic(question['id'], _selectedQuestions[index]);
       setState(() {
-        _selectedQuestions[i] = null;
+        _selectedQuestions[index] = null;
       });
     }
   }
 
-  // PDF导出函数
-  Future<void> _exportPdf({required bool isTeacherVersion}) async {
-    final pdf = pw.Document();
-    pdf.addPage(pw.Page(
-      build: (pw.Context context) {
-        return pw.Center(child: pw.Text('导出PDF功能，教师版: $isTeacherVersion'));
-      },
-    ));
-    final output = await getTemporaryDirectory();
-    final file = File("${output.path}/export.pdf");
-    await file.writeAsBytes(await pdf.save());
-    OpenFile.open(file.path);
-  }
-}
+// PDF导出函数
+Future<void> _exportPdf({required bool isTeacherVersion}) async {
+  final pdf = pw.Document();
+  pdf.addPage(pw.Page(
+    build: (pw.Context context) {
+      return pw.Center(child: pw.Text('导出PDF功能，教师版: $isTeacherVersion'));
+    },
+  ));
+  final output = await getTemporaryDirectory();
+  final file = File("${output.path}/export.pdf");
+  await file.writeAsBytes(await pdf.save());
+  OpenFile.open(file.path);
+}}
