@@ -285,18 +285,18 @@ class TopicLogic extends GetxController {
     );
 
     columns = [
-      ColumnData(title: "ID", key: "id", width: 80),
-      ColumnData(title: "题型", key: "cate_name"),
-      ColumnData(title: "难度", key: "level_name"),
-      ColumnData(title: "题干", key: "title"),
-      ColumnData(title: "答案", key: "answer"),
-      ColumnData(title: "专业ID", key: "major_id"),
-      ColumnData(title: "专业名称", key: "major_name"),
-      ColumnData(title: "标签", key: "tag"),
-      ColumnData(title: "录入人", key: "author"),
-      ColumnData(title: "状态", key: "status_name"),
-      ColumnData(title: "创建时间", key: "create_time"),
-      ColumnData(title: "更新时间", key: "update_time"),
+      ColumnData(title: "ID", key: "id", width: 65),
+      ColumnData(title: "题型", key: "cate_name", width: 80),
+      ColumnData(title: "难度", key: "level_name", width: 80),
+      ColumnData(title: "题干", key: "title", width: 280),
+      ColumnData(title: "答案", key: "answer", width: 400),
+      ColumnData(title: "专业ID", key: "major_id", width: 0),
+      ColumnData(title: "专业名称", key: "major_name", width: 90),
+      ColumnData(title: "标签", key: "tag", width: 100),
+      ColumnData(title: "录入人", key: "author", width: 80),
+      ColumnData(title: "状态", key: "status_name", width: 60),
+      ColumnData(title: "创建时间", key: "create_time", width: 0),
+      ColumnData(title: "更新时间", key: "update_time", width: 80),
     ];
 
     // 初始化数据
@@ -545,7 +545,7 @@ class TopicLogic extends GetxController {
   void generateAndOpenLink(
       BuildContext context, Map<String, dynamic> item) async {
     final url =
-        Uri.parse('http://localhost:8888/static/h5/?topicId=${item['id']}');
+        Uri.parse('http://127.0.0.1:8888/static/h5/?topicId=${item['id']}');
     if (await canLaunchUrl(url)) {
       await launchUrl(url);
     } else {

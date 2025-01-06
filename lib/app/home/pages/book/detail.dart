@@ -192,7 +192,12 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                       _buildTableCell(Text(detail['list'][i]['title'] ?? "")),
                       _buildTableCell(Text(detail['list'][i]['answer'] ?? "")),
                       _buildTableCell(
-                          _buildChangeOrSaveButton(detail['list'][i])),
+                        Container(
+                          alignment: Alignment.center,
+                          height: 100, // 确保固定高度，便于居中
+                          child: _buildChangeOrSaveButton(detail['list'][i]),
+                        ),
+                      ),
                     ],
                   ),
             ],
@@ -230,16 +235,18 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     });
 
     await Get.defaultDialog(
-      title: "更换题目",
-      titleStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-      // 设置标题样式
+      title: "更换试题",
+      titleStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFf3722c)),
+      titlePadding: EdgeInsets.all(20),
+      // 移除默认的标题内边距
       content: Container(
         width: 500, // 调整宽度以适应不同屏幕尺寸
         height: 300, // 减小高度，使对话框更紧凑
-        padding: EdgeInsets.all(20), // 增加内边距以提供更好的视觉效果
+        padding: EdgeInsets.all(0), // 增加内边距以提供更好的视觉效果
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            SizedBox(height: 10), // 添加一些间距
             SuggestionTextField(
               width: double.infinity,
               // 让输入框占据整个宽度
@@ -291,7 +298,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     );
   }
 
-  Future<void> _onPopSaveButtonPressed(dynamic question, int newId) async {
+    Future<void> _onPopSaveButtonPressed(dynamic question, int newId) async {
     if (newId <= 0 || newId == question['id']) {
       setState(() {
         _selectedQuestions.remove(question['id']);

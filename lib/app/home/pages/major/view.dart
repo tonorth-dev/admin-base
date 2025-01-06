@@ -312,12 +312,6 @@ class MajorDataSource extends DataGridSource {
                 text: "删除",
                 onTap: () => logic.delete(item, rowIndex),
               ),
-              SizedBox(width: 5), // 控制按钮之间的间距
-              if (item['status'] == 1) // 假设 status 字段表示数据状态
-                HoverTextButton(
-                  text: "邀请",
-                  onTap: () => logic.generateAndOpenLink(context, item),
-                )
             ],
           )
       ],

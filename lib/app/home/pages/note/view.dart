@@ -18,7 +18,7 @@ class NotePage extends StatelessWidget {
       children: [
         Expanded(
           child: Container(
-            width: 500,
+            width: 400,
             padding: const EdgeInsets.all(16.0),
             child: NoteTableView(
                 key: const Key("noteT_table"), title: "题本列表", logic: logic),

@@ -279,18 +279,6 @@ class InstitutionLogic extends GetxController {
     }
   }
 
-  void generateAndOpenLink(
-      BuildContext context, Map<String, dynamic> item) async {
-    final url =
-        Uri.parse('http://localhost:8888/static/h5/?institutionId=${item['id']}');
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url);
-    } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('无法打开链接')));
-    }
-  }
-
   @override
   void refresh() {
     find(size.value, page.value);

@@ -57,7 +57,7 @@ class StudentPage extends StatelessWidget {
                 width: 110, // 自定义宽度
                 height: 32, // 自定义高度
               ),
-              SizedBox(width: 300), // 添加一些间距
+              SizedBox(width: 180), // 添加一些间距
               Padding(
                 padding: EdgeInsets.all(16.0),
                 child: FutureBuilder<void>(

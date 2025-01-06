@@ -22,140 +22,153 @@ class TopicPage extends StatelessWidget {
         children: [
           TableEx.actions(
             children: [
-              SizedBox(width: 30), // 添加一些间距
-              CustomButton(
-                onPressed: () => logic.add(context),
-                text: '新增',
-                width: 70, // 自定义宽度
-                height: 32, // 自定义高度
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  SizedBox(width: 10), // 添加一些间距
+                  CustomButton(
+                    onPressed: () => logic.add(context),
+                    text: '新增',
+                    width: 70,
+                    height: 32,
+                  ),
+                  SizedBox(width: 8),
+                  CustomButton(
+                    onPressed: () => logic.batchDelete(logic.selectedRows),
+                    text: '批量删除',
+                    width: 90,
+                    height: 32,
+                  ),
+                  SizedBox(width: 8),
+                  CustomButton(
+                    onPressed: logic.exportSelectedItemsToXLSX,
+                    text: '导出选中',
+                    width: 90,
+                    height: 32,
+                  ),
+                  SizedBox(width: 8),
+                  CustomButton(
+                    onPressed: logic.exportAllToXLSX,
+                    text: '导出全部',
+                    width: 90,
+                    height: 32,
+                  ),
+                  SizedBox(width: 8),
+                  CustomButton(
+                    onPressed: logic.importFromXLSX,
+                    text: '从Excel导入',
+                    width: 110,
+                    height: 32,
+                  ),
+                ],
               ),
-              SizedBox(width: 8), // 添加一些间距
-              CustomButton(
-                onPressed: () => logic.batchDelete(logic.selectedRows),
-                text: '批量删除',
-                width: 90, // 自定义宽度
-                height: 32, // 自定义高度
+              SizedBox(width: 20), // ### 添加换行间距 ###
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  DropdownField(
+                    key: logic.cateDropdownKey,
+                    items: logic.questionCate.toList(),
+                    hint: '选择题型',
+                    label: true,
+                    width: 110,
+                    height: 34,
+                    selectedValue: logic.selectedQuestionCate,
+                    onChanged: (dynamic newValue) {
+                      logic.selectedQuestionCate.value = newValue.toString();
+                    },
+                  ),
+                  SizedBox(width: 8),
+                  DropdownField(
+                    key: logic.levelDropdownKey,
+                    items: logic.questionLevel.toList(),
+                    hint: '选择难度',
+                    label: true,
+                    width: 110,
+                    height: 34,
+                    selectedValue: logic.selectedQuestionLevel,
+                    onChanged: (dynamic newValue) {
+                      logic.selectedQuestionLevel.value = newValue.toString();
+                      logic.applyFilters();
+                    },
+                  ),
+                  SizedBox(width: 8),
+                  DropdownField(
+                    key: logic.statusDropdownKey,
+                    items: logic.questionStatus.toList(),
+                    hint: '选择状态',
+                    label: true,
+                    width: 110,
+                    height: 34,
+                    selectedValue: logic.selectedQuestionStatus,
+                    onChanged: (dynamic newValue) {
+                      logic.selectedQuestionStatus.value = newValue;
+                      logic.applyFilters();
+                    },
+                  ),
+                ],
               ),
-              SizedBox(width: 8), // 添加一些间距
-              CustomButton(
-                onPressed: logic.exportSelectedItemsToXLSX,
-                text: '导出选中',
-                width: 90, // 自定义宽度
-                height: 32, // 自定义高度
-              ),
-              SizedBox(width: 8), // 添加一些间距
-              CustomButton(
-                onPressed: logic.exportAllToXLSX,
-                text: '导出全部',
-                width: 90, // 自定义宽度
-                height: 32, // 自定义高度
-              ),
-              SizedBox(width: 8), // 添加一些间距
-              CustomButton(
-                onPressed: logic.importFromXLSX,
-                text: '从Excel导入',
-                width: 110, // 自定义宽度
-                height: 32, // 自定义高度
-              ),
-              SizedBox(width: 120), // 添加一些间距
-              DropdownField(
-                key: logic.cateDropdownKey,
-                items: logic.questionCate.toList(),
-                hint: '选择题型',
-                label: true,
-                width: 110,
-                height: 34,
-                selectedValue: logic.selectedQuestionCate,
-                onChanged: (dynamic newValue) {
-                  logic.selectedQuestionCate.value = newValue.toString();
-                },
-              ),
-              SizedBox(width: 8),
-              DropdownField(
-                key: logic.levelDropdownKey,
-                items: logic.questionLevel.toList(),
-                hint: '选择难度',
-                label: true,
-                width: 110,
-                height: 34,
-                selectedValue: logic.selectedQuestionLevel,
-                onChanged: (dynamic newValue) {
-                  logic.selectedQuestionLevel.value = newValue.toString();
-                  logic.applyFilters();
-                },
-              ),
-              SizedBox(width: 8),
-              DropdownField(
-                key: logic.statusDropdownKey,
-                items: logic.questionStatus.toList(),
-                hint: '选择状态',
-                label: true,
-                width: 110,
-                height: 34,
-                selectedValue: logic.selectedQuestionStatus,
-                onChanged: (dynamic newValue) {
-                  logic.selectedQuestionStatus.value = newValue;
-                  logic.applyFilters();
-                },
-              ),
-              Padding(
-                padding: EdgeInsets.all(16.0),
-                child: FutureBuilder<void>(
-                  future: logic.fetchMajors(), // 调用 fetchMajors 方法
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(
-                          child: CircularProgressIndicator()); // 加载中显示进度条
-                    } else if (snapshot.hasError) {
-                      return Text('加载失败: ${snapshot.error}');
-                    } else {
-                      return CascadingDropdownField(
-                        key: logic.majorDropdownKey,
-                        width: 110,
-                        height: 34,
-                        hint1: '专业类目一',
-                        hint2: '专业类目二',
-                        hint3: '专业名称',
-                        level1Items: logic.level1Items,
-                        level2Items: logic.level2Items,
-                        level3Items: logic.level3Items,
-                        selectedLevel1: ValueNotifier(null),
-                        selectedLevel2: ValueNotifier(null),
-                        selectedLevel3: ValueNotifier(null),
-                        onChanged:
-                            (dynamic level1, dynamic level2, dynamic level3) {
-                          logic.selectedMajorId.value = level3.toString();
-                          // 这里可以处理选择的 id
-                        },
-                      );
-                    }
-                  },
-                ),
-              ),
-              SearchBoxWidget(
-                key: Key('keywords'),
-                hint: '题干、答案、标签',
-                onTextChanged: (String value) {
-                  logic.searchText.value = value;
-                  logic.applyFilters();
-                },
-                searchText: logic.searchText,
-              ),
-              SizedBox(width: 10),
-              SearchButtonWidget(
-                key: Key('search'),
-                onPressed: () {
-                  logic.selectedRows.clear();
-                  logic.find(logic.size.value, logic.page.value);
-                },
-              ),
-              SizedBox(width: 8),
-              ResetButtonWidget(
-                key: Key('reset'),
-                onPressed: () {
-                  logic.reset();
-                  logic.find(logic.size.value, logic.page.value);
-                },
+              SizedBox(height: 16), // ### 添加换行间距 ###
+              Row(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: FutureBuilder<void>(
+                      future: logic.fetchMajors(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Center(
+                              child: CircularProgressIndicator()); // 加载中显示进度条
+                        } else if (snapshot.hasError) {
+                          return Text('加载失败: ${snapshot.error}');
+                        } else {
+                          return CascadingDropdownField(
+                            key: logic.majorDropdownKey,
+                            width: 110,
+                            height: 34,
+                            hint1: '专业类目一',
+                            hint2: '专业类目二',
+                            hint3: '专业名称',
+                            level1Items: logic.level1Items,
+                            level2Items: logic.level2Items,
+                            level3Items: logic.level3Items,
+                            selectedLevel1: ValueNotifier(null),
+                            selectedLevel2: ValueNotifier(null),
+                            selectedLevel3: ValueNotifier(null),
+                            onChanged: (dynamic level1, dynamic level2, dynamic level3) {
+                              logic.selectedMajorId.value = level3.toString();
+                            },
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                  SearchBoxWidget(
+                    key: Key('keywords'),
+                    hint: '题干、答案、标签',
+                    onTextChanged: (String value) {
+                      logic.searchText.value = value;
+                      logic.applyFilters();
+                    },
+                    searchText: logic.searchText,
+                  ),
+                  SizedBox(width: 10),
+                  SearchButtonWidget(
+                    key: Key('search'),
+                    onPressed: () {
+                      logic.selectedRows.clear();
+                      logic.find(logic.size.value, logic.page.value);
+                    },
+                  ),
+                  SizedBox(width: 8),
+                  ResetButtonWidget(
+                    key: Key('reset'),
+                    onPressed: () {
+                      logic.reset();
+                      logic.find(logic.size.value, logic.page.value);
+                    },
+                  ),
+                ],
               ),
             ],
           ),
@@ -175,11 +188,11 @@ class TopicPage extends StatelessWidget {
                         gridLinesVisibility: GridLinesVisibility.values[1],
                         columnWidthMode: ColumnWidthMode.fill,
                         headerRowHeight: 50,
-                        rowHeight: 60,
+                        rowHeight: 90,
                         columns: [
                           GridColumn(
                             columnName: 'Select',
-                            width: 100,
+                            width: 60,
                             label: Container(
                               color: Color(0xFFF3F4F8),
                               alignment: Alignment.center,
@@ -206,7 +219,7 @@ class TopicPage extends StatelessWidget {
                           ),
                           ...logic.columns.map((column) => GridColumn(
                                 columnName: column.key,
-                                width: _getColumnWidth(column.key),
+                                width: column.width,
                                 label: Container(
                                   color: Color(0xFFF3F4F8),
                                   alignment: Alignment.center,
@@ -253,27 +266,6 @@ class TopicPage extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  double _getColumnWidth(String key) {
-    switch (key) {
-      case 'id':
-        return 65;
-      case 'cate':
-        return 90;
-      case 'title':
-        return 240;
-      case 'answer':
-        return 320;
-      case 'major_id':
-        return 80;
-      case 'major_name':
-        return 100;
-      case 'create_time':
-        return 0;
-      default:
-        return 100; // 默认宽度
-    }
   }
 
   static SidebarTree newThis() {
@@ -356,7 +348,7 @@ class TopicDataSource extends DataGridSource {
               ),
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final isOverflowing = value.length > 100; // 判断是否溢出
+                  final isOverflowing = value.length > 340; // 判断是否溢出
                   return Row(
                     children: [
                       Expanded(
@@ -365,7 +357,7 @@ class TopicDataSource extends DataGridSource {
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
                             value,
-                            maxLines: 2,
+                            maxLines: 3,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(fontSize: 14),
                           ),

@@ -22,7 +22,7 @@ class QuestionPage extends StatelessWidget {
         children: [
           TableEx.actions(
             children: [
-              SizedBox(width: 800), // 添加一些间距
+              SizedBox(width: 500), // 添加一些间距
               DropdownField(
                 key: logic.cateDropdownKey,
                 items: logic.questionCate.toList(),

@@ -299,7 +299,7 @@ class CascadingDropdownField extends StatefulWidget {
     required this.hint1,
     required this.hint2,
     required this.hint3,
-    this.width = 160,
+    this.width = 150,
     this.height = 34,
     required this.selectedLevel1,
     required this.selectedLevel2,
@@ -417,8 +417,8 @@ class CascadingDropdownFieldState extends State<CascadingDropdownField> {
         onSuggestionSelected: _onLevel1Changed,
       ),
       SizedBox(
-          width: widget.axis == Axis.horizontal ? 8 : 0,
-          height: widget.axis == Axis.vertical ? 8 : 0),
+          width: widget.axis == Axis.horizontal ? 5 : 0,
+          height: widget.axis == Axis.vertical ? 5 : 0),
       _buildTypeAheadField(
         controller: _level2Controller,
         focusNode: _level2FocusNode,
@@ -429,8 +429,8 @@ class CascadingDropdownFieldState extends State<CascadingDropdownField> {
         onSuggestionSelected: _onLevel2Changed,
       ),
       SizedBox(
-          width: widget.axis == Axis.horizontal ? 8 : 0,
-          height: widget.axis == Axis.vertical ? 8 : 0),
+          width: widget.axis == Axis.horizontal ? 5 : 0,
+          height: widget.axis == Axis.vertical ? 5 : 0),
       _buildTypeAheadField(
         controller: _level3Controller,
         focusNode: _level3FocusNode,
@@ -560,7 +560,7 @@ class SearchBoxWidget extends StatefulWidget {
     required this.onTextChanged,
     required this.searchText,
     this.buttonText = "查询", // 默认按钮文字
-    this.width = 200, // 默认宽度
+    this.width = 160, // 默认宽度
     this.height = 34, // 默认高度
   }) : super(key: key);
 

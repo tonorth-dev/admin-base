@@ -59,7 +59,7 @@ class InstitutionPage extends StatelessWidget {
               ),
               SizedBox(width: 340), // 添加一些间距
               SizedBox(
-                width: 500,
+                width: 340,
                 child: Padding(
                   padding: EdgeInsets.all(16.0),
                   child: ProvinceCityDistrictSelector(

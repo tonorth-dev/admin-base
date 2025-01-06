@@ -208,9 +208,9 @@ class MLogic extends GetxController {
 
     columns = [
       ColumnData(title: "ID", key: "id", width: 80),
-      ColumnData(title: "一级类别", key: "first_level_category", width: 150),
-      ColumnData(title: "二级类别", key: "second_level_category", width: 150),
-      ColumnData(title: "专业名称", key: "major_name", width: 150),
+      ColumnData(title: "一级类别", key: "first_level_category", width: 120),
+      ColumnData(title: "二级类别", key: "second_level_category", width: 120),
+      ColumnData(title: "专业名称", key: "major_name", width: 120),
       ColumnData(title: "年份", key: "year", width: 0),
       ColumnData(title: "创建时间", key: "create_time", width: 0),
       ColumnData(title: "更新时间", key: "update_time", width: 0),
@@ -331,18 +331,6 @@ class MLogic extends GetxController {
       find(size.value, page.value);
     } catch (e) {
       "审核失败: $e".toHint();
-    }
-  }
-
-  void generateAndOpenLink(
-      BuildContext context, Map<String, dynamic> item) async {
-    final url =
-    Uri.parse('http://localhost:8888/static/h5/?majorId=${item['id']}');
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url);
-    } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('无法打开链接')));
     }
   }
 
