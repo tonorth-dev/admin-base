@@ -1,3 +1,4 @@
+import 'package:admin_flutter/ex/ex_hint.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +9,7 @@ import 'dart:io';
 import 'package:open_file/open_file.dart';
 import 'package:get/get.dart';
 import '../../../../api/book_api.dart';
+import '../../../../api/topic_api.dart';
 import '../../../../common/config_util.dart';
 import '../../../../component/widget.dart';
 import 'logic.dart';
@@ -65,17 +67,17 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
       appBar: AppBar(
         title: _data != null
             ? Text(_data!['name'],
-            style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.w400,
-                fontFamily: 'OPPOSans',
-                color: Color(0xFF003F91)))
+                style: TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.w400,
+                    fontFamily: 'OPPOSans',
+                    color: Color(0xFF003F91)))
             : Text("题本详情",
-            style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.w400,
-                fontFamily: 'OPPOSans',
-                color: Color(0xFF051923))),
+                style: TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.w400,
+                    fontFamily: 'OPPOSans',
+                    color: Color(0xFF051923))),
         actions: [
           OutlinedButton.icon(
             icon: Icon(Icons.save_alt),
@@ -86,7 +88,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                 BorderSide(color: Colors.redAccent, width: 2.0),
               ),
               foregroundColor:
-              MaterialStateProperty.all<Color>(Colors.redAccent),
+                  MaterialStateProperty.all<Color>(Colors.redAccent),
               padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
                 EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               ),
@@ -102,7 +104,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                 BorderSide(color: Colors.blueAccent, width: 2.0),
               ),
               foregroundColor:
-              MaterialStateProperty.all<Color>(Colors.blueAccent),
+                  MaterialStateProperty.all<Color>(Colors.blueAccent),
               padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
                 EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               ),
@@ -120,8 +122,8 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           child: _isLoading
               ? Center(child: CircularProgressIndicator())
               : _errorMessage != null
-              ? Center(child: Text(_errorMessage!))
-              : _buildContent(),
+                  ? Center(child: Text(_errorMessage!))
+                  : _buildContent(),
         ),
       ),
     );
@@ -165,10 +167,9 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
             columnWidths: {
               0: FixedColumnWidth(60),
               1: FixedColumnWidth(120),
-              2: FixedColumnWidth(110),
-              3: FixedColumnWidth(290),
-              4: FixedColumnWidth(840),
-              5: FixedColumnWidth(120),
+              2: FixedColumnWidth(290),
+              3: FixedColumnWidth(840),
+              4: FixedColumnWidth(120),
             },
             children: [
               TableRow(
@@ -176,7 +177,6 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                 children: [
                   _buildTableHeader('序号'),
                   _buildTableHeader('试题ID'),
-                  _buildTableHeader('试题分类'),
                   _buildTableHeader('试题标题'),
                   _buildTableHeader('试题答案'),
                   _buildTableHeader('操作'),
@@ -188,11 +188,10 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                     children: [
                       _buildTableCell(Text((i + 1).toString())),
                       _buildTableCell(Text(detail['list'][i]['id'].toString())),
-                      _buildTableCell(
-                          Text(detail['list'][i]['category_name'] ?? "")),
                       _buildTableCell(Text(detail['list'][i]['title'] ?? "")),
                       _buildTableCell(Text(detail['list'][i]['answer'] ?? "")),
-                      _buildTableCell(_buildChangeOrSaveButton(detail['list'][i])),
+                      _buildTableCell(
+                          _buildChangeOrSaveButton(detail['list'][i])),
                     ],
                   ),
             ],
@@ -220,31 +219,6 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
       padding: EdgeInsets.all(10),
       child: child,
     );
-  }
-
-  Widget _buildChangeOrSaveButton(Map<String, dynamic> question) {
-    final isEditing = _selectedQuestions.containsKey(question['id']);
-
-    if (isEditing) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          ElevatedButton(
-            onPressed: () => _onSaveButtonPressed(question),
-            child: Text('保存'),
-          ),
-          ElevatedButton(
-            onPressed: () => _onCancelButtonPressed(question),
-            child: Text('取消'),
-          ),
-        ],
-      );
-    } else {
-      return ElevatedButton(
-        onPressed: () => _onChangeButtonPressed(question),
-        child: Text('换题'),
-      );
-    }
   }
 
   Future<void> _onChangeButtonPressed(dynamic question) async {
@@ -282,31 +256,69 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                 if (value == null || value.isEmpty) {
                   logic.newTopicId.value = 0;
                 }
-                print(
-                    "onChanged selectedInstitutionId value: ${logic.newTopicId.value}");
               },
             ),
           ],
         ),
       ),
-      onCancel: () => _onCancelButtonPressed(question),
+      onCancel: () => _onPopCancelButtonPressed(question),
       onConfirm: () async {
         final newQuestionId = logic.newTopicId.value;
-
-        if (newQuestionId > 0) {
-          await _onSaveButtonPressed(question, newQuestionId);
-        } else {
-          _onCancelButtonPressed(question);
-        }
+        await _onPopSaveButtonPressed(question, newQuestionId);
       },
     );
   }
 
-  Future<void> _onSaveButtonPressed(dynamic question, [int? newId]) async {
-    if (newId != null) {
-      _selectedQuestions[question['id']] = newId;
+  Future<void> _onPopSaveButtonPressed(dynamic question, int newId) async {
+    if (newId <= 0 || newId == question['id']) {
+      setState(() {
+        _selectedQuestions.remove(question['id']);
+      });
+      logic.newTopicId.value = 0;
+      Get.back();
+      return;
     }
-    await logic.changeTopic(question['id'], _selectedQuestions[question['id']]!);
+
+    _selectedQuestions[question['id']] = newId;
+    var response = await TopicApi.topicDetail(newId.toString());
+    setState(() {
+      // 更新数据源中的题目信息（假设 _data 中 questions_desc 是可变的）
+      final questionsDesc = _data?['questions_desc'] as List?;
+      if (questionsDesc != null) {
+        for (var section in questionsDesc) {
+          for (var detail in (section['questions_detail'] as List? ?? [])) {
+            final list = detail['list'] as List?;
+            if (list != null) {
+              for (var item in list) {
+                if (item['id'] == question['id']) {
+                  item['id'] = newId; // 更新 ID
+                  item['title'] = response["title"];
+                  item['answer'] = response["answer"];
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+    logic.newTopicId.value = 0;
+    Get.back();
+  }
+
+  Future<void> _onPopCancelButtonPressed(dynamic question) async {
+    setState(() {
+      _selectedQuestions.remove(question['id']);
+    });
+    logic.newTopicId.value = 0;
+  }
+
+  Future<void> _onSaveButtonPressed(
+      int bookID, dynamic question, int newId) async {
+    try {
+      await logic.changeTopic(bookID, question['id'], newId);
+    } catch (e) {
+      "换题失败：$e".toHint();
+    }
     setState(() {
       _selectedQuestions.remove(question['id']);
     });
@@ -316,6 +328,31 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     setState(() {
       _selectedQuestions.remove(question['id']);
     });
+  }
+
+  Widget _buildChangeOrSaveButton(Map<String, dynamic> question) {
+    final isEditing = _selectedQuestions.containsKey(question['id']);
+
+    if (isEditing) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          ElevatedButton(
+            onPressed: () => _onSaveButtonPressed(widget.id, 0, 0),
+            child: Text('保存'),
+          ),
+          ElevatedButton(
+            onPressed: () => _onCancelButtonPressed(question),
+            child: Text('取消'),
+          ),
+        ],
+      );
+    } else {
+      return ElevatedButton(
+        onPressed: () => _onChangeButtonPressed(question),
+        child: Text('换题'),
+      );
+    }
   }
 
   Future<void> _exportPdf({required bool isTeacherVersion}) async {

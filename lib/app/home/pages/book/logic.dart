@@ -692,9 +692,12 @@ class BookLogic extends GetxController {
     }
   }
 
-  Future<dynamic> changeTopic(int question, int selectedQuestion) async {
+  Future<dynamic> changeTopic(int bookId, int oldId, int newId) async {
     try {
-        print("question:$question, selectedQuestion:$selectedQuestion");
+        BookApi.updateQuestions(bookId, {
+          "new_question_id" : newId,
+          "old_question_id" : oldId,
+        });
     } catch (e) {
       print('Error in updateDirectory: $e');
       rethrow; // 重新抛出异常以便调用者处理

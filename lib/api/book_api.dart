@@ -102,7 +102,23 @@ class BookApi {
     }
   }
 
-  static updateQuestion(question, String? selectedQuestion) {}
+  static Future<dynamic> updateQuestions(int id, Map<String, dynamic> params) async {
+    try {
+      // 必传字段校验
+      List<String> requiredFields = [
+        'old_question_id',
+        'new_question_id',
+      ];
+      for (var field in requiredFields) {
+        if (!params.containsKey(field) || params[field] == null) {
+          throw ArgumentError('缺少必填字段: $field');
+        }
+      }
 
-
+      return await HttpUtil.put("/admin/book/book/questions/$id", params: params);
+    } catch (e) {
+      print('更新题目时发生错误: $e');
+      rethrow; // 重新抛出异常以便调用者处理
+    }
+  }
 }

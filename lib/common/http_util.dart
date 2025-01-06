@@ -6,7 +6,7 @@ import 'package:dio/dio.dart';
 import 'config_util.dart';
 
 class HttpUtil {
-  static const authorization = "Authorization";
+  static const authorization = "X-Token";
 
   static final dio = Dio(BaseOptions(
     baseUrl: ConfigUtil.httpPort == "" ? ConfigUtil.baseUrl : "${ConfigUtil.baseUrl}:${ConfigUtil.httpPort}",
