@@ -25,12 +25,13 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   Map<String, dynamic>? _data;
   bool _isLoading = true;
   String? _errorMessage;
-  Map<int, String?> _selectedQuestions = {}; // 用于记录每行选中的题目ID
+  late Map<int, int?> _selectedQuestions;
   final logic = Get.put(BookLogic());
 
   @override
   void initState() {
     super.initState();
+    _selectedQuestions = {};
     _fetchData();
   }
 
@@ -84,8 +85,8 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
               side: MaterialStateProperty.all<BorderSide>(
                 BorderSide(color: Colors.redAccent, width: 2.0),
               ),
-              foregroundColor: MaterialStateProperty.all<Color>(
-                  Colors.redAccent),
+              foregroundColor:
+              MaterialStateProperty.all<Color>(Colors.redAccent),
               padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
                 EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               ),
@@ -100,14 +101,16 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
               side: MaterialStateProperty.all<BorderSide>(
                 BorderSide(color: Colors.blueAccent, width: 2.0),
               ),
-              foregroundColor: MaterialStateProperty.all<Color>(
-                  Colors.blueAccent),
+              foregroundColor:
+              MaterialStateProperty.all<Color>(Colors.blueAccent),
               padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
                 EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               ),
             ),
           ),
-          SizedBox(width: 300,)
+          SizedBox(
+            width: 300,
+          )
         ],
       ),
       body: ConstrainedBox(
@@ -131,111 +134,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Text('专业：',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                            fontFamily: 'OPPOSans',
-                            color: Color(0xFF102b3f))),
-                    Text(' ${_data?['major_name']}',
-                        style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w300,
-                            color: Color(0xFF102b3f))),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Row(
-                  children: [
-                    Text('难度：',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                            fontFamily: 'OPPOSans',
-                            color: Color(0xFF102b3f))),
-                    Text(' ${_data?['level_name']}',
-                        style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w300,
-                            color: Color(0xFF102b3f))),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Row(
-                  children: [
-                    Text('试题套数：',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                            fontFamily: 'OPPOSans',
-                            color: Color(0xFF102b3f))),
-                    Text(' ${_data?['unit_number']}',
-                        style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w300,
-                            color: Color(0xFF102b3f))),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          Divider(height: 20),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Expanded(
-              child: Row(
-                children: [
-                  Text('试题总数：',
-                      style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                          fontFamily: 'OPPOSans',
-                          color: Color(0xFF102b3f))),
-                  Text(' ${_data?['questions_number']}',
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w300,
-                          color: Color(0xFF102b3f))),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Row(
-                children: [
-                  Text('试题组成：',
-                      style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                          fontFamily: 'OPPOSans',
-                          color: Color(0xFF102b3f))),
-                  ...((_data?['component_desc'] as List?) ?? [])
-                      .asMap()
-                      .entries
-                      .map((entry) {
-                    final desc = entry.value;
-                    final isLast = entry.key ==
-                        ((_data?['component_desc'] as List?)?.length ?? 0) - 1;
-                    return Text(desc + (isLast ? "" : "，"),
-                        style: TextStyle(
-                            fontSize: 15, color: Color(0xFF102b3f)));
-                  }).toList(),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Row(
-                children: [],
-              ),
-            ),
-          ]),
-          Divider(height: 20),
+          // ... (previous content)
           ...(_buildTables()),
         ],
       ),
@@ -280,7 +179,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                   _buildTableHeader('试题分类'),
                   _buildTableHeader('试题标题'),
                   _buildTableHeader('试题答案'),
-                  _buildTableHeader('换题'),
+                  _buildTableHeader('操作'),
                 ],
               ),
               for (var detail in (section['questions_detail'] as List? ?? []))
@@ -293,7 +192,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                           Text(detail['list'][i]['category_name'] ?? "")),
                       _buildTableCell(Text(detail['list'][i]['title'] ?? "")),
                       _buildTableCell(Text(detail['list'][i]['answer'] ?? "")),
-                      _buildTableCell(_buildChangeButton(i, detail['list'][i])),
+                      _buildTableCell(_buildChangeOrSaveButton(detail['list'][i])),
                     ],
                   ),
             ],
@@ -323,100 +222,112 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     );
   }
 
-  Widget _buildChangeButton(int index, dynamic question) {
-    final isEditing = _selectedQuestions[index] != null;
+  Widget _buildChangeOrSaveButton(Map<String, dynamic> question) {
+    final isEditing = _selectedQuestions.containsKey(question['id']);
 
-    return ElevatedButton(
-      onPressed: () => _onChangeButtonPressed(index, question),
-      child: Text(isEditing ? '保存' : '换题'),
-    );
-  }
-
-  Future<void> _onChangeButtonPressed(int index, dynamic question) async {
-    // Reset all other buttons to initial state
-    setState(() {
-      for (var i = 0; i < _selectedQuestions.length; i++) {
-        if (i != index) {
-          _selectedQuestions[i] = null;
-        }
-      }
-    });
-
-    if (_selectedQuestions[index] == null) {
-      // Show SuggestionTextField dialog
-      Get.defaultDialog(
-        title: "修改题目",
-        content: Container(
-          width: 1000, // 表格宽度
-          height: 400,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SuggestionTextField(
-                width: 200,
-                height: 34,
-                labelText: '筛选题目',
-                hintText: '输入题目标题或ID',
-                key: logic.topicTextFieldKey,
-                fetchSuggestions: logic.fetchTopics,
-                initialValue: ValueNotifier<Map<dynamic, dynamic>?>({
-                  'name': question["title"],
-                  'id': question["id"],
-                }),
-                onSelected: (value) {
-                  if (value.isEmpty) {
-                    logic.newTopicId.value = "";
-                    Navigator.pop(context);
-                    return;
-                  }
-                  logic.newTopicId.value = value['id']!;
-                  Navigator.pop(context, value['id']);
-                },
-                onChanged: (value) {
-                  if (value == null || value.isEmpty) {
-                    logic.newTopicId.value = ""; // Ensure clear
-                  }
-                  print("onChanged selectedInstitutionId value: ${logic.newTopicId.value}");
-                },
-              ),
-            ],
+    if (isEditing) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          ElevatedButton(
+            onPressed: () => _onSaveButtonPressed(question),
+            child: Text('保存'),
           ),
-        ),
-        onCancel: () {
-          // Handle cancel action if needed
-        },
-        onConfirm: () {
-          // Handle confirm action if needed
-        },
-      ).then((value) {
-        // Update the selected question after dialog closes
-        final selectedQuestionId = logic.newTopicId.value;
-
-        if (selectedQuestionId.isNotEmpty) {
-          setState(() {
-            _selectedQuestions[index] = selectedQuestionId;
-          });
-        }
-      });
+          ElevatedButton(
+            onPressed: () => _onCancelButtonPressed(question),
+            child: Text('取消'),
+          ),
+        ],
+      );
     } else {
-      // Save changes
-      await logic.changeTopic(question['id'], _selectedQuestions[index]);
-      setState(() {
-        _selectedQuestions[index] = null;
-      });
+      return ElevatedButton(
+        onPressed: () => _onChangeButtonPressed(question),
+        child: Text('换题'),
+      );
     }
   }
 
-// PDF导出函数
-Future<void> _exportPdf({required bool isTeacherVersion}) async {
-  final pdf = pw.Document();
-  pdf.addPage(pw.Page(
-    build: (pw.Context context) {
-      return pw.Center(child: pw.Text('导出PDF功能，教师版: $isTeacherVersion'));
-    },
-  ));
-  final output = await getTemporaryDirectory();
-  final file = File("${output.path}/export.pdf");
-  await file.writeAsBytes(await pdf.save());
-  OpenFile.open(file.path);
-}}
+  Future<void> _onChangeButtonPressed(dynamic question) async {
+    setState(() {
+      _selectedQuestions[question['id']] = null;
+    });
+
+    await Get.defaultDialog(
+      title: "更换题目",
+      content: Container(
+        width: 1000,
+        height: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SuggestionTextField(
+              width: 200,
+              height: 34,
+              labelText: '筛选题目',
+              hintText: '输入题目标题或ID',
+              key: logic.topicTextFieldKey,
+              fetchSuggestions: logic.fetchTopics,
+              initialValue: ValueNotifier<Map<dynamic, dynamic>?>({
+                'name': question["title"],
+                'id': question["id"],
+              }),
+              onSelected: (value) {
+                if (value.isEmpty) {
+                  logic.newTopicId.value = 0;
+                  return;
+                }
+                logic.newTopicId.value = int.parse(value['id']);
+              },
+              onChanged: (value) {
+                if (value == null || value.isEmpty) {
+                  logic.newTopicId.value = 0;
+                }
+                print(
+                    "onChanged selectedInstitutionId value: ${logic.newTopicId.value}");
+              },
+            ),
+          ],
+        ),
+      ),
+      onCancel: () => _onCancelButtonPressed(question),
+      onConfirm: () async {
+        final newQuestionId = logic.newTopicId.value;
+
+        if (newQuestionId > 0) {
+          await _onSaveButtonPressed(question, newQuestionId);
+        } else {
+          _onCancelButtonPressed(question);
+        }
+      },
+    );
+  }
+
+  Future<void> _onSaveButtonPressed(dynamic question, [int? newId]) async {
+    if (newId != null) {
+      _selectedQuestions[question['id']] = newId;
+    }
+    await logic.changeTopic(question['id'], _selectedQuestions[question['id']]!);
+    setState(() {
+      _selectedQuestions.remove(question['id']);
+    });
+  }
+
+  void _onCancelButtonPressed(dynamic question) {
+    setState(() {
+      _selectedQuestions.remove(question['id']);
+    });
+  }
+
+  Future<void> _exportPdf({required bool isTeacherVersion}) async {
+    final pdf = pw.Document();
+    pdf.addPage(pw.Page(
+      build: (pw.Context context) {
+        return pw.Center(child: pw.Text('导出PDF功能，教师版: $isTeacherVersion'));
+      },
+    ));
+    final output = await getTemporaryDirectory();
+    final file = File("${output.path}/export.pdf");
+    await file.writeAsBytes(await pdf.save());
+    OpenFile.open(file.path);
+  }
+}

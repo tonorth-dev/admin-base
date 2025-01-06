@@ -654,7 +654,8 @@ class BookLogic extends GetxController {
   }
 
   final GlobalKey<SuggestionTextFieldState> topicTextFieldKey = GlobalKey<SuggestionTextFieldState>();
-  Rx<String> newTopicId = "0".obs;
+  Rx<int> newTopicId = 0.obs;
+  final Map<String, String?> _selectedQuestions = {};
 
   Future<List<Map<String, dynamic>>> fetchTopics(String query) async {
     print("query:$query");
@@ -665,14 +666,13 @@ class BookLogic extends GetxController {
         "keyword": query ?? "",
       });
       var data = response['list'];
-      print("response: $data");
       // 检查数据是否为 List
       if (data is List) {
         final List<Map<String, dynamic>> suggestions = data.map((item) {
           // 检查每个 item 是否包含 'name' 和 'id' 字段
-          if (item is Map && item.containsKey('name') && item.containsKey('id')) {
+          if (item is Map && item.containsKey('title') && item.containsKey('id')) {
             return {
-              'name': item['name'],
+              'name': "${item['title'].length > 15 ? item['title'].substring(0, 15) + '...' : item['title']}（${item['id'].toString()}）",
               'id': item['id'].toString(),
             };
           } else {
@@ -692,9 +692,9 @@ class BookLogic extends GetxController {
     }
   }
 
-  Future<dynamic> changeTopic(question, String? selectedQuestion) async {
+  Future<dynamic> changeTopic(int question, int selectedQuestion) async {
     try {
-
+        print("question:$question, selectedQuestion:$selectedQuestion");
     } catch (e) {
       print('Error in updateDirectory: $e');
       rethrow; // 重新抛出异常以便调用者处理
