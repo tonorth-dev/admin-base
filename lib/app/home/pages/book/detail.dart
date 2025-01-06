@@ -144,6 +144,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   }
 
   List<Widget> _buildTables() {
+    key: ValueKey(_data.hashCode);
     final questionsDesc = _data?['questions_desc'] as List?;
     if (questionsDesc == null || questionsDesc.isEmpty) return [];
 
@@ -222,21 +223,28 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   }
 
   Future<void> _onChangeButtonPressed(dynamic question) async {
+    _selectedQuestions = {};
+    logic.newTopicId.value = 0;
     setState(() {
       _selectedQuestions[question['id']] = null;
     });
 
     await Get.defaultDialog(
       title: "更换题目",
+      titleStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      // 设置标题样式
       content: Container(
-        width: 1000,
-        height: 400,
+        width: 500, // 调整宽度以适应不同屏幕尺寸
+        height: 300, // 减小高度，使对话框更紧凑
+        padding: EdgeInsets.all(20), // 增加内边距以提供更好的视觉效果
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             SuggestionTextField(
-              width: 200,
-              height: 34,
+              width: double.infinity,
+              // 让输入框占据整个宽度
+              height: 40,
+              // 增加输入框的高度
               labelText: '筛选题目',
               hintText: '输入题目标题或ID',
               key: logic.topicTextFieldKey,
@@ -261,11 +269,25 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           ],
         ),
       ),
-      onCancel: () => _onPopCancelButtonPressed(question),
+      textCancel: "取消",
+      // 将取消按钮文本改为中文
+      textConfirm: "确定",
+      // 将确认按钮文本改为中文
+      // buttonColor: Colors.red,
+      // 设置按钮背景颜色
+      confirmTextColor: Colors.white,
+      // 设置确认按钮文本颜色
+      cancelTextColor: Colors.black,
+      // 设置取消按钮文本颜色
+      radius: 2,
+      // 设置对话框圆角半径
+      barrierDismissible: false,
+      // 点击外部不可关闭对话框
       onConfirm: () async {
         final newQuestionId = logic.newTopicId.value;
         await _onPopSaveButtonPressed(question, newQuestionId);
       },
+      onCancel: () => _onPopCancelButtonPressed(question),
     );
   }
 
@@ -278,8 +300,6 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
       Get.back();
       return;
     }
-
-    _selectedQuestions[question['id']] = newId;
     var response = await TopicApi.topicDetail(newId.toString());
     setState(() {
       // 更新数据源中的题目信息（假设 _data 中 questions_desc 是可变的）
@@ -291,7 +311,6 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
             if (list != null) {
               for (var item in list) {
                 if (item['id'] == question['id']) {
-                  item['id'] = newId; // 更新 ID
                   item['title'] = response["title"];
                   item['answer'] = response["answer"];
                 }
@@ -301,48 +320,86 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
         }
       }
     });
-    logic.newTopicId.value = 0;
+    _selectedQuestions[question['id']] = newId;
     Get.back();
   }
 
   Future<void> _onPopCancelButtonPressed(dynamic question) async {
     setState(() {
-      _selectedQuestions.remove(question['id']);
+      _selectedQuestions = {};
     });
     logic.newTopicId.value = 0;
   }
 
-  Future<void> _onSaveButtonPressed(
-      int bookID, dynamic question, int newId) async {
+  Future<void> _onSaveButtonPressed(int bookID, dynamic question, int newId) async {
     try {
       await logic.changeTopic(bookID, question['id'], newId);
+      "换题成功".toHint();
     } catch (e) {
       "换题失败：$e".toHint();
     }
+    await _refreshTable();
     setState(() {
-      _selectedQuestions.remove(question['id']);
+      _selectedQuestions = {};
     });
   }
 
-  void _onCancelButtonPressed(dynamic question) {
+  Future<void> _refreshTable() async {
+    try {
+      final data = await _fetchQuestionDetail(widget.id);
+
+      setState(() {
+        _data = data; // 更新为新数据
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = "加载失败：$e";
+      });
+    }
+  }
+
+  Future<void> _onCancelButtonPressed(dynamic question) async {
+    _selectedQuestions = {};
+    logic.newTopicId.value = 0;
     setState(() {
-      _selectedQuestions.remove(question['id']);
+      _selectedQuestions = {};
+      _data = null; // 清空当前数据
     });
+    await _refreshTable();
   }
 
   Widget _buildChangeOrSaveButton(Map<String, dynamic> question) {
     final isEditing = _selectedQuestions.containsKey(question['id']);
 
     if (isEditing) {
-      return Row(
+      return Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           ElevatedButton(
-            onPressed: () => _onSaveButtonPressed(widget.id, 0, 0),
+            onPressed: () =>
+                _onSaveButtonPressed(
+                    widget.id, question, logic.newTopicId.value),
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: Colors.red, // 设置文本颜色为白色
+              minimumSize: Size(80, 40), // 设置最小宽度和高度，使按钮更方
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8), // 边缘圆角半径，值越小越接近方形
+              ),
+            ),
             child: Text('保存'),
           ),
+          SizedBox(height: 10),
           ElevatedButton(
             onPressed: () => _onCancelButtonPressed(question),
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.white, // 设置背景颜色为红色
+              backgroundColor: Colors.grey, // 设置文本颜色为白色
+              minimumSize: Size(80, 40), // 设置最小宽度和高度，使按钮更方
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8), // 边缘圆角半径，值越小越接近方形
+              ),
+            ),
             child: Text('取消'),
           ),
         ],
@@ -350,21 +407,59 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     } else {
       return ElevatedButton(
         onPressed: () => _onChangeButtonPressed(question),
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.white, // 设置背景颜色为蓝色
+          backgroundColor: Colors.blue, // 设置文本颜色为白色
+          minimumSize: Size(80, 40), // 设置最小宽度和高度，使按钮更方
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8), // 边缘圆角半径，值越小越接近方形
+          ),
+        ),
         child: Text('换题'),
       );
     }
   }
 
   Future<void> _exportPdf({required bool isTeacherVersion}) async {
-    final pdf = pw.Document();
-    pdf.addPage(pw.Page(
-      build: (pw.Context context) {
-        return pw.Center(child: pw.Text('导出PDF功能，教师版: $isTeacherVersion'));
-      },
-    ));
-    final output = await getTemporaryDirectory();
-    final file = File("${output.path}/export.pdf");
-    await file.writeAsBytes(await pdf.save());
-    OpenFile.open(file.path);
+    try {
+      // 调用 generateBookData 方法
+      final response = await BookApi.generateBook(widget.id, isTeacher: isTeacherVersion);
+
+      // 检查响应状态码
+      if (!response['url'].isEmpty) {
+        // 获取 PDF 文件的 URL
+        final pdfUrl = "${ConfigUtil.ossUrl}:${ConfigUtil.ossPort}${ConfigUtil.ossPrefix}${response['url']}";
+
+        // 下载 PDF 文件
+        await _downloadAndOpenPdf(pdfUrl);
+      } else {
+        throw Exception('Failed to generate PDF: ${response['msg']}');
+      }
+    } catch (e) {
+      print('Error in _exportPdf: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('导出失败：$e')),
+      );
+    }
+  }
+
+  Future<void> _downloadAndOpenPdf(String pdfUrl) async {
+    try {
+      // 获取应用的临时目录
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath = '${directory.path}/output.pdf';
+
+      // 使用 Dio 下载文件
+      final dio = Dio();
+      await dio.download(pdfUrl, filePath);
+
+      // 打开下载的 PDF 文件
+      await OpenFile.open(filePath);
+    } catch (e) {
+      print('Error in _downloadAndOpenPdf: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('下载或打开文件失败：$e')),
+      );
+    }
   }
 }

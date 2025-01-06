@@ -1,8 +1,11 @@
 import 'dart:typed_data';
+import 'package:get/get.dart' as get_c;
+import 'package:get/get_core/src/get_main.dart';
 import 'package:admin_flutter/common/app_data.dart';
 import 'package:admin_flutter/ex/ex_hint.dart';
 import 'package:dio/dio.dart';
 
+import '../app/login/view.dart';
 import 'config_util.dart';
 
 class HttpUtil {
@@ -33,7 +36,7 @@ class HttpUtil {
     var map = await header();
     Response response = await dio.get(url,
         queryParameters: params, options: Options(headers: map));
-    return verify(response.data, showMsg);
+    return await verify(response.data, showMsg);
   }
 
   static Future<dynamic> post(String url,
@@ -42,7 +45,7 @@ class HttpUtil {
     Response response = await dio.post(url,
         data: params,
         options: Options(contentType: Headers.jsonContentType, headers: map));
-    return verify(response.data, showMsg);
+    return await verify(response.data, showMsg);
   }
 
   static Future<dynamic> put(String url,
@@ -51,7 +54,7 @@ class HttpUtil {
     Response response = await dio.put(url,
         data: params,
         options: Options(contentType: Headers.jsonContentType, headers: map));
-    return verify(response.data, showMsg);
+    return await verify(response.data, showMsg);
   }
 
   static Future<dynamic> delete(String url,
@@ -59,7 +62,7 @@ class HttpUtil {
     var map = await header();
     Response response = await dio.delete(url,
         queryParameters: params, options: Options(headers: map));
-    return verify(response.data, showMsg);
+    return await verify(response.data, showMsg);
   }
 
   /// 全局请求头
@@ -71,7 +74,7 @@ class HttpUtil {
   /// 上传文件处理
   static Future<dynamic> uploadByte(String url, Uint8List file, String name,
       {bool showMsg = true,
-      Function(int count, int total)? onSendProgress}) async {
+        Function(int count, int total)? onSendProgress}) async {
     var map = await header();
     var formData = FormData.fromMap({
       "file": MultipartFile.fromBytes(file, filename: name),
@@ -80,12 +83,12 @@ class HttpUtil {
         data: formData,
         options: Options(headers: map),
         onSendProgress: onSendProgress);
-    return verify(response.data, showMsg);
+    return await verify(response.data, showMsg);
   }
 
   static Future<dynamic> uploadFile(String url, FormData formData,
       {bool showMsg = true,
-      Function(int count, int total)? onSendProgress}) async {
+        Function(int count, int total)? onSendProgress}) async {
     var map = await header(); // 假设 header() 是一个返回请求头的方法
 
     Response response = await dio.post(
@@ -95,11 +98,18 @@ class HttpUtil {
       onSendProgress: onSendProgress,
     );
 
-    return verify(response.data, showMsg); // 假设 verify() 是一个验证响应的方法
+    return await verify(response.data, showMsg); // 假设 verify() 是一个验证响应的方法
   }
 
   /// 验证结果
-  static dynamic verify(dynamic data, bool showMsg) {
+  static dynamic verify(dynamic data, bool showMsg) async {
+    if (data["code"] == 10) {
+      "登录已失效，需重新登录".toHint();
+      LoginData.clear();
+      await Future.delayed(Duration(milliseconds: 1000));
+      Get.offAll(() => LoginPage());
+      return Future.error("登录已失效，需重新登录");
+    }
     if (data["code"] == 0) {
       return data["data"];
     } else {

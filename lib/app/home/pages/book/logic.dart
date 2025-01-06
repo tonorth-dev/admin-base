@@ -694,7 +694,7 @@ class BookLogic extends GetxController {
 
   Future<dynamic> changeTopic(int bookId, int oldId, int newId) async {
     try {
-        BookApi.updateQuestions(bookId, {
+      await BookApi.updateQuestions(bookId, {
           "new_question_id" : newId,
           "old_question_id" : oldId,
         });
