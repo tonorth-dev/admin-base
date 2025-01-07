@@ -43,7 +43,7 @@ class _ExamPageState extends State<ExamPage> {
       child: Column(
         children: [
           Container(
-            height: 420,
+            height: 440,
             color: Color(0xFFF7F7F9),
             padding: EdgeInsets.all(16.0),
             child: Column(
@@ -61,9 +61,9 @@ class _ExamPageState extends State<ExamPage> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildInteractiveCardLeft("通过模板创建", 400, 320),
+                    _buildInteractiveCardLeft("通过模板创建", 400, 360),
                     SizedBox(width: 40),
-                    _buildInteractiveCardRight("生成试卷", 1000, 320),
+                    _buildInteractiveCardRight("生成试卷", 1000, 360),
                   ],
                 ),
               ],
@@ -321,13 +321,13 @@ class _ExamPageState extends State<ExamPage> {
         borderRadius: BorderRadius.circular(3.0),
         border: Border.all(color: Color(0xFFE6F0FF), width: 1),
       ),
-      padding: EdgeInsets.all(16.0),
+      padding: EdgeInsets.all(10.0),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(3.0),
         ),
-        padding: EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(10.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -349,31 +349,81 @@ class _ExamPageState extends State<ExamPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                SizedBox(width: 50),
+                SizedBox(width: 20),
                 SizedBox(
                   width: 120,
-                  // child: Column(
-                  //   crossAxisAlignment: CrossAxisAlignment.start,
-                  //   children: [
-                  //     CascadingDropdownField(
-                  //       width: 150,
-                  //       height: 34,
-                  //       hint1: '专业类目一',
-                  //       hint2: '专业类目二',
-                  //       hint3: '专业名称',
-                  //       level1Items: widget.logic.level1Items,
-                  //       level2Items: widget.logic.level2Items,
-                  //       level3Items: widget.logic.level3Items,
-                  //       selectedLevel1: widget.logic.majorSelectedLevel1,
-                  //       selectedLevel2: widget.logic.majorSelectedLevel2,
-                  //       selectedLevel3: widget.logic.majorSelectedLevel3,
-                  //       onChanged: (dynamic level1, dynamic level2, dynamic level3) {
-                  //         widget.logic.examSelectedMajorId.value = level3.toString();
-                  //       },
-                  //       axis: Axis.vertical,
-                  //     ),
-                  //   ],
-                  // ),
+                  child: DropdownField(
+                    items: widget.logic.questionLevel.toList(),
+                    hint: '选择难度',
+                    width: 120,
+                    // 注意：这里的宽度设置可能会使内容不能完全贴靠左边
+                    height: 34,
+                    onChanged: (dynamic newValue) {
+                      widget.logic.examSelectedQuestionLevel.value =
+                          newValue.toString();
+                      widget.logic.applyFilters();
+                    },
+                    selectedValue: widget.logic.examSelectedQuestionLevel,
+                  ),
+                ),
+                SizedBox(width: 40),
+                SizedBox(
+                  width: 220,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "题型数量：",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.black),
+                      ),
+                      Column(
+                        children: widget.logic.questionCate.map((item) {
+                          final selectValue = widget.logic.cateSelectedValues[item["id"]]!;
+                          print(item["id"]);
+                          print(selectValue);
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Row(
+                              children: [
+                                Text(
+                                  "${item['name']}：",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black),
+                                ),
+                                NumberInputWidget(
+                                  key: UniqueKey(),
+                                  hint: '',
+                                  selectedValue: selectValue,
+                                  width: 80,
+                                  height: 34,
+                                  onValueChanged: (value) {
+                                    final key = item['id'];
+                                    widget.logic.questionCate.value = widget
+                                        .logic.questionCate.value
+                                        .map((e) {
+                                      if (e['id'] == key) {
+                                        return {
+                                          ...e,
+                                          'value': value,
+                                        };
+                                      }
+                                      return e;
+                                    }).toList();
+                                  },
+                                ),
+                                SizedBox(width: 8),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  width: 120,
                   child: SuggestionTextField(
                     width: 120,
                     height: 34,
@@ -396,40 +446,6 @@ class _ExamPageState extends State<ExamPage> {
                       print(
                           "onChanged selectedInstitutionId value: ${widget.logic.selectedClassesId.value}");
                     },
-                  ),
-                ),
-                SizedBox(width: 48),
-                SizedBox(
-                  width: 120,
-                  child: DropdownField(
-                    items: widget.logic.questionCate.toList(),
-                    hint: '选择题型',
-                    width: 120,
-                    // 注意：这里的宽度设置可能会使内容不能完全贴靠左边
-                    height: 34,
-                    onChanged: (dynamic newValue) {
-                      widget.logic.examSelectedQuestionCate.value =
-                          newValue.toString();
-                      widget.logic.applyFilters();
-                    },
-                    selectedValue: widget.logic.examSelectedQuestionCate,
-                  ),
-                ),
-                SizedBox(width: 55),
-                SizedBox(
-                  width: 120,
-                  child: DropdownField(
-                    items: widget.logic.questionLevel.toList(),
-                    hint: '选择难度',
-                    width: 120,
-                    // 注意：这里的宽度设置可能会使内容不能完全贴靠左边
-                    height: 34,
-                    onChanged: (dynamic newValue) {
-                      widget.logic.examSelectedQuestionLevel.value =
-                          newValue.toString();
-                      widget.logic.applyFilters();
-                    },
-                    selectedValue: widget.logic.examSelectedQuestionLevel,
                   ),
                 ),
                 SizedBox(width: 66),
@@ -494,6 +510,7 @@ class _ExamPageState extends State<ExamPage> {
                   ),
                   child: Text("保存模板", style: TextStyle(color: Colors.white)), // 设置文本颜色为白色
                 ),
+                SizedBox(width: 50),
                 ElevatedButton(
                   onPressed: () async {
                     await widget.logic.saveExam();
@@ -623,48 +640,63 @@ class FollowHeader extends StatelessWidget {
     return Column(
       children: [
         Container(
-          height: 60,
+          height: 50,
           width: double.infinity,
           padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          // 添加一些内边距
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly, // 均匀分布各个项目
-            children: List.generate(5, (index) {
-              final titles = ['选择班级', '选择题型', '选择难度', '练习次数', '练习时间'];
-              return _buildItem(context, '${index + 1}', titles[index]);
-            }),
+            children: [
+              Flexible(
+                flex: 2, // "选择模板"占用更大的比例
+                child: _buildItem(
+                  context,
+                  '1',
+                  '选择模板',
+                  isFirst: true,
+                ),
+              ),
+              SizedBox(width: 8.0), // 添加间距
+              Expanded(
+                child: _buildItem(context, '2', '选择班级'),
+              ),
+              SizedBox(width: 8.0),
+              Expanded(
+                child: _buildItem(context, '3', '练习次数'),
+              ),
+              SizedBox(width: 8.0),
+              Expanded(
+                child: _buildItem(context, '4', '练习时间'),
+              ),
+            ],
           ),
         ),
       ],
     );
   }
 
-  Widget _buildItem(BuildContext context, String number, String title) {
-    return Expanded(
-      child: Container(
-        height: 60, // 根据需要调整高度
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: number == "1"
-                ? AssetImage(firstBackgroundImage)
-                : AssetImage(otherBackgroundImage),
-            fit: BoxFit.fitWidth, // 确保背景图完全覆盖容器
-          ),
-          borderRadius: BorderRadius.circular(8.0), // 圆角半径，根据需要调整
+  Widget _buildItem(BuildContext context, String number, String title, {bool isFirst = false}) {
+    return Container(
+      height: 60, // 固定高度，确保背景图尺寸一致
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage(isFirst ? firstBackgroundImage : otherBackgroundImage),
+          fit: BoxFit.cover, // 确保背景图按比例覆盖
         ),
-        child: Center(
-          child: Text(
-            "$number.$title",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.black87, // 确保文字颜色与背景对比度高
-              fontSize: 16,
-              fontFamily: 'PingFang SC',
-              fontWeight: FontWeight.w400,
-            ),
+        borderRadius: BorderRadius.circular(8.0), // 圆角半径
+      ),
+      child: Center(
+        child: Text(
+          "$number.$title",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.black87,
+            fontSize: 16,
+            fontFamily: 'PingFang SC',
+            fontWeight: FontWeight.w400,
           ),
         ),
       ),
     );
   }
 }
+
+
