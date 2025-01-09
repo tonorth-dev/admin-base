@@ -345,17 +345,16 @@ class _ExamPageState extends State<ExamPage> {
                 child: FollowHeader(),
               ),
             ]),
-            SizedBox(height: 16), // 增加间距
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                SizedBox(width: 20),
+                SizedBox(width: 10),
                 SizedBox(
-                  width: 120,
+                  width: 100,
                   child: DropdownField(
                     items: widget.logic.questionLevel.toList(),
                     hint: '选择难度',
-                    width: 120,
+                    width: 100,
                     // 注意：这里的宽度设置可能会使内容不能完全贴靠左边
                     height: 34,
                     onChanged: (dynamic newValue) {
@@ -366,62 +365,83 @@ class _ExamPageState extends State<ExamPage> {
                     selectedValue: widget.logic.examSelectedQuestionLevel,
                   ),
                 ),
-                SizedBox(width: 40),
+                SizedBox(width: 20),
                 SizedBox(
-                  width: 220,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  width: 260,
+                  child: Row(
                     children: [
-                      Text(
-                        "题型数量：",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.black),
-                      ),
-                      Column(
-                        children: widget.logic.questionCate.map((item) {
-                          final selectValue = widget.logic.cateSelectedValues[item["id"]]!;
-                          print(item["id"]);
-                          print(selectValue);
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Row(
-                              children: [
-                                Text(
-                                  "${item['name']}：",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black),
-                                ),
-                                NumberInputWidget(
-                                  key: UniqueKey(),
-                                  hint: '',
-                                  selectedValue: selectValue,
-                                  width: 80,
-                                  height: 34,
-                                  onValueChanged: (value) {
-                                    final key = item['id'];
-                                    widget.logic.questionCate.value = widget
-                                        .logic.questionCate.value
-                                        .map((e) {
-                                      if (e['id'] == key) {
-                                        return {
-                                          ...e,
-                                          'value': value,
-                                        };
-                                      }
-                                      return e;
-                                    }).toList();
-                                  },
-                                ),
-                                SizedBox(width: 8),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      ),
+                      for (int i = 0; i < widget.logic.questionCate.length; i += 3)
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: widget.logic.questionCate.sublist(
+                              i,
+                              i + 3 > widget.logic.questionCate.length ? widget.logic.questionCate.length : i + 3
+                          ).map((item) {
+                            final selectValue = widget.logic.cateSelectedValues[item["id"]]!;
+                            final TextEditingController controller = TextEditingController(text: selectValue.toString());
+                            final FocusNode focusNode = FocusNode();
+
+                            // Clear the text when the TextField gets focus.
+                            focusNode.addListener(() {
+                              if (focusNode.hasFocus) {
+                                controller.clear();
+                              }
+                            });
+
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    "${item['name']}：",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 40,
+                                    height: 34,
+                                    child: TextField(
+                                      focusNode: focusNode, // Attach the focus node to the TextField.
+                                      keyboardType: TextInputType.number,
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly,
+                                        LengthLimitingTextInputFormatter(2), // Limits the input length to 2 digits.
+                                      ],
+                                      controller: controller,
+                                      onChanged: (value) {
+                                        final key = item['id'];
+                                        final int newValue = int.tryParse(value) ?? 0;
+                                        widget.logic.questionCate.value = widget.logic.questionCate.value.map((e) {
+                                          if (e['id'] == key) {
+                                            return {
+                                              ...e,
+                                              'value': newValue.clamp(0, 99), // Ensure the value is within 0-99.
+                                            };
+                                          }
+                                          return e;
+                                        }).toList();
+                                        // Update the state or notify listeners if necessary.
+                                      },
+                                      decoration: InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        contentPadding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0), // Adjusted padding
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        )
                     ],
-                  ),
+                  )
                 ),
+                SizedBox(width: 10),
                 SizedBox(
                   width: 120,
                   child: SuggestionTextField(
