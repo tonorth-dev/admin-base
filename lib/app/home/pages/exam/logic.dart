@@ -527,6 +527,7 @@ class ExamLogic extends GetxController {
           "class_id": examSelectedClassIdSubmit,
           "level": examSelectedQuestionLevelSubmit,
           "question_count": examQuestionCountSubmit,
+          "components": examComponents,
           "start_time": convertToRFC3339(examStartTimeSubmit!), // 格式化时间为ISO 8601字符串
           "end_time": convertToRFC3339(examEndTimeSubmit!), // 格式化时间为ISO 8601字符串
         };
