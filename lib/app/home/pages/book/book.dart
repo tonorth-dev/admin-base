@@ -361,7 +361,7 @@ class _BookPageState extends State<BookPage> {
             Row(
               children: [
                 SizedBox(
-                  width: 240,
+                  width: 180,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -372,7 +372,7 @@ class _BookPageState extends State<BookPage> {
                       ),
                       SizedBox(height: 8),
                       TextInputWidget(
-                        width: 240,
+                        width: 180,
                         height: 34,
                         hint: "输入题本名称",
                         text: widget.logic.bookName,
@@ -384,7 +384,32 @@ class _BookPageState extends State<BookPage> {
                     ],
                   ),
                 ),
-                SizedBox(width: 120),
+                SizedBox(width: 40),
+                SizedBox(
+                  width: 180,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "问题标签：",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.black),
+                      ),
+                      SizedBox(height: 8),
+                      TextInputWidget(
+                        width: 180,
+                        height: 34,
+                        hint: "输入问题标签",
+                        text: widget.logic.bookTag,
+                        // 直接传递 RxString
+                        onTextChanged: (value) {
+                          widget.logic.bookTag.value = value; // 更新逻辑
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: 40),
                 SizedBox(
                   width: 500,
                   child: Column(
@@ -424,7 +449,7 @@ class _BookPageState extends State<BookPage> {
               runSpacing: 16,
               children: [
                 SizedBox(
-                  width: 550,
+                  width: 600,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -452,7 +477,7 @@ class _BookPageState extends State<BookPage> {
                                   key: UniqueKey(),
                                   hint: '',
                                   selectedValue: selectValue,
-                                  width: 80,
+                                  width: 70,
                                   height: 34,
                                   onValueChanged: (value) {
                                     final key = item['id'];
@@ -478,6 +503,7 @@ class _BookPageState extends State<BookPage> {
                     ],
                   ),
                 ),
+                SizedBox(width: 2),
                 SizedBox(
                   width: 200,
                   child: Column(

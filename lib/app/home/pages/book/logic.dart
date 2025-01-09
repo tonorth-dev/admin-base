@@ -61,6 +61,7 @@ class BookLogic extends GetxController {
   Rx<String> selectedMajorId = "0".obs;
 
   final bookName = ''.obs;
+  final bookTag = ''.obs;
   final bookQuestionCount = 0.obs;
   final bookSelectedMajorId = "0".obs;
   final bookSelectedQuestionCate = "".obs;
@@ -471,6 +472,7 @@ class BookLogic extends GetxController {
   Future<void> saveBook() async {
     // 生成题本的逻辑
     final bookNameSubmit = bookName.value;
+    final bookTagSubmit = bookTag.value;
     final int bookSelectedMajorIdSubmit = bookSelectedMajorId.value.toInt();
     final bookSelectedQuestionCateSubmit = bookSelectedQuestionCate.value;
     final bookSelectedQuestionLevelSubmit = bookSelectedQuestionLevel.value;
@@ -492,10 +494,10 @@ class BookLogic extends GetxController {
     //   isValid = false;
     //   errorMessage += "请选择题型\n";
     // }
-    if (bookSelectedQuestionLevelSubmit == null || bookSelectedQuestionLevelSubmit.isEmpty) {
-      isValid = false;
-      errorMessage += "请选择难度\n";
-    }
+    // if (bookSelectedQuestionLevelSubmit == null || bookSelectedQuestionLevelSubmit.isEmpty) {
+    //   isValid = false;
+    //   errorMessage += "请选择难度\n";
+    // }
     if (bookQuestionCountSubmit <= 0) {
       isValid = false;
       errorMessage += "生成套数必须大于0\n";
@@ -524,11 +526,11 @@ class BookLogic extends GetxController {
       try {
         Map<String, dynamic> params = {
           "name": bookNameSubmit,
+          "tag": bookTagSubmit,
           "major_id": bookSelectedMajorIdSubmit,
           "level": bookSelectedQuestionLevelSubmit,
           "component": components,
           "unit_number": bookQuestionCountSubmit,
-          "creator": "杜立东", //todo 从登录信息中获取
           "template_id": 1,
           "template_name": "demo",
         };
@@ -562,10 +564,10 @@ class BookLogic extends GetxController {
       isValid = false;
       errorMessage += "请选择专业\n";
     }
-    if (bookSelectedQuestionLevelSubmit == null || bookSelectedQuestionLevelSubmit.isEmpty) {
-      isValid = false;
-      errorMessage += "请选择难度\n";
-    }
+    // if (bookSelectedQuestionLevelSubmit == null || bookSelectedQuestionLevelSubmit.isEmpty) {
+    //   isValid = false;
+    //   errorMessage += "请选择难度\n";
+    // }
     if (bookQuestionCountSubmit <= 0) {
       isValid = false;
       errorMessage += "生成套数必须大于0\n";
@@ -598,7 +600,6 @@ class BookLogic extends GetxController {
           "level": bookSelectedQuestionLevelSubmit,
           "component": components,
           "unit_number": bookQuestionCountSubmit,
-          "creator": "杜立东", //todo 从登录信息中获取
           "template_id": 1,
           "template_name": "demo",
         };

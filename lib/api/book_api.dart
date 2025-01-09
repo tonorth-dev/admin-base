@@ -45,10 +45,8 @@ class BookApi {
       List<String> requiredFields = [
         'name',
         'major_id',
-        'level',
         'component',
         'unit_number',
-        'creator',
       ];
       for (var field in requiredFields) {
         if (!params.containsKey(field) || params[field] == null) {

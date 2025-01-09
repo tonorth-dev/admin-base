@@ -373,7 +373,7 @@ class _ExamPageState extends State<ExamPage> {
                       for (int i = 0; i < widget.logic.questionCate.length; i += 3)
                         Column(
                           mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start, // Ensure vertical alignment within the column
                           children: widget.logic.questionCate.sublist(
                               i,
                               i + 3 > widget.logic.questionCate.length ? widget.logic.questionCate.length : i + 3
@@ -386,6 +386,13 @@ class _ExamPageState extends State<ExamPage> {
                             focusNode.addListener(() {
                               if (focusNode.hasFocus) {
                                 controller.clear();
+                              } else {
+                                // Restore to 0 if the text is empty when losing focus.
+                                if (controller.text.isEmpty) {
+                                  controller.text = '0';
+                                  // Update the logic's selected value to 0.
+                                  widget.logic.cateSelectedValues[item["id"]] = 0.obs;
+                                }
                               }
                             });
 
@@ -393,6 +400,7 @@ class _ExamPageState extends State<ExamPage> {
                               padding: const EdgeInsets.symmetric(vertical: 8.0),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start, // Align TextField to the top vertically
                                 children: [
                                   Text(
                                     "${item['name']}：",
@@ -413,18 +421,28 @@ class _ExamPageState extends State<ExamPage> {
                                       ],
                                       controller: controller,
                                       onChanged: (value) {
-                                        final key = item['id'];
+                                        final key = item['id'].toString();
                                         final int newValue = int.tryParse(value) ?? 0;
-                                        widget.logic.questionCate.value = widget.logic.questionCate.value.map((e) {
-                                          if (e['id'] == key) {
-                                            return {
-                                              ...e,
-                                              'value': newValue.clamp(0, 99), // Ensure the value is within 0-99.
-                                            };
-                                          }
-                                          return e;
-                                        }).toList();
-                                        // Update the state or notify listeners if necessary.
+
+                                        // Ensure examQuestionCate is not null, if it is, initialize it
+                                        if (widget.logic.examQuestionCate.value == null) {
+                                          widget.logic.examQuestionCate.value = {};
+                                        }
+
+                                        // Update the specific item in the map
+                                        widget.logic.examQuestionCate.value = {
+                                          ...widget.logic.examQuestionCate.value!, // Use the spread operator on non-null value
+                                          key: {...widget.logic.examQuestionCate.value![key] ?? {}, 'value': newValue.clamp(0, 99)}
+                                        };
+
+                                        // Notify listeners of the change
+                                        widget.logic.examQuestionCate.notifyListeners();
+
+                                        // Optionally update the cateSelectedValues map as well
+                                        widget.logic.cateSelectedValues[key]?.value = newValue.clamp(0, 99);
+
+                                        // Debugging: Print the updated value for verification
+                                        print('Updated value for $key: ${widget.logic.examQuestionCate.value?[key]?['value']}');
                                       },
                                       decoration: InputDecoration(
                                         border: OutlineInputBorder(),

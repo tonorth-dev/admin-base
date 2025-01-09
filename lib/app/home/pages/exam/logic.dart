@@ -63,7 +63,7 @@ class ExamLogic extends GetxController {
   final examName = ''.obs;
   final examQuestionCount = 0.obs;
 
-  ValueNotifier<String?> examSelectedQuestionCate = ValueNotifier<String?>(null);
+  ValueNotifier<Map<String, dynamic>?> examQuestionCate = ValueNotifier<Map<String, dynamic>?>(null);
   ValueNotifier<String?> examSelectedQuestionLevel = ValueNotifier<String?>(null);
   final Map<String, RxInt> cateSelectedValues = {};
 
@@ -469,11 +469,13 @@ class ExamLogic extends GetxController {
     // 生成试卷的逻辑
     final examNameSubmit = examName.value;
     final examSelectedClassIdSubmit = int.parse(selectedClassesId.value);
-    final examSelectedQuestionCateSubmit = examSelectedQuestionCate.value;
     final examSelectedQuestionLevelSubmit = examSelectedQuestionLevel.value;
     final examQuestionCountSubmit = examQuestionCount.value;
     final examStartTimeSubmit = dateTimeControllerStart.time;
     final examEndTimeSubmit = dateTimeControllerEnd.time;
+    var examComponents = examQuestionCate.value;
+
+    print(examComponents);
 
     bool isValid = true;
     String errorMessage = "";
@@ -487,16 +489,6 @@ class ExamLogic extends GetxController {
     if (examSelectedClassIdSubmit == 0) {
       isValid = false;
       errorMessage += "请选择班级\n";
-    }
-
-    if (examSelectedQuestionCateSubmit== null || examSelectedQuestionCateSubmit.isEmpty) {
-      isValid = false;
-      errorMessage += "请选择题型\n";
-    }
-
-    if (examSelectedQuestionLevelSubmit == null || examSelectedQuestionLevelSubmit.isEmpty) {
-      isValid = false;
-      errorMessage += "请选择难度\n";
     }
 
     if (examQuestionCountSubmit <= 0) {
@@ -524,7 +516,6 @@ class ExamLogic extends GetxController {
       print("生成试卷：");
       print("试卷名称: $examNameSubmit");
       print("选择班级: $examSelectedClassIdSubmit");
-      print("选择题型: $examSelectedQuestionCateSubmit");
       print("选择难度: $examSelectedQuestionLevelSubmit");
       print("生成套数: $examQuestionCountSubmit");
       print("开始时间: $examStartTimeSubmit");
@@ -535,7 +526,6 @@ class ExamLogic extends GetxController {
           "name": examNameSubmit,
           "class_id": examSelectedClassIdSubmit,
           "level": examSelectedQuestionLevelSubmit,
-          "cate": examSelectedQuestionCateSubmit,
           "question_count": examQuestionCountSubmit,
           "start_time": convertToRFC3339(examStartTimeSubmit!), // 格式化时间为ISO 8601字符串
           "end_time": convertToRFC3339(examEndTimeSubmit!), // 格式化时间为ISO 8601字符串
@@ -587,7 +577,7 @@ class ExamLogic extends GetxController {
       examSelectedClassIdSubmit = int.parse(selectedClassesId.value);
     }
 
-    final examSelectedQuestionCateSubmit = examSelectedQuestionCate.value;
+    final examSelectedQuestionCateSubmit = examQuestionCate.value;
     final examSelectedQuestionLevelSubmit = examSelectedQuestionLevel.value;
     final examQuestionCountSubmit = examQuestionCount.value;
 
@@ -619,7 +609,7 @@ class ExamLogic extends GetxController {
     if (isValid) {
       // 提交表单
       print("生成模板：");
-      print("选择题型: $examSelectedQuestionCate");
+      print("选择题型: $examQuestionCate");
       print("选择难度: $examSelectedQuestionLevel");
       print("生成套数: $examQuestionCount");
       try {
@@ -655,7 +645,7 @@ class ExamLogic extends GetxController {
       "name": item['class_name'],
     };
     examSelectedQuestionLevel.value = item['level'];
-    examSelectedQuestionCate.value = item['cate'];
+    examQuestionCate.value = item['cate'];
     examQuestionCount.value = item['question_count'];
 
     // 更新题型数量
